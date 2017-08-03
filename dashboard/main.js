@@ -63,12 +63,35 @@ $(function() {
     handleSubmitButton();
     handleAdminMode();
 
+
 });
 
 $.ajaxSetup({
    type: 'POST',
    timeout: 15000,
 });
+
+function faviconProgress(pct) {
+    // requires commenting out the link rel
+    // for the favicon in index.html
+    // call as: faviconProgress(1);
+    var canvas = document.createElement('canvas');
+    canvas.width = 700;canvas.height = 660;
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.src = 'images/workflowtransparent.png';
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0);
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 400px sans-serif';
+        ctx.fillText(pct+"%", 0, 500);
+        var link = document.createElement('link');
+        link.type = 'image/x-icon';
+        link.rel = 'shortcut icon';
+        link.href = canvas.toDataURL("image/x-icon");
+        document.getElementsByTagName('head')[0].appendChild(link);
+    }
+}
 
 function handleSubmitButton() {
     $('.submitButton').click(function (e) {
