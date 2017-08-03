@@ -1,8 +1,4 @@
-# ProjectMetis
-
 <img src="http://i.imgur.com/oYKKgyW.png" width="400">
-
-Project details can be found [here](https://docs.google.com/document/d/14XvQRZpccxQ82PWhWLuY8GnHm2fv7orn4wvvxytuQKU/edit).
 
 As an overview, ProjectMetis seeks to host the following functionality:
 * Ability to create arbitrary tasks with defined inputs and outputs using Python
@@ -25,26 +21,6 @@ In the process of fulfilling the above, ProjetMetis exposes some nice standalone
 ## Installation and Setup
 0. Checkout this repository
 1. Set up environment via `source setup.sh`. Note that this doesn't overwrite an existing CMSSW environment if you already have one
-
-## TODO
-* SNTSample in principle allows anyone to update the sample on DIS. We don't want this for "central" samples, so rework this
-* We have all the ingredients to replicate CRAB submission/status functionality, so do it
-* Add more TODOs
-
-## Run
-
-## Test
-Unit tests will be written in `test/` following the convention of appending `_t.py` to the class which it tests.
-Workflow tests will also be written in `test/` following the convention of prepending `test_` to the name, e.g., `test_DummyMoveWorkflow.py`.
-
-To run all unit tests, execute the following from this project directory:
-`python -m unittest discover -p "*_t.py"`
-
-To run all workflow tests, execute:
-`python -m unittest discover -p "test_*.py"`
-
-To run all tests, execute:
-`python -m unittest discover -s test -p "*.py"`
 
 ## Example
 To submit CMS4 jobs on a dataset, literally just need the dataset name, a pset, and a tarred up CMSSW environment.
@@ -94,3 +70,21 @@ if __name__ == "__main__":
     # Since everything is backed up, totally OK to Ctrl+C and pick up later
 ```
 
+
+## Unit tests
+Unit tests will be written in `test/` following the convention of appending `_t.py` to the class which it tests.
+Workflow tests will also be written in `test/` following the convention of prepending `test_` to the name, e.g., `test_DummyMoveWorkflow.py`.
+
+To run all unit tests, execute the following from this project directory:
+`python -m unittest discover -p "*_t.py"`
+
+To run all workflow tests, execute:
+`python -m unittest discover -p "test_*.py"`
+
+To run all tests, execute:
+`python -m unittest discover -s test -p "*.py"`
+
+## TODO
+* SNTSample in principle allows anyone to update the sample on DIS. We don't want this for "central" samples, so rework this
+* We have all the ingredients to replicate CRAB submission/status functionality, so do it
+* Add more TODOs
