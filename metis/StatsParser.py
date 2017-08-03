@@ -207,7 +207,9 @@ class StatsParser(object):
 
         self.make_dashboard(d_web_summary)
 
-        self.logger.info("Updated dashboard at {0}".format(self.webdir))
+        relpath = self.webdir.split("public_html/")[1]
+        url = "http://{0}/~{1}/{2}".format(os.uname()[1],os.getenv("USER"),relpath)
+        self.logger.info("Updated dashboard at {0}".format(url))
                     
     def make_dashboard(self, d_web_summary):
 
@@ -220,4 +222,5 @@ class StatsParser(object):
 
 if __name__ == "__main__": 
     StatsParser().do()
+
 
