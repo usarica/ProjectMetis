@@ -30,38 +30,40 @@ import time
 from Sample import DBSSample
 from CMSSWTask import CMSSWTask
 
+def main():
+    task = CMSSWTask(
+            sample = DBSSample(
+                dataset="/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"
+            ),
+            open_dataset = False,
+            events_per_output = 450e3,
+            output_name = "merged_ntuple.root",
+            tag = "CMS4_V00-00-03",
+            global_tag = "",
+            pset = "pset_test.py",
+            pset_args = "data=True prompt=True",
+            cmssw_version = "CMSSW_9_2_1",
+            tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-03_workaround.tar.gz",
+            is_data = True,
+    )
+    
+    # Do pretty much everything
+    #  - get list of files (or new files that have appeared)
+    #  - chunk inputs to construct outputs
+    #  - submit jobs to condor
+    #  - resubmit jobs that fail
+    task.process()
+
+    # Get a nice json summary of files, event counts, 
+    # condor job resubmissions, log file locations, etc.
+    # and push it to a web area (with dashboard goodies)
+    StatsParser(data=total_summary, webdir="~/public_html/dump/metis_test/").do()
+
 if __name__ == "__main__":
 
     # Do stuff, sleep, do stuff, sleep, etc.
     for i in range(100):
-
-        task = CMSSWTask(
-                sample = DBSSample(
-                    dataset="/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"
-                ),
-                open_dataset = False,
-                events_per_output = 450e3,
-                output_name = "merged_ntuple.root",
-                tag = "CMS4_V00-00-03",
-                global_tag = "",
-                pset = "pset_test.py",
-                pset_args = "data=True prompt=True",
-                cmssw_version = "CMSSW_9_2_1",
-                tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-03_workaround.tar.gz",
-                is_data = True,
-        )
-        
-        # Do pretty much everything
-        #  - get list of files (or new files that have appeared)
-        #  - chunk inputs to construct outputs
-        #  - submit jobs to condor
-        #  - resubmit jobs that fail
-        task.process()
-
-        # Get a nice json summary of files, event counts, 
-        # condor job resubmissions, log file locations, etc.
-        # and push it to a web area (with dashboard goodies)
-        StatsParser(data=total_summary, webdir="~/public_html/dump/metis_test/").do()
+        main()
 
         # 1 hr power nap so we wake up refreshed
         # and ready to process some more data
