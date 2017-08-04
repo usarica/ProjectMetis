@@ -117,7 +117,7 @@ TimeReport> Time report complete in 10366.8 seconds
         self.assertEqual(LogParser.log_parser(self.outlog), correct)
 
     def test_infer_error(self):
-        self.assertEqual(LogParser.infer_error(self.errlog),"[FallbackFileOpenError] [c] Fatal Root Error: @SUB=TStorageFactoryFile::Init, root://cmsxrootd.fnal.gov//store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/178/00000/B4EA24B5-D76B-E711-B724-02163E01A5D4.root failed to read the file type data.")
+        self.assertEqual(LogParser.infer_error(self.errlog),"[FallbackFileOpenError] Fallback Input file root://cmsxrootd.fnal.gov//store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/178/00000/B4EA24B5-D76B-E711-B724-02163E01A5D4.root also could not be opened., Original exception info is above; fallback exception info is below., [c] Fatal Root Error: @SUB=TStorageFactoryFile::Init, root://cmsxrootd.fnal.gov//store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/178/00000/B4EA24B5-D76B-E711-B724-02163E01A5D4.root failed to read the file type data.")
 
 
 

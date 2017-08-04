@@ -64,8 +64,8 @@ def infer_error(fname):
     if "----- Begin Fatal Exception" in data:
         exception = data.split("----- Begin Fatal Exception", 1)[-1].split("----- End Fatal Exception", 1)[0]
         exception_name = exception.split("An exception of category", 1)[-1].split()[0].replace("'","")
-        last_lines = ", ".join(map(lambda x: x.strip(), exception.strip().splitlines()[-2:]))
-        to_return = "[{0}] {1}".format(exception_name, last_lines[:300])
+        last_lines = ", ".join(map(lambda x: x.strip(), exception.strip().splitlines()[-4:]))
+        to_return = "[{0}] {1}".format(exception_name, last_lines[:500])
 
 
 
