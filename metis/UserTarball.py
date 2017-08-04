@@ -6,7 +6,6 @@
 import os
 import glob
 import tarfile
-import tempfile
 
 class UserTarball(object):
     """
@@ -23,7 +22,7 @@ class UserTarball(object):
         # self.logger = logger
         self.CMSSW_BASE = os.getenv("CMSSW_BASE")
         # self.logger.debug("Making tarball in %s" % name)
-        self.tarfile = tarfile.open(name=name , mode=mode, dereference=True)
+        self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
 
     def addFiles(self, userFiles=[]):
         """
@@ -38,7 +37,7 @@ class UserTarball(object):
         # Note that dataDirs are only looked-for and added under the src/ folder.
         # /data/ subdirs contain data files needed by the code
         # /interface/ subdirs contain C++ header files needed e.g. by ROOT6
-        dataDirs    = ['data','interface']
+        dataDirs = ['data', 'interface']
 
 
         # Tar up whole directories
@@ -54,7 +53,7 @@ class UserTarball(object):
         srcPath = os.path.join(self.CMSSW_BASE, 'src')
         for root, _, _ in os.walk(srcPath):
             if os.path.basename(root) in dataDirs:
-                directory = root.replace(srcPath,'src')
+                directory = root.replace(srcPath, 'src')
                 # self.logger.debug("Adding data directory %s to tarball" % root)
                 self.checkdirectory(root)
                 self.tarfile.add(root, directory, recursive=True)
@@ -82,13 +81,13 @@ class UserTarball(object):
         return self.tarfile.close()
 
     def checkdirectory(self, dir_):
-        #checking for infinite symbolic link loop
+        # checking for infinite symbolic link loop
         try:
-            for root , _ , files in os.walk(dir_, followlinks = True):
+            for root, _, files in os.walk(dir_, followlinks=True):
                 for file_ in files:
-                    os.stat(os.path.join(root, file_ ))
+                    os.stat(os.path.join(root, file_))
         except OSError as msg:
-            raise Exception('Error: Infinite directory loop found in: %s \nStderr: %s' % (dir_ , msg))
+            raise Exception('Error: Infinite directory loop found in: %s \nStderr: %s' % (dir_, msg))
 
 
     def __getattr__(self, *args):

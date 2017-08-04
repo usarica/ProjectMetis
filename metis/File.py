@@ -1,8 +1,6 @@
 import os
-import time
 
 from Constants import Constants
-import Utils
 
 def is_data_by_filename(fname):
     """
@@ -22,7 +20,7 @@ class File(object):
         self.file_exists = None
 
         if self.basepath:
-            self.name = os.path.join(self.basepath,self.name)
+            self.name = os.path.join(self.basepath, self.name)
 
         if self.fake:
             self.set_fake()
@@ -33,9 +31,10 @@ class File(object):
             return "<File: {0}>".format(self.name)
         else:
             stat = "None"
-            if self.status: stat = Constants[self.status]
-            info = "name={},status={}".format(self.name,stat)
-            return "{}({})".format(self.__class__.__name__,info)
+            if self.status:
+                stat = Constants[self.status]
+            info = "name={},status={}".format(self.name, stat)
+            return "{}({})".format(self.__class__.__name__, info)
 
     def __eq__(self, other):
         if type(other) is str:
@@ -50,24 +49,24 @@ class File(object):
         return self.name
 
     def get_extension(self):
-        return self.name.rsplit(".",1)[-1]
+        return self.name.rsplit(".", 1)[-1]
 
     def get_basepath(self):
         if "/" in self.name:
-            return self.name.rsplit("/",1)[0]
+            return self.name.rsplit("/", 1)[0]
         else:
             return "."
 
     def get_basename(self):
-        return self.name.rsplit("/",1)[-1]
+        return self.name.rsplit("/", 1)[-1]
 
     def get_basename_noext(self):
-        return self.get_basename().rsplit(".",1)[0]
+        return self.get_basename().rsplit(".", 1)[0]
 
     def get_index(self):
         if "." in self.name:
-            noext = self.name.rsplit(".",1)[0]
-            index = int(noext.rsplit("_",1)[1])
+            noext = self.name.rsplit(".", 1)[0]
+            index = int(noext.rsplit("_", 1)[1])
             return index
         else:
             raise Exception("Can't extract index from {0}".format(self.get_name()))
@@ -82,7 +81,7 @@ class File(object):
         if self.file_exists in [None, False]:
             self.file_exists = os.path.exists(self.name)
         return self.file_exists
-    
+
     def recheck(self):
         self.file_exists = self.fake or os.path.exists(self.name)
 
@@ -116,7 +115,7 @@ class EventsFile(File):
 
         self.have_calculated_nevents_negative = False
 
-        super(self.__class__, self).__init__(name,**kwargs)
+        super(self.__class__, self).__init__(name, **kwargs)
 
     def get_nevents(self):
         return self.nevents
@@ -125,9 +124,11 @@ class EventsFile(File):
         return self.nevents - self.get_nevents_negative()
 
     def get_nevents_negative(self):
-        if self.fake: return self.nevents_negative
+        if self.fake:
+            return self.nevents_negative
         # some speedups
-        if is_data_by_filename(self.name): return 0
+        if is_data_by_filename(self.name):
+            return 0
         # NOTE what about LO samples?
 
         if not self.have_calculated_nevents_negative:
@@ -147,19 +148,21 @@ class EventsFile(File):
     def calculate_nevents_negative(self):
         self.nevents, self.nevents_negative = self.calculate()
 
-    def calculate(self,  treename="Events"):
+    def calculate(self, treename="Events"):
         """
         Return [nevents total, nevents negative]
         """
         import ROOT as r
 
         fin = r.TFile(self.name)
-        if not fin: raise Exception("File {0} does not exist, so cannot calculate nevents!".format(self.name))
+        if not fin:
+            raise Exception("File {0} does not exist, so cannot calculate nevents!".format(self.name))
 
         t = fin.Get(treename)
-        if not t: raise Exception("Tree {0} in file {1} does not exist, so cannot calculate nevents!".format(treename,self.name))
+        if not t:
+            raise Exception("Tree {0} in file {1} does not exist, so cannot calculate nevents!".format(treename, self.name))
         d_nevts = {}
-        for do_negative in [True,False]:
+        for do_negative in [True, False]:
             key = "nevts_neg" if do_negative else "nevts"
             obj = t.GetUserInfo()
             if obj and obj.FindObject(key):
@@ -173,7 +176,7 @@ class EventsFile(File):
 
 
     def __repr__(self):
-        return "<File {0}: {1} events>".format(self.name,self.nevents)
+        return "<File {0}: {1} events>".format(self.name, self.nevents)
         # return "<File (.../){0}: {1} events>".format(self.get_basename(),self.nevents)
 
 class FileDBS(File):
@@ -182,7 +185,7 @@ class FileDBS(File):
         self.nevents = kwargs.get("nevents", 0.)
         self.filesizeGB = kwargs.get("filesizeGB", 0.)
 
-        super(self.__class__, self).__init__(name,**kwargs)
+        super(self.__class__, self).__init__(name, **kwargs)
 
     def get_nevents(self):
         return self.nevents
@@ -191,7 +194,7 @@ class FileDBS(File):
         return self.filesizeGB
 
     def __repr__(self):
-        return "<File {0}: {1} events, {2:.2f}GB>".format(self.name,self.nevents, self.filesizeGB)
+        return "<File {0}: {1} events, {2:.2f}GB>".format(self.name, self.nevents, self.filesizeGB)
 
 if __name__ == '__main__':
     pass

@@ -1,12 +1,9 @@
-import commands
 import os
 import time
-import pickle
-import json
 
 from Constants import Constants
 from Task import Task
-from File import File, EventsFile
+from File import EventsFile
 import Utils
 
 class CondorTask(Task):
@@ -26,14 +23,14 @@ class CondorTask(Task):
         self.open_dataset = kwargs.get("open_dataset", False)
         self.events_per_output = kwargs.get("events_per_output", -1)
         self.files_per_output = kwargs.get("files_per_output", -1)
-        self.output_name = kwargs.get("output_name","output.root")
-        self.arguments = kwargs.get("arguments","output.root")
+        self.output_name = kwargs.get("output_name", "output.root")
+        self.arguments = kwargs.get("arguments", "output.root")
         # self.output_dir = kwargs.get("output_dir",None)
-        self.scram_arch = kwargs.get("scram_arch","slc6_amd64_gcc530")
-        self.tag = kwargs.get("tag","v0")
+        self.scram_arch = kwargs.get("scram_arch", "slc6_amd64_gcc530")
+        self.tag = kwargs.get("tag", "v0")
         self.global_tag = kwargs.get("global_tag")
         self.cmssw_version = kwargs.get("cmssw_version", None)
-        self.tarfile = kwargs.get("tarfile",None)
+        self.tarfile = kwargs.get("tarfile", None)
         # LHE, for example, might be large, and we want to use
         # skip events to process event chunks within files
         # in that case, we need events_per_output > 0 and total_nevents > 0
@@ -43,15 +40,15 @@ class CondorTask(Task):
         # If we have this attribute, then we must have gotten it from
         # a subclass (so use that executable instead of just bland condor exe)
         if not hasattr(self, "input_executable"):
-            self.input_executable = kwargs.get("executable", self.get_metis_base()+"metis/executables/condor_skim_exe.sh")
+            self.input_executable = kwargs.get("executable", self.get_metis_base() + "metis/executables/condor_skim_exe.sh")
 
-        self.read_only = kwargs.get("read_only",False)
+        self.read_only = kwargs.get("read_only", False)
         special_dir = kwargs.get("special_dir", "ProjectMetis")
 
         # If we didn't get an output directory, use the canonical format. E.g.,
         #   /hadoop/cms/store/user/namin/ProjectMetis/MET_Run2017A-PromptReco-v2_MINIAOD_CMS4_V00-00-03
-        hadoop_user = os.environ.get("USER") # NOTE, might be different for some weird folks
-        self.output_dir = "/hadoop/cms/store/user/{0}/{1}/{2}_{3}/".format(hadoop_user,special_dir,self.sample.get_datasetname().replace("/","_")[1:],self.tag)
+        hadoop_user = os.environ.get("USER")  # NOTE, might be different for some weird folks
+        self.output_dir = "/hadoop/cms/store/user/{0}/{1}/{2}_{3}/".format(hadoop_user, special_dir, self.sample.get_datasetname().replace("/", "_")[1:], self.tag)
 
         # I/O mapping (many-to-one as described above)
         self.io_mapping = []
@@ -62,7 +59,7 @@ class CondorTask(Task):
         self.queried_nevents = 0
 
         # Make a unique name from this task for pickling purposes
-        self.unique_name = kwargs.get("unique_name", "{0}_{1}_{2}".format(self.get_task_name(),self.sample.get_datasetname().replace("/","_")[1:],self.tag))
+        self.unique_name = kwargs.get("unique_name", "{0}_{1}_{2}".format(self.get_task_name(), self.sample.get_datasetname().replace("/", "_")[1:], self.tag))
 
         # Pass all of the kwargs to the parent class
         super(CondorTask, self).__init__(**kwargs)
@@ -76,9 +73,9 @@ class CondorTask(Task):
 
     def info_to_backup(self):
         # Declare which variables we want to backup to avoid recalculation
-        return ["io_mapping","executable_path",\
-                     "package_path","prepared_inputs", \
-                     "job_submission_history","global_tag","queried_nevents"]
+        return ["io_mapping", "executable_path",
+                "package_path", "prepared_inputs",
+                "job_submission_history", "global_tag", "queried_nevents"]
 
 
     def handle_done_output(self, out):
@@ -95,15 +92,15 @@ class CondorTask(Task):
     def get_inputs_for_output(self, output):
         """
         Takes either a File object or a filename
-        and returns the list of inputs in io_mapping 
+        and returns the list of inputs in io_mapping
         corresponding to that output
         """
-        for inps,out in self.io_mapping:
+        for inps, out in self.io_mapping:
             if type(output) == str:
                 if os.path.normpath(output) == os.path.normpath(out.get_name()):
                     return inps
             else:
-                if out == output: 
+                if out == output:
                     return inps
         return output
 
@@ -113,22 +110,22 @@ class CondorTask(Task):
         """
 
         # get set of filenames from File objects that have already been mapped
-        already_mapped_inputs = set(map(lambda x: x.get_name(),self.get_inputs(flatten=True)))
-        already_mapped_outputs = map(lambda x: x.get_index(),self.get_outputs())
+        already_mapped_inputs = set(map(lambda x: x.get_name(), self.get_inputs(flatten=True)))
+        already_mapped_outputs = map(lambda x: x.get_index(), self.get_outputs())
         nextidx = 1
         if already_mapped_outputs:
-            nextidx = max(already_mapped_outputs)+1
-        original_nextidx = nextidx+0
+            nextidx = max(already_mapped_outputs) + 1
+        original_nextidx = nextidx + 0
         # if dataset is "closed" and we already have some inputs, then
         # don't bother doing get_files() again (wastes a DBS query)
         if (len(already_mapped_inputs) > 0 and not self.open_dataset):
-            files  = []
+            files = []
         else:
             files = [f for f in self.sample.get_files() if f.get_name() not in already_mapped_inputs]
             self.queried_nevents = self.sample.get_nevents()
 
         flush = (not self.open_dataset) or flush
-        prefix, suffix = self.output_name.rsplit(".",1)
+        prefix, suffix = self.output_name.rsplit(".", 1)
         if self.split_within_files:
             if self.total_nevents < 1 or self.events_per_output < 1:
                 raise Exception("If splitting within files (presumably for LHE), need to specify total_nevents and events_per_output")
@@ -142,15 +139,16 @@ class CondorTask(Task):
             chunks = override_chunks
             leftoverchunk = []
         for chunk in chunks:
-            if not chunk: continue
-            output_path = "{0}/{1}_{2}.{3}".format(self.get_outputdir(),prefix,nextidx,suffix)
+            if not chunk:
+                continue
+            output_path = "{0}/{1}_{2}.{3}".format(self.get_outputdir(), prefix, nextidx, suffix)
             output_file = EventsFile(output_path)
             nevents_in_output = sum(map(lambda x: x.get_nevents(), chunk))
             output_file.set_nevents(nevents_in_output)
             self.io_mapping.append([chunk, output_file])
             nextidx += 1
-        if (nextidx-original_nextidx > 0):
-            self.logger.info("Updated mapping to have {0} more entries".format(nextidx-original_nextidx))
+        if (nextidx - original_nextidx > 0):
+            self.logger.info("Updated mapping to have {0} more entries".format(nextidx - original_nextidx))
 
     def flush(self):
         """
@@ -182,8 +180,10 @@ class CondorTask(Task):
         Return list of lists, but only list if flatten is True
         """
         ret = [x[0] for x in self.io_mapping]
-        if flatten: return sum(ret,[])
-        else: return ret
+        if flatten:
+            return sum(ret, [])
+        else:
+            return ret
 
     def get_completed_outputs(self):
         """
@@ -203,8 +203,10 @@ class CondorTask(Task):
         return_fraction specified as True
         """
         bools = map(lambda output: output.get_status() == Constants.DONE, self.get_outputs())
-        if len(bools) == 0: frac = 0.
-        else: frac = 1.0*sum(bools)/len(bools)
+        if len(bools) == 0:
+            frac = 0.
+        else:
+            frac = 1.0 * sum(bools) / len(bools)
         if return_fraction:
             return frac
         else:
@@ -223,8 +225,8 @@ class CondorTask(Task):
         for ins, out in self.io_mapping:
             # force a recheck to see if file exists or not
             # in case we delete it by hand to regenerate
-            out.recheck() 
-            index = out.get_index() # "merged_ntuple_42.root" --> 42
+            out.recheck()
+            index = out.get_index()  # "merged_ntuple_42.root" --> 42
             on_condor = index in condor_job_indices
             done = (out.exists() and not on_condor)
             if done:
@@ -238,7 +240,8 @@ class CondorTask(Task):
                 # Submit and keep a log of condor_ids for each output file that we've submitted
                 succeeded, cluster_id = self.submit_condor_job(ins, out, fake=fake)
                 if succeeded:
-                    if index not in self.job_submission_history: self.job_submission_history[index] = []
+                    if index not in self.job_submission_history:
+                        self.job_submission_history[index] = []
                     self.job_submission_history[index].append(cluster_id)
                     self.logger.info("Job for ({0}) submitted to {1}".format(out, cluster_id))
 
@@ -246,10 +249,10 @@ class CondorTask(Task):
                 this_job_dict = next(rj for rj in condor_job_dicts if int(rj["jobnum"]) == index)
                 cluster_id = this_job_dict["ClusterId"]
 
-                running = this_job_dict.get("JobStatus","I") == "R"
-                idle = this_job_dict.get("JobStatus","I") == "I"
-                held = this_job_dict.get("JobStatus","I") == "H"
-                hours_since = abs(time.time()-int(this_job_dict["EnteredCurrentStatus"]))/3600.
+                running = this_job_dict.get("JobStatus", "I") == "R"
+                idle = this_job_dict.get("JobStatus", "I") == "I"
+                held = this_job_dict.get("JobStatus", "I") == "H"
+                hours_since = abs(time.time() - int(this_job_dict["EnteredCurrentStatus"])) / 3600.
 
                 if running:
                     self.logger.debug("Job {0} for ({1}) running for {2:.1f} hrs".format(cluster_id, out, hours_since))
@@ -275,7 +278,8 @@ class CondorTask(Task):
         Backup
         """
         # set up condor input if it's the first time submitting
-        if not self.prepared_inputs: self.prepare_inputs()
+        if not self.prepared_inputs:
+            self.prepare_inputs()
 
         self.run(fake=fake)
 
@@ -295,36 +299,38 @@ class CondorTask(Task):
 
     def get_running_condor_jobs(self):
         """
-        Get list of dictionaries for condor jobs satisfying the 
+        Get list of dictionaries for condor jobs satisfying the
         classad given by the unique_name, requesting an extra
         column for the second classad that we submitted the job
         with (the job number)
         I.e., each task has the same taskname and each job
-        within a task has a unique job num corresponding to the 
+        within a task has a unique job num corresponding to the
         output file index
         """
-        return Utils.condor_q(selection_pairs=[["taskname",self.unique_name]], extra_columns=["jobnum"])
+        return Utils.condor_q(selection_pairs=[["taskname", self.unique_name]], extra_columns=["jobnum"])
 
 
     def submit_condor_job(self, ins, out, fake=False):
 
         outdir = self.output_dir
-        outname_noext = self.output_name.rsplit(".",1)[0]
+        outname_noext = self.output_name.rsplit(".", 1)[0]
         inputs_commasep = ",".join(map(lambda x: x.get_name(), ins))
         index = out.get_index()
         cmssw_ver = self.cmssw_version
         scramarch = self.scram_arch
         executable = self.executable_path
-        arguments = [ outdir, outname_noext, inputs_commasep,
-                index, cmssw_ver, scramarch, self.arguments ]
+        arguments = [outdir, outname_noext, inputs_commasep,
+                     index, cmssw_ver, scramarch, self.arguments]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full] if self.tarfile else []
         extra = self.kwargs.get("condor_submit_params", {})
-        return Utils.condor_submit(executable=executable, arguments=arguments,
-                inputfiles=input_files, logdir=logdir_full,
-                selection_pairs=[["taskname",self.unique_name],["jobnum",index]],
-                fake=fake, **extra)
+        return Utils.condor_submit(
+                    executable=executable, arguments=arguments,
+                    inputfiles=input_files, logdir=logdir_full,
+                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index]],
+                    fake=fake, **extra
+               )
 
 
     def prepare_inputs(self):
@@ -334,17 +340,17 @@ class CondorTask(Task):
         self.package_path = "{0}/package.tar.gz".format(self.get_taskdir())
 
         # take care of executable. easy.
-        Utils.do_cmd("cp {0} {1}".format(self.input_executable,self.executable_path))
+        Utils.do_cmd("cp {0} {1}".format(self.input_executable, self.executable_path))
 
         # take care of package tar file if we were told to. easy.
         if self.tarfile:
-            Utils.do_cmd("cp {0} {1}".format(self.tarfile,self.package_path))
+            Utils.do_cmd("cp {0} {1}".format(self.tarfile, self.package_path))
 
         self.prepared_inputs = True
 
     def supplement_task_summary(self, task_summary):
         """
-        To be overloaded by subclassers 
+        To be overloaded by subclassers
         This allows putting extra stuff into the task summary
         """
         return task_summary
@@ -383,7 +389,7 @@ class CondorTask(Task):
         """
 
         # full path to directory with condor log files
-        logdir_full = os.path.abspath("{0}/logs/std_logs/".format(self.get_taskdir()))+"/"
+        logdir_full = os.path.abspath("{0}/logs/std_logs/".format(self.get_taskdir())) + "/"
 
         # map from clusterid to condor dict
         d_oncondor = {}
@@ -392,30 +398,30 @@ class CondorTask(Task):
 
         # map from output index to historical list of clusterids
         d_history = self.get_job_submission_history()
-            
+
         # map from output index to summary dictionaries
         d_jobs = {}
         for ins, out in self.get_io_mapping():
             index = out.get_index()
             d_jobs[index] = {}
-            d_jobs[index]["output"] = [out.get_name(),out.get_nevents()]
+            d_jobs[index]["output"] = [out.get_name(), out.get_nevents()]
             d_jobs[index]["output_exists"] = out.exists()
-            d_jobs[index]["inputs"] = map(lambda x: [x.get_name(),x.get_nevents()], ins)
-            submission_history = d_history.get(index,[])
+            d_jobs[index]["inputs"] = map(lambda x: [x.get_name(), x.get_nevents()], ins)
+            submission_history = d_history.get(index, [])
             is_on_condor = False
             last_clusterid = -1
             if len(submission_history) > 0:
                 last_clusterid = submission_history[-1]
                 is_on_condor = last_clusterid in d_oncondor
-            d_jobs[index]["current_job"] = d_oncondor.get(last_clusterid,{})
+            d_jobs[index]["current_job"] = d_oncondor.get(last_clusterid, {})
             d_jobs[index]["is_on_condor"] = is_on_condor
             d_jobs[index]["condor_jobs"] = []
             for clusterid in submission_history:
                 d_job = {
                         "cluster_id": clusterid,
-                        "logfile_err": "{0}/1e.{1}.0.{2}".format(logdir_full,clusterid,"err"),
-                        "logfile_out": "{0}/1e.{1}.0.{2}".format(logdir_full,clusterid,"out"),
-                        }
+                        "logfile_err": "{0}/1e.{1}.0.{2}".format(logdir_full, clusterid, "err"),
+                        "logfile_out": "{0}/1e.{1}.0.{2}".format(logdir_full, clusterid, "out"),
+                }
                 d_jobs[index]["condor_jobs"].append(d_job)
 
         d_summary = {
@@ -427,7 +433,7 @@ class CondorTask(Task):
                 "global_tag": self.global_tag,
                 "cmssw_version": self.cmssw_version,
                 "executable": self.input_executable,
-                }
+        }
 
         d_summary = self.supplement_task_summary(d_summary)
         return d_summary

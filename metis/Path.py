@@ -1,6 +1,5 @@
 import logging
 
-from Task import Task
 from Utils import setup_logger
 
 class Path(object):
@@ -14,9 +13,9 @@ class Path(object):
         Path(Task_655D1B9D404EBE8F * Task_1EBBEA62464E08FE)
         """
         # tasks_str = " * ".join([t.get_task_name()+"_"+t.get_task_hash() for t in self.tasks])
-        tasks_str = "\n * \n".join(["\t"+str(t).replace("\n","\n\t") for t in self.tasks])
+        tasks_str = "\n * \n".join(["\t" + str(t).replace("\n", "\n\t") for t in self.tasks])
         # tasks_str = " * ".join([t.__repr__() for t in self.tasks])
-        return "{}(\n{}\n)".format(self.__class__.__name__,tasks_str)
+        return "{}(\n{}\n)".format(self.__class__.__name__, tasks_str)
 
     def __add__(self, other):
         return Path(self.tasks + other.get_tasks())
@@ -35,9 +34,9 @@ class Path(object):
         Compute dependencies of this path
         Very simple right now. For example, loops through
         task list in pairs and sets latter task requirement
-        to former task 
+        to former task
         """
-        for t1,t2 in zip(self.tasks, self.tasks[1:]):
+        for t1, t2 in zip(self.tasks, self.tasks[1:]):
             t2.set_requirements([t1])
 
     def process(self):
@@ -54,17 +53,17 @@ class Path(object):
 
     def complete(self):
         """
-        Returns simple boolean for total completion (by default, 
+        Returns simple boolean for total completion (by default,
         this is the completion status of the final task)
         """
         return self.tasks[-1].complete()
 
     def complete_list(self):
         """
-        Returns list of booleans for completion status of 
+        Returns list of booleans for completion status of
         each task in the path
         """
-        return map(lambda x:x.complete(), self.tasks)
+        return map(lambda x: x.complete(), self.tasks)
 
 
 

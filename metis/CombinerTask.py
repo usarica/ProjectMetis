@@ -1,14 +1,10 @@
-import commands
-import os
-
-from Constants import Constants
 from Task import Task
 from File import File
 
 class CombinerTask(Task):
     def __init__(self, **kwargs):
         # Handle whatever kwargs we want here
-        """ 
+        """
         We feed in input files and per the splitting parameters,
         this task takes care of grouping them into output files
         """
@@ -44,11 +40,11 @@ class CombinerTask(Task):
         num = 0
         chunk = []
         output_idx = len(self.io_mapping)
-        start_idx = 0 if not last_mapped_input else (self.inputs.index(last_mapped_input)+1)
+        start_idx = 0 if not last_mapped_input else (self.inputs.index(last_mapped_input) + 1)
         for inp in self.inputs[start_idx:]:
-            if num >= self.files_per_output: 
+            if num >= self.files_per_output:
                 # push in new chunk
-                self.io_mapping.append([chunk[:],[File(self.output_pattern.format(output_idx))]])
+                self.io_mapping.append([chunk[:], [File(self.output_pattern.format(output_idx))]])
                 # reset current chunk variables
                 output_idx += 1
                 num = 0
@@ -57,7 +53,7 @@ class CombinerTask(Task):
             num += 1
         # push remaining partial chunk if flush is True
         if (len(chunk) == self.files_per_output) or (flush and len(chunk) > 0):
-            self.io_mapping.append([chunk[:],[File(self.output_pattern.format(output_idx))]])
+            self.io_mapping.append([chunk[:], [File(self.output_pattern.format(output_idx))]])
 
     def process(self):
 
@@ -66,7 +62,7 @@ class CombinerTask(Task):
             if done:
                 self.logger.debug("This output ({0}) exists, skipping the processing".format(outs))
                 continue
-            self.logger.debug("would go from {0} --> {1}".format(ins,outs))
+            self.logger.debug("would go from {0} --> {1}".format(ins, outs))
             for out in outs:
                 # set the file as fake,
                 # so this basically forces its existence

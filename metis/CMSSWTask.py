@@ -1,13 +1,8 @@
-import commands
 import os
-import time
-import pickle
 import json
 
 from CondorTask import CondorTask
 from Constants import Constants
-from Task import Task
-from File import File, EventsFile
 import Utils
 
 class CMSSWTask(CondorTask):
@@ -15,28 +10,29 @@ class CMSSWTask(CondorTask):
 
         self.pset = kwargs.get("pset", None)
         self.pset_args = kwargs.get("pset_args", "print")
-        self.check_expectedevents = kwargs.get("check_expectedevents",True)
-        self.is_data = kwargs.get("is_data",False)
-        self.input_executable = kwargs.get("executable", self.get_metis_base()+"metis/executables/condor_cmssw_exe.sh")
+        self.check_expectedevents = kwargs.get("check_expectedevents", True)
+        self.is_data = kwargs.get("is_data", False)
+        self.input_executable = kwargs.get("executable", self.get_metis_base() + "metis/executables/condor_cmssw_exe.sh")
         self.output_is_tree = kwargs.get("is_tree_output", True)
         # Pass all of the kwargs to the parent class
         super(CMSSWTask, self).__init__(**kwargs)
 
         # If we didn't get a globaltag, use the one from DBS
         # NOTE: This is declared as something to backup and placed after the
-        # self.load() so that we don't spam get_globaltag() as it makes a 
+        # self.load() so that we don't spam get_globaltag() as it makes a
         # DIS query each time. Would be smarter to remove need to back up
         # and put maybe a caching decorator for the config query in the
         # SamplesDBS class!
         if not self.read_only:
-            if not self.global_tag: self.global_tag = self.sample.get_globaltag()
+            if not self.global_tag:
+                self.global_tag = self.sample.get_globaltag()
 
 
     def info_to_backup(self):
         # Declare which variables we want to backup to avoid recalculation
-        return ["io_mapping","executable_path","pset_path", \
-                     "package_path","prepared_inputs", \
-                     "job_submission_history","global_tag","queried_nevents"]
+        return ["io_mapping", "executable_path", "pset_path",
+                "package_path", "prepared_inputs",
+                "job_submission_history", "global_tag", "queried_nevents"]
 
     def handle_done_output(self, out):
         out.set_status(Constants.DONE)
@@ -61,7 +57,7 @@ class CMSSWTask(CondorTask):
     def submit_condor_job(self, ins, out, fake=False):
 
         outdir = self.output_dir
-        outname_noext = self.output_name.rsplit(".",1)[0]
+        outname_noext = self.output_name.rsplit(".", 1)[0]
         inputs_commasep = ",".join(map(lambda x: x.get_name(), ins))
         index = out.get_index()
         pset_full = os.path.abspath(self.pset_path)
@@ -73,22 +69,25 @@ class CMSSWTask(CondorTask):
         expectedevents = out.get_nevents() if self.check_expectedevents else -1
         if self.split_within_files:
             nevts = self.events_per_output
-            firstevt = 1+(index-1)*self.events_per_output
+            firstevt = 1 + (index - 1) * self.events_per_output
             expectedevents = -1
             inputs_commasep = "dummyfile"
         pset_args = self.pset_args
         executable = self.executable_path
         # note that pset_args must be the last argument since it can have spaces
         # check executables/condor_cmssw_exe.sh to see why
-        arguments = [ outdir, outname_noext, inputs_commasep,
-                index, pset_basename, cmssw_ver, scramarch, nevts, firstevt, expectedevents, pset_args ]
+        arguments = [outdir, outname_noext, inputs_commasep,
+                     index, pset_basename, cmssw_ver, scramarch,
+                     nevts, firstevt, expectedevents, pset_args]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
-        input_files = [package_full,pset_full] if self.tarfile else [pset_full]
-        return Utils.condor_submit(executable=executable, arguments=arguments,
-                inputfiles=input_files, logdir=logdir_full,
-                selection_pairs=[["taskname",self.unique_name],["jobnum",index]],
-                fake=fake)
+        input_files = [package_full, pset_full] if self.tarfile else [pset_full]
+        return Utils.condor_submit(
+                    executable=executable, arguments=arguments,
+                    inputfiles=input_files, logdir=logdir_full,
+                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index]],
+                    fake=fake
+               )
 
 
     def prepare_inputs(self):
@@ -99,17 +98,17 @@ class CMSSWTask(CondorTask):
         self.pset_path = "{0}/pset.py".format(self.get_taskdir())
 
         # take care of executable. easy.
-        Utils.do_cmd("cp {0} {1}".format(self.input_executable,self.executable_path))
+        Utils.do_cmd("cp {0} {1}".format(self.input_executable, self.executable_path))
 
         # add some stuff to end of pset (only tags and dataset name.
         # rest is done within the job in the executable)
         pset_location_in = self.pset
         pset_location_out = self.pset_path
-        with open(pset_location_in,"r") as fhin:
+        with open(pset_location_in, "r") as fhin:
             data_in = fhin.read()
-        with open(pset_location_out,"w") as fhin:
+        with open(pset_location_out, "w") as fhin:
             fhin.write(data_in)
-            fhin.write( """
+            fhin.write("""
 if hasattr(process,"eventMaker"):
     process.eventMaker.CMS3tag = cms.string('{tag}')
     process.eventMaker.datasetName = cms.string('{dsname}')
@@ -122,21 +121,20 @@ def set_output_name(outputname):
         if not hasattr(process,attr): continue
         if type(getattr(process,attr)) != cms.OutputModule: continue
         getattr(process,attr).fileName = outputname
-\n\n""".format(
-            tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag
-            ))
+\n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag)
+            )
 
         # for LHE where we want to split within files,
         # we specify all the files at once, and then shove them in the pset
         # later on we will then tell each job the number of events to process
         # and the first event to start with (firstEvent)
         if self.split_within_files:
-            fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","")) for fo in self.get_inputs(flatten=True)]
-            with open(pset_location_out,"a") as fhin:
+            fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms", "")) for fo in self.get_inputs(flatten=True)]
+            with open(pset_location_out, "a") as fhin:
                 fhin.write("\nprocess.source.fileNames = cms.untracked.vstring(\n{0}\n)\n\n".format(",\n".join(fnames)))
 
         # take care of package tar file. easy.
-        Utils.do_cmd("cp {0} {1}".format(self.tarfile,self.package_path))
+        Utils.do_cmd("cp {0} {1}".format(self.tarfile, self.package_path))
 
         self.prepared_inputs = True
 
@@ -147,11 +145,12 @@ def set_output_name(outputname):
         d_metadata["ijob_to_nevents"] = {}
         done_nevents = 0
         for ins, out in self.get_io_mapping():
-            if out.get_status() != Constants.DONE: continue
+            if out.get_status() != Constants.DONE:
+                continue
             d_metadata["ijob_to_miniaod"][out.get_index()] = map(lambda x: x.get_name(), ins)
             nevents = out.get_nevents()
             nevents_pos = out.get_nevents_positive() if self.output_is_tree else 0
-            nevents_eff = nevents_pos - (nevents-nevents_pos)
+            nevents_eff = nevents_pos - (nevents - nevents_pos)
             d_metadata["ijob_to_nevents"][out.get_index()] = [nevents, nevents_eff]
             done_nevents += out.get_nevents()
         d_metadata["basedir"] = os.path.abspath(self.get_basedir())
@@ -172,15 +171,15 @@ def set_output_name(outputname):
         return d_metadata
 
     def write_metadata(self, d_metadata):
-        metadata_file = d_metadata["finaldir"]+"/metadata.json"
+        metadata_file = d_metadata["finaldir"] + "/metadata.json"
         with open(metadata_file, "w") as fhout:
-            json.dump(d_metadata, fhout, sort_keys = True, indent = 4)
+            json.dump(d_metadata, fhout, sort_keys=True, indent=4)
         # self.logger.info("Dumped metadata to {0}".format(metadata_file))
         self.logger.info("Dumped metadata")
 
     def supplement_task_summary(self, task_summary):
         """
-        To be overloaded by subclassers 
+        To be overloaded by subclassers
         This allows putting extra stuff into the task summary
         """
         task_summary["pset"] = self.pset

@@ -1,4 +1,3 @@
-
 class Enum(object):
     class __metaclass__(type):
 
@@ -29,4 +28,3 @@ class Constants(Enum):
 
 if __name__ == "__main__":
     pass
-

@@ -1,9 +1,4 @@
-import commands
-import os
-
-from Constants import Constants
 from Task import Task
-from File import File
 
 class ConcurrentFailureMoveTask(Task):
     def __init__(self, **kwargs):
@@ -30,8 +25,10 @@ class ConcurrentFailureMoveTask(Task):
         Return list of lists, but only list if flatten is True
         """
         ret = [x[0] for x in self.io_mapping]
-        if flatten: return sum(ret,[])
-        else: return ret
+        if flatten:
+            return sum(ret, [])
+        else:
+            return ret
 
     def get_completed_outputs(self):
         """
@@ -44,8 +41,10 @@ class ConcurrentFailureMoveTask(Task):
         Return list of lists, but only list if flatten is True
         """
         ret = [x[1] for x in self.io_mapping]
-        if flatten: return sum(ret,[])
-        else: return ret
+        if flatten:
+            return sum(ret, [])
+        else:
+            return ret
 
     def complete(self, return_fraction=False):
         """
@@ -53,7 +52,7 @@ class ConcurrentFailureMoveTask(Task):
         return_fraction specified as True
         """
         bools = map(lambda output: output.exists(), self.get_outputs(flatten=True))
-        frac = 1.0*sum(bools)/len(bools)
+        frac = 1.0 * sum(bools) / len(bools)
         if return_fraction:
             return frac
         else:
@@ -69,8 +68,8 @@ class ConcurrentFailureMoveTask(Task):
         if type(inputs) != list or type(outputs) != list:
             raise ValueError("Must feed in lists for inputs and outputs")
 
-        if [inputs,outputs] not in self.io_mapping:
-            self.io_mapping.append([inputs,outputs])
+        if [inputs, outputs] not in self.io_mapping:
+            self.io_mapping.append([inputs, outputs])
         else:
             self.logger.debug("These inputs and outputs are already in io_mapping, so not extending the list")
 
@@ -85,7 +84,7 @@ class ConcurrentFailureMoveTask(Task):
             if done:
                 self.logger.debug("This output ({0}) exists, skipping the processing".format(outs))
                 continue
-            self.logger.debug("would go from {0} --> {1}".format(ins,outs))
+            self.logger.debug("would go from {0} --> {1}".format(ins, outs))
             for out in outs:
                 self.logger.debug("fake made {0}".format(out))
                 # set the file as fake,

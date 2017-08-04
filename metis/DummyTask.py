@@ -1,9 +1,4 @@
-import commands
-import os
-
-from Constants import Constants
 from Task import Task
-from File import File
 from Utils import do_cmd
 
 class DummyMoveTask(Task):
@@ -25,7 +20,7 @@ class DummyMoveTask(Task):
 
     def complete(self):
         bools = map(lambda output: output.exists(), self.get_outputs())
-        frac = 1.0*sum(bools)/len(bools)
+        frac = 1.0 * sum(bools) / len(bools)
         return frac >= self.min_completion_fraction
 
     def process(self):
@@ -33,7 +28,7 @@ class DummyMoveTask(Task):
         Moves (one-to-one) input files to output files
         """
 
-        for inp,out in zip(self.get_inputs(),self.get_outputs()):
+        for inp, out in zip(self.get_inputs(), self.get_outputs()):
 
             if self.create_inputs and not inp.exists():
                 self.logger.debug("Specified create_inputs=True, so creating input file {}".format(inp.get_name()))

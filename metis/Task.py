@@ -3,7 +3,6 @@ import traceback
 import logging
 import pickle
 
-from Constants import Constants
 from Utils import setup_logger, do_cmd, metis_base
 
 class Task(object):
@@ -25,7 +24,7 @@ class Task(object):
         # if not hasattr(self, "to_backup"):
         #     self.to_backup = []
 
-        if not self.kwargs.get("no_load_from_backup",False):
+        if not self.kwargs.get("no_load_from_backup", False):
             self.load()
 
     def __repr__(self):
@@ -34,7 +33,7 @@ class Task(object):
         >>> print t1
         Task(blah=asdf, foo=42)
         """
-        return "{}(\n    {}\n)".format(self.__class__.__name__,",\n    ".join(["{}={}".format(k,v) for k,v in self.kwargs.items()]))
+        return "{}(\n    {}\n)".format(self.__class__.__name__, ",\n    ".join(["{}={}".format(k, v) for k, v in self.kwargs.items()]))
 
         # # short version
         # return "<{}_{}>".format(self.get_task_name(), self.get_task_hash())
@@ -47,7 +46,7 @@ class Task(object):
         return self.basedir
 
     def get_taskdir(self):
-        task_dir = "{0}/tasks/{1}/".format(self.get_basedir(),self.unique_name)
+        task_dir = "{0}/tasks/{1}/".format(self.get_basedir(), self.unique_name)
         if not os.path.exists(task_dir):
             do_cmd("mkdir -p {0}/logs/std_logs/".format(task_dir))
         return os.path.normpath(task_dir)
@@ -61,42 +60,43 @@ class Task(object):
         that should be unique
         """
         buff = self.get_task_name()
-        buff += self.kwargs.get("tag","")
-        sample = self.kwargs.get("sample",None)
-        if sample is not None: buff += sample.get_datasetname()
+        buff += self.kwargs.get("tag", "")
+        sample = self.kwargs.get("sample", None)
+        if sample is not None:
+            buff += sample.get_datasetname()
         return "%0.2X" % abs(hash(buff))
 
     def info_to_backup(self):
         """
-        Up to subclasses to overload this and declare what 
+        Up to subclasses to overload this and declare what
         attributes to backup and load from pickle file
         """
         return []
-        
+
     def backup(self):
         """
         Back up registered (in self.info_to_backup()) variables
         """
         fname = "{0}/backup.pkl".format(self.get_taskdir())
-        with open(fname,"w") as fhout:
+        with open(fname, "w") as fhout:
             d = {}
             nvars = 0
             for tob in self.info_to_backup():
-                if hasattr(self,tob): 
-                    d[tob] = getattr(self,tob)
+                if hasattr(self, tob):
+                    d[tob] = getattr(self, tob)
                     nvars += 1
             pickle.dump(d, fhout)
-            self.logger.debug("Backed up {0} variables to {1}".format(nvars,fname))
+            self.logger.debug("Backed up {0} variables to {1}".format(nvars, fname))
 
     def load(self):
         fname = "{0}/backup.pkl".format(self.get_taskdir())
         if os.path.exists(fname):
-            with open(fname,"r") as fhin:
+            with open(fname, "r") as fhin:
                 data = pickle.load(fhin)
                 nvars = len(data.keys())
                 for key in data:
-                    setattr(self,key,data[key])
-                self.logger.debug("Loaded backup with {0} variables from {1}".format(nvars,fname))
+                    setattr(self, key, data[key])
+                self.logger.debug("Loaded backup with {0} variables from {1}".format(nvars, fname))
 
 
     def initialized(self):
@@ -110,8 +110,10 @@ class Task(object):
         Creates a new instance from an existing instance where some of the args have changed.
         """
         new = {}
-        for k,v in self.kwargs.items(): new[k] = v
-        for k,v in kwargs.items(): new[k] = v
+        for k, v in self.kwargs.items():
+            new[k] = v
+        for k, v in kwargs.items():
+            new[k] = v
         return self.__class__(**new)
 
     def run(self):
@@ -142,8 +144,10 @@ class Task(object):
         instead of boolean completeness
         """
         bools = map(lambda output: output.exists(), self.get_outputs())
-        if len(bools) == 0: frac = 1.0
-        else: frac = 1.0*sum(bools)/len(bools)
+        if len(bools) == 0:
+            frac = 1.0
+        else:
+            frac = 1.0 * sum(bools) / len(bools)
 
         if return_fraction:
             return frac
@@ -199,4 +203,3 @@ class Task(object):
 if __name__ == "__main__":
 
     pass
-

@@ -1,15 +1,10 @@
-import commands
 import os
-import time
 import sys
 import multiprocessing
 import logging
 import httplib
 import datetime
 
-from Constants import Constants
-from Task import Task
-from File import File
 from Utils import do_cmd, get_proxy_file, setup_logger
 
 try:
@@ -83,7 +78,8 @@ class CrabManager(object):
         if self.input_files and not self.dataset:
             using_dataset = False
 
-        if self.dataset.endswith("/USER"): self.input_DBS_instance = "phys03"
+        if self.dataset.endswith("/USER"):
+            self.input_DBS_instance = "phys03"
 
         config = Configuration()
         config.section_('General')
@@ -147,12 +143,15 @@ class CrabManager(object):
             self.logger.debug("have unique_request_name so not submitting")
             return True
 
-        mpq = multiprocessing.Queue()
-        def do_submit(q,config,proxy=None):
-            if not proxy: out = crabCommand('submit', config=config)
-            else: out = crabCommand('submit', config=config, proxy=proxy)
+
+        def do_submit(q, config, proxy=None):
+            if not proxy:
+                out = crabCommand('submit', config=config)
+            else:
+                out = crabCommand('submit', config=config, proxy=proxy)
             q.put(out)
 
+        mpq = multiprocessing.Queue()
         mpp = multiprocessing.Process(target=do_submit, args=(mpq, self.crab_config, get_proxy_file()))
         mpp.start()
         mpp.join()
@@ -179,14 +178,17 @@ class CrabManager(object):
             out = self.status_output.copy()
 
         # Cache the crab status output
-        if out: self.status_output = out.copy()
+        if out:
+            self.status_output = out.copy()
 
         return self.parse_status(out)
 
     def crab_resubmit(self, more_ram=False):
         try:
-            if more_ram: out = crabCommand('resubmit', dir=self.task_dir, proxy=get_proxy_file(), maxmemory="3500")
-            else: out = crabCommand('resubmit', dir=self.task_dir, proxy=get_proxy_file())
+            if more_ram:
+                out = crabCommand('resubmit', dir=self.task_dir, proxy=get_proxy_file(), maxmemory="3500")
+            else:
+                out = crabCommand('resubmit', dir=self.task_dir, proxy=get_proxy_file())
             return out["status"] == "SUCCESS"
         except httplib.HTTPException as e:
             self.logger.warning("got an http exception from crab resubmit")
@@ -199,8 +201,8 @@ class CrabManager(object):
         urn = self.get_unique_request_name()
         dtstr = urn.split(":")[0]
         then = datetime.datetime.strptime(dtstr, "%y%m%d_%H%M%S")
-        now = datetime.datetime.utcnow() # crab datestr uses GMT, so must use utcnow()
-        return (now-then).seconds / 60.0
+        now = datetime.datetime.utcnow()  # crab datestr uses GMT, so must use utcnow()
+        return (now - then).seconds / 60.0
 
     def parse_status(self, stat):
 
@@ -215,12 +217,12 @@ class CrabManager(object):
             "unsubmitted": 0, "idle": 0, "running": 0, "failed": 0,
             "transferring": 0, "transferred": 0, "cooloff": 0, "finished": 0,
         }
-        job_info = { }
-        for st, jobid in stat.get("jobList",[]):
+        job_info = {}
+        for st, jobid in stat.get("jobList", []):
             breakdown[st] += 1
             job_info[int(jobid)] = str(st)
 
-        d_stat = { }
+        d_stat = {}
         d_stat["status"] = str(stat.get("status", "UNKNOWN"))
         d_stat["task_failure_msg"] = str(stat.get("taskFailureMsg", ""))
         d_stat["task_warning_msg"] = str(stat.get("taskWarningMsg", ""))
@@ -237,9 +239,9 @@ if __name__ == "__main__":
     # /home/users/namin/2016/ss/master/SSAnalysis/batch_new/NtupleTools/AutoTwopler/Samples.py
 
     # minimal set of inputs to get STATUS
-    # if your task is in crab/crab_test_metis_ttzlowmass, for example 
+    # if your task is in crab/crab_test_metis_ttzlowmass, for example
     # (the working dir is `crab/` by default, but can be specified as well)
-    cm = CrabManager( request_name="test_metis_ttzlowmass" )
+    cm = CrabManager(request_name="test_metis_ttzlowmass")
     stat = cm.crab_status()
     import pprint
     pprint.pprint(stat)
@@ -250,7 +252,6 @@ if __name__ == "__main__":
             dataset="/TTZToLL_M-1to10_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM",
             request_name="test_metis_ttzlowmass",
             pset_location="pset_example.py",
-            )
+        )
     print cm
     print cm.get_crab_config()
-
