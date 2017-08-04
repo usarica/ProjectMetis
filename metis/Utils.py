@@ -49,6 +49,25 @@ def sum_dicts(dicts):
 def metis_base():
     return os.environ.get("METIS_BASE",".")+"/"
 
+class CustomFormatter(logging.Formatter):
+    # stolen from
+    # https://stackoverflow.com/questions/1343227/can-pythons-logging-format-be-modified-depending-on-the-message-log-level
+    err_fmt = '[%(asctime)s] [%(filename)s:%(lineno)s] [%(levelname)s] %(message)s'
+    dbg_fmt = '[%(asctime)s] [%(filename)s:%(lineno)s] [%(levelname)s] %(message)s'
+    info_fmt = '[%(asctime)s] %(message)s'
+
+    def __init__(self, fmt="%(levelno)s: %(msg)s"):
+        logging.Formatter.__init__(self, fmt)
+
+    def format(self, record):
+        format_orig = self._fmt
+        if record.levelno == logging.DEBUG: self._fmt = CustomFormatter.dbg_fmt
+        elif record.levelno == logging.INFO: self._fmt = CustomFormatter.info_fmt
+        elif record.levelno == logging.ERROR: self._fmt = CustomFormatter.err_fmt
+        result = logging.Formatter.format(self, record)
+        self._fmt = format_orig
+        return result
+
 def setup_logger(logger_name="logger_metis"):
     """
     logger_name = u.setup_logger()
@@ -66,6 +85,7 @@ def setup_logger(logger_name="logger_metis"):
     if len(logger.handlers):
         return logger_name
     logger.setLevel(logging.DEBUG)
+    customformatter = CustomFormatter()
     fh = logging.FileHandler(logger_name + ".log")
     fh.setLevel(logging.DEBUG) # DEBUG level to logfile
     ch = logging.StreamHandler()
@@ -73,12 +93,11 @@ def setup_logger(logger_name="logger_metis"):
     ch.setLevel(logging.INFO) # DEBUG level to console (for actual usage, probably want INFO)
     formatter = logging.Formatter('[%(asctime)s] [%(filename)s:%(lineno)s] [%(levelname)s] %(message)s')
     fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
+    ch.setFormatter(customformatter)
     logger.addHandler(fh)
     logger.addHandler(ch)
     return logger_name
 
-# /home/users/namin/2016/ss/master/SSAnalysis/batch_new/NtupleTools/AutoTwopler/Samples.py
 def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]):
     """
     Return list of dicts with items for each of the columns
