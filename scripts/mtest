@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+
+import argparse
+import unittest
+import metis.Utils as Utils
+
+def main(args):
+    """
+    Finds all the tests modules in test/, and runs them.
+    """
+    test_dir = Utils.metis_base() + "/test/"
+    test_patt = args.pattern
+    tests = unittest.TestLoader().discover(test_dir, test_patt)
+    test_runner = unittest.TextTestRunner(verbosity = args.verbosity)
+    test_runner.run(tests)
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", help="E.g., \"stuff/WJets*.root\". Use quotes to suppress wildcard expansion", nargs="*")
+    parser.add_argument("-v", "--verbosity", help="verbosity level (1 or 2)", default=2)
+    parser.add_argument("-p", "--pattern", help="test file pattern enclosed in quotes", default="*.py")
+
+    args = parser.parse_args()
+
+    main(args)
