@@ -17,7 +17,6 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("files", help="E.g., \"stuff/WJets*.root\". Use quotes to suppress wildcard expansion", nargs="*")
     parser.add_argument("-v", "--verbosity", help="verbosity level (1 or 2)", default=2)
     parser.add_argument("-p", "--pattern", help="test file pattern enclosed in quotes", default="*.py")
 
