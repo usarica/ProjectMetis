@@ -14,8 +14,8 @@ def print_analysis(args):
     logname = args.logfile
     last_error = logparser.infer_error(logname)
     arg_info = logparser.log_parser(logname)["args"]
-    del arg_info["args"]
-    del arg_info["uname -a"]
+    for todelete in ["args", "uname -a"]:
+        if todelete in arg_info: del arg_info[todelete]
 
     print BLUE+"Arguments"+ENDC
     print "\n".join(map(lambda x: "\t{0}: {1}".format(*x), arg_info.items()))
