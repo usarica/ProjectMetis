@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+import re
+import argparse
+import metis.LogParser as logparser
+
+
+BLUE = '\033[94m'
+GREEN = '\033[92m'
+RED = '\033[91m'
+ENDC = '\033[0m'
+
+def print_analysis(args):
+    logname = args.logfile
+    last_error = logparser.infer_error(logname)
+    arg_info = logparser.log_parser(logname)["args"]
+    del arg_info["args"]
+    del arg_info["uname -a"]
+
+    print BLUE+"Arguments"+ENDC
+    print "\n".join(map(lambda x: "\t{0}: {1}".format(*x), arg_info.items()))
+
+
+    out_log_str = open(logname.replace(".out",".out"),"r").read()
+    err_log_str = open(logname.replace(".out",".err"),"r").read()
+
+
+    if "Begin Fatal Exception" in err_log_str:
+        print 
+        print BLUE+"CMSSW Exception"+ENDC
+        between = err_log_str.split("Begin Fatal")[-1].split("End Fatal")[0]
+        print "\t"+"\n\t".join(between.splitlines()[1:-1])
+
+    store_matches = re.findall("/store/[A-Za-z0-9\-\_\/]+\.root",err_log_str)
+    if store_matches:
+        print
+        print BLUE+"Last file"+ENDC
+        print "\t"+RED+store_matches[-1]+ENDC
+
+if __name__ == "__main__":
+    # logname = "1e.1218912.0.out"
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("logfile", help="Path to logfile either .out or .err")
+    args = parser.parse_args()
+
+    print_analysis(args)
