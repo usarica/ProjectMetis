@@ -243,9 +243,9 @@ def file_chunker(files, files_per_output=-1, events_per_output=-1, flush=False):
     # be empty if flushed
     return chunks, chunk
 
-def make_tarball(fname):
+def make_tarball(fname, **kwargs):
     from UserTarball import UserTarball
-    ut = UserTarball(name=fname)
+    ut = UserTarball(name=fname, **kwargs)
     ut.addFiles()
     ut.close()
     return os.path.abspath(fname)
