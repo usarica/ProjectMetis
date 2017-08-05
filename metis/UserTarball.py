@@ -18,9 +18,9 @@ class UserTarball(object):
             Also adds user specified files in the right place.
     """
 
-    def __init__(self, name=None, mode='w:gz', logger=None):
+    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None):
         # self.logger = logger
-        self.CMSSW_BASE = os.getenv("CMSSW_BASE", "")
+        self.CMSSW_BASE = override_cmssw_base if override_cmssw_base else os.getenv("CMSSW_BASE", "")
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
 
