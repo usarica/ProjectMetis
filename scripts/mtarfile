@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import json
+import argparse
+from metis.Utils import make_tarball
+
+
+def main(args):
+
+    make_tarball(args.output)
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("output", help="name of output tar file")
+
+    args = parser.parse_args()
+
+    main(args)

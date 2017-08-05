@@ -31,6 +31,8 @@ class UserTarball(object):
 
         if "CMSSW" not in self.CMSSW_BASE:
             raise Exception("You need a CMSSW environment to get $CMSSW_BASE")
+        if "cvmfs" in self.CMSSW_BASE:
+            raise Exception("You need a local CMSSW environment, not cvmfs")
 
         directories = ['lib', 'biglib', 'module', 'python', 'cfipython']
 
