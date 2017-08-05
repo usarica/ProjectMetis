@@ -11,7 +11,7 @@ def main(args):
     test_dir = Utils.metis_base() + "/test/"
     test_patt = args.pattern
     tests = unittest.TestLoader().discover(test_dir, test_patt)
-    test_runner = unittest.TextTestRunner(verbosity = args.verbosity)
+    test_runner = unittest.TextTestRunner(verbosity = int(args.verbosity))
     test_runner.run(tests)
 
 if __name__ == "__main__":
