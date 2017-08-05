@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+
+import json
+import argparse
+
+
+def is_open_dataset(d_general):
+    return d_general["open_dataset"]
+
+def get_progress(d_general, jobs=True):
+    which = "njobs" if jobs else "nevents"
+    done = d_general.get("{0}_done".format(which), 0)
+    total = d_general.get("{0}_total".format(which), 0)
+    if not total:
+        frac = 0.
+    else:
+        frac = 1.0 * done / total
+    return done, total, frac
+
+def progress_bar(fraction, width=40, do_color=True, override_color=[]):
+    fraction = min(max(fraction, 0.), 1.)
+    filled = int(round(fraction * width))
+    color_open, color_close = "", ""
+    if do_color:
+        if override_color:
+            rgb = override_color
+        else:
+            rgb = hsv_to_rgb(1.0 / 3.6 * fraction, 0.9, 0.9)
+        color_open = "\033[38;2;%i;%i;%im" % tuple(rgb)
+        color_close = "\033[0m"
+    return "[{0}{1}{2}{3}]".format(color_open,"#" * filled, color_close,"-" * (width-filled))
+
+def hsv_to_rgb(h, s, v):
+    if s == 0.0: v*=255; return [v, v, v]
+    i = int(h*6.)
+    f = (h*6.)-i; p,q,t = int(255*(v*(1.-s))), int(255*(v*(1.-s*f))), int(255*(v*(1.-s*(1.-f)))); v*=255; i%=6
+    if i == 0: return [v, t, p]
+    if i == 1: return [q, v, p]
+    if i == 2: return [p, v, t]
+    if i == 3: return [p, q, v]
+    if i == 4: return [t, p, v]
+    if i == 5: return [v, p, q]
+
+def main(args):
+
+    # # web_summary = "web_summary.json"
+    # web_summary = "../web_summary.json"
+    # which_sort = "progress"
+    # reverse_sort = False
+    # verbose = True
+    # do_color = True
+
+    web_summary = args.summary
+    which_sort = args.sort
+    reverse_sort = args.reverse
+    verbose = True
+    do_color = not args.nocolor
+
+    with open(web_summary, "r") as fhin:
+        data = json.load(fhin)
+
+    if which_sort == "progress":
+        data["tasks"] = sorted(data["tasks"], key=lambda x: get_progress(x["general"])[-1], reverse=reverse_sort)
+    elif which_sort == "name":
+        data["tasks"] = sorted(data["tasks"], key=lambda x: x["general"]["dataset"], reverse=reverse_sort)
+    elif which_sort == "era":
+        data["tasks"] = sorted(data["tasks"], key=lambda x: x["general"]["dataset"].split("/")[2], reverse=reverse_sort)
+
+    for d_ds in data["tasks"]:
+        d_general = d_ds["general"]
+        d_bad = d_ds["bad"]
+        dataset = d_general["dataset"]
+
+        done, total, fraction = get_progress(d_general)
+        is_open = is_open_dataset(d_general)
+        if is_open:
+            progress =  progress_bar(fraction, override_color=[255,170,59], do_color=do_color)
+        else:
+            progress =  progress_bar(fraction, do_color=do_color)
+
+        dataset_short = dataset
+        dswidth = 45
+        if len(dataset) > dswidth:
+            dataset_short = dataset[:dswidth-3]+"..."
+        print ("{0:<%is} {1} {2:3.0f}%% [{3}/{4}]" % dswidth).format(dataset_short, progress, 100.0*fraction, done, total)
+
+        if verbose:
+            for iout,info in d_bad["jobs_not_done"].items():
+                nretries = info["retries"]
+                last_log = info["last_log"]
+                red_open, color_close = "", ""
+                if do_color:
+                    red_open = "\033[38;2;250;50;50m"
+                    color_close = "\033[0m"
+                print "\toutput {}: {}{} retries{}, {}".format(iout, red_open, nretries, color_close, last_log)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", help="E.g., \"stuff/WJets*.root\". Use quotes to suppress wildcard expansion", nargs="*")
+    parser.add_argument("-i", "--summary", help="web summary JSON file", default="web_summary.json")
+    parser.add_argument("-c", "--nocolor", help="disable colors", action="store_true")
+    parser.add_argument("-s", "--sort", help="sort type: 'progress', 'name', or 'era'", default="progress")
+    parser.add_argument("-r", "--reverse", help="reverse sort", action="store_true")
+
+    args = parser.parse_args()
+
+    main(args)

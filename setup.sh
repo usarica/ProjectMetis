@@ -10,3 +10,6 @@ export METIS_BASE=`pwd`
 
 # CRAB screws up our PYTHONPATH. Go figure.
 export PYTHONPATH=$(pwd):$PYTHONPATH
+
+# Add some scripts to the path
+export PATH=$(pwd)/scripts:$PATH
