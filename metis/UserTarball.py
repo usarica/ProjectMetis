@@ -20,7 +20,7 @@ class UserTarball(object):
 
     def __init__(self, name=None, mode='w:gz', logger=None):
         # self.logger = logger
-        self.CMSSW_BASE = os.getenv("CMSSW_BASE")
+        self.CMSSW_BASE = os.getenv("CMSSW_BASE", "")
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
 
