@@ -9,7 +9,7 @@ class CrabManagerTest(unittest.TestCase):
     @unittest.skipIf("uaf-" not in os.uname()[1], "CRAB only testable on UAF")
     def test_config_parameters(self):
 
-        from CrabManager import CrabManager
+        from metis.CrabManager import CrabManager
 
         basepath = "/tmp/{0}/metis/crab_test/".format(os.getenv("USER"))
         do_cmd("mkdir -p {0}".format(basepath))
