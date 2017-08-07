@@ -119,5 +119,26 @@ ls -l
     def test_metis_base(self):
         self.assertEqual(Utils.metis_base(),os.environ.get("METIS_BASE",".")+"/")
 
+    @unittest.skipIf("uaf-" not in os.uname()[1], "gfal-copy only testable on UAF")
+    def test_gfal_copy(self):
+
+        outname = "gfaltest.root"
+        basedir = "/hadoop/cms/store/user/{0}/metis_test".format(os.getenv("USER"))
+        outfile = "{0}/{1}".format(basedir,outname)
+        cmd = """ touch {outname}; rm -f {outfile}; gfal-copy -p -f -t 4200 --verbose file://`pwd`/{outname} gsiftp://gftp.t2.ucsd.edu{outfile} --checksum ADLER32 """.format(outname=outname, outfile=outfile)
+        stat, out = Utils.do_cmd(cmd, returnStatus=True)
+
+
+        exists = os.path.exists(outfile)
+        if not exists:
+            print "gfal-copy failed with ----------------->"
+            print out
+            print "<---------------------------------------"
+
+        cmd = "rm -f {outfile} ; rm -f {outname}".format(outname=outname, outfile=outfile)
+        Utils.do_cmd(cmd)
+
+        self.assertEqual(exists, True)
+
 if __name__ == "__main__":
     unittest.main()
