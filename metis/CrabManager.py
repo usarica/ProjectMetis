@@ -30,11 +30,12 @@ class CrabManager(object):
         self.pset_location = kwargs.get("pset_location", None)
         self.job_splitting = kwargs.get("job_splitting", "FileBased")
         self.units_per_job = kwargs.get("units_per_job", 1)
-        if os.getenv("USER") in ["namin"]:
-            # this saves about a second for the lookup
-            self.out_lfn_dir_base = kwargs.get("out_lfn_dir_base", "/store/user/{0}/ProjectMetis/".format(os.getenv("USER")))
-        else:
-            self.out_lfn_dir_base = kwargs.get("out_lfn_dir_base", "/store/user/{0}/ProjectMetis/".format(getUsernameFromSiteDB()))
+        hadoop_user = os.getenv("USER")
+        if hadoop_user not in ["namin"]:
+            # foolproof way of finding username, but unnecessary for people
+            # who's hadoop names match their usernames
+            hadoop_user = getUsernameFromSiteDB()
+        self.out_lfn_dir_base = kwargs.get("out_lfn_dir_base", "/store/user/{0}/ProjectMetis/".format(hadoop_user))
         self.output_primary_dataset = kwargs.get("output_primary_dataset", "ProjectMetisTest")
         self.input_DBS_instance = kwargs.get("input_DBS_instance", "global")
         self.storage_site = kwargs.get("storage_site", "T2_US_UCSD")
