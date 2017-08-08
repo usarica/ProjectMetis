@@ -2,6 +2,7 @@
 
 import json
 import argparse
+import datetime
 from metis.Utils import hsv_to_rgb
 
 
@@ -60,6 +61,11 @@ def main(args):
     elif which_sort == "era":
         data["tasks"] = sorted(data["tasks"], key=lambda x: x["general"]["dataset"].split("/")[2], reverse=reverse_sort)
 
+    dt = datetime.datetime.fromtimestamp(int(data["last_updated"]))
+    if do_color:
+        print "\033[93mSummary as of {0}\033[0m".format(dt.strftime("%a %b %d %T %Y"))
+    else:
+        print "Summary as of {0}".format(dt.strftime("%a %b %d %T %Y"))
     for d_ds in data["tasks"]:
         d_general = d_ds["general"]
         d_bad = d_ds["bad"]
