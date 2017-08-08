@@ -8,6 +8,11 @@ import Utils
 class CMSSWTask(CondorTask):
     def __init__(self, **kwargs):
 
+        """
+        :kwarg pset_args: extra arguments to pass to cmsRun along with pset
+        :kwarg is_tree_output: is the output file of the job a tree?
+        """
+
         self.pset = kwargs.get("pset", None)
         self.pset_args = kwargs.get("pset_args", "print")
         self.check_expectedevents = kwargs.get("check_expectedevents", True)
