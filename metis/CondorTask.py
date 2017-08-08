@@ -17,6 +17,14 @@ class CondorTask(Task):
             [ ["i3.root","i4.root"], "o2.root" ],
             [ ["i5.root"], "o3.root" ],
         ]
+
+        :kwarg sample: main `Sample`-type object to get inputs for this task
+        :kwarg open_dataset: if `True`, re-query sample for new files
+        :kwarg arguments: extra arguments to condor executable
+        :kwarg tag: unique tag to specify task (along with dataset name)
+        :kwarg split_within_files: `True` for LHE processing
+        :kwarg total_nevents: needed for LHE processing
+        :kwarg special_dir: customize where to put files in hadoop (see `output_dir`)
         """
         self.sample = kwargs.get("sample", None)
         self.min_completion_fraction = kwargs.get("min_completion_fraction", 1.0)
@@ -24,11 +32,11 @@ class CondorTask(Task):
         self.events_per_output = kwargs.get("events_per_output", -1)
         self.files_per_output = kwargs.get("files_per_output", -1)
         self.output_name = kwargs.get("output_name", "output.root")
-        self.arguments = kwargs.get("arguments", "output.root")
+        self.arguments = kwargs.get("arguments", "")
         # self.output_dir = kwargs.get("output_dir",None)
         self.scram_arch = kwargs.get("scram_arch", "slc6_amd64_gcc530")
         self.tag = kwargs.get("tag", "v0")
-        self.global_tag = kwargs.get("global_tag")
+        self.global_tag = kwargs.get("global_tag",None)
         self.cmssw_version = kwargs.get("cmssw_version", None)
         self.tarfile = kwargs.get("tarfile", None)
         # LHE, for example, might be large, and we want to use
