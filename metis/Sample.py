@@ -29,11 +29,9 @@ class Sample(object):
             "nevents_in": kwargs.get("nevents_in", None),
             "nevents": kwargs.get("nevents", None),
             "location": kwargs.get("location", None),
-            "creator": kwargs.get("creator", None),
             "status": kwargs.get("status", None),
             "twiki": kwargs.get("twiki", None),
             "comments": kwargs.get("comments", None),
-            "siblings": kwargs.get("siblings", []),
             "files": kwargs.get("files", []),
         }
 
@@ -95,10 +93,8 @@ class Sample(object):
             self.info["nevts_in"] = response[0]["nevents_in"]
             self.info["nevts"] = response[0]["nevents_out"]
             self.info["location"] = response[0]["location"]
-            self.info["creator"] = response[0].get("assigned_to", "")
             self.info["status"] = response[0].get("status", Constants.VALID_STR)
             self.info["twiki"] = response[0].get("twiki_name", "")
-            self.info["siblings"] = response[0].get("siblings", [])
             self.info["files"] = response[0].get("files", [])
             self.info["comments"] = response[0].get("comments", "")
             return True
@@ -219,13 +215,14 @@ class DirectorySample(Sample):
     Sample which just does a directory listing to get files
     Requires a `location` to do an ls and a `dataset`
     for naming purposes
-    Optionally takes `globber` (defaulting to *.root) to select which
-    files inside the `location` get picked up with get_files()
+    :kwarg globber: pattern to select files in `location`
+    :kwarg location: where to pick up files using `globber`
+    :kwarg use_xrootd: if `True`, transform filenames into `/store/...`
     """
 
     def __init__(self, **kwargs):
         # Handle whatever kwargs we want here
-        needed_params = ["dataset", "location"]
+        needed_params = self.needed_params()
         if any(x not in kwargs for x in needed_params):
             raise Exception("Need parameters: {0}".format(",".join(needed_params)))
 
@@ -233,7 +230,10 @@ class DirectorySample(Sample):
         self.use_xrootd = kwargs.get("use_xrootd", False)
 
         # Pass all of the kwargs to the parent class
-        super(self.__class__, self).__init__(**kwargs)
+        super(DirectorySample, self).__init__(**kwargs)
+
+    def needed_params(self):
+        return ["dataset","location"]
 
     def get_files(self):
         if self.info.get("files", None):
@@ -251,26 +251,22 @@ class DirectorySample(Sample):
     def get_globaltag(self):
         return self.info.get("gtag", "dummy_gtag")
 
-class SNTSample(Sample):
+class SNTSample(DirectorySample):
     """
     Sample object which queries DIS for SNT samples
     """
 
     def __init__(self, **kwargs):
-        # Handle whatever kwargs we want here
-        needed_params = ["dataset"]
-        if any(x not in kwargs for x in needed_params):
-            raise Exception("Need parameters: {0}".format(",".join(needed_params)))
 
-        self.globber = kwargs.get("globber", "*.root")
-        self.use_xrootd = kwargs.get("use_xrootd", False)
         self.typ = kwargs.get("typ", "CMS3")
 
         # Pass all of the kwargs to the parent class
-        super(self.__class__, self).__init__(**kwargs)
+        super(SNTSample, self).__init__(**kwargs)
 
         self.info["type"] = self.typ
 
+    def needed_params(self):
+        return ["dataset"]
 
     def get_nevents(self):
         if self.info.get("nevts", None):
