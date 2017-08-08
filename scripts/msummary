@@ -18,27 +18,36 @@ def get_progress(d_general, jobs=True):
         frac = 1.0 * done / total
     return done, total, frac
 
-def progress_bar(fraction, width=40, do_color=True, override_color=[]):
+def progress_bar(fraction, width=40, do_color=True, do_unicode=True,override_color=[]):
     fraction = min(max(fraction, 0.), 1.)
-    filled = int(round(fraction * width))
+    nfilled = int(fraction * width)
     color_open, color_close = "", ""
-    fillchar = "#"
+    filled = "#"*nfilled
+    unfilled = "-"*(width-nfilled)
+    if do_unicode:
+        filled = unichr(0x2589).encode('utf-8') * nfilled
+        unfilled = unichr(0x2594+24).encode('utf-8')*(width-nfilled)
+        # unfilled = unichr(0x2594).encode('utf-8')*(width-nfilled)
+        # nleftover_eighths = int((fraction*width-nfilled)*8)
+        # if nleftover_eighths > 0:
+        #     if nleftover_eighths == 4: nleftover_eighths += 1
+        #     filled = filled[:-1]+unichr(0x2590-nleftover_eighths).encode('utf-8')
+
     if do_color:
-        fillchar = unichr(0x2589).encode('utf-8')
         if override_color:
             rgb = override_color
         else:
             rgb = hsv_to_rgb(1.0 / 3.6 * fraction, 0.9, 0.9)
         color_open = "\033[38;2;%i;%i;%im" % tuple(rgb)
         color_close = "\033[0m"
-    return "[{0}{1}{2}{3}]".format(color_open,fillchar* filled, color_close,"-" * (width-filled))
+    return "|{0}{1}{2}{3}|".format(color_open,filled, color_close,unfilled)
 
 def main(args):
 
     web_summary = args.summary
     which_sort = args.sort
     reverse_sort = args.reverse
-    verbose = True
+    verbose = args.verbose
     do_color = not args.nocolor
 
     with open(web_summary, "r") as fhin:
@@ -83,11 +92,11 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("files", help="E.g., \"stuff/WJets*.root\". Use quotes to suppress wildcard expansion", nargs="*")
     parser.add_argument("-i", "--summary", help="web summary JSON file", default="web_summary.json")
     parser.add_argument("-c", "--nocolor", help="disable colors", action="store_true")
     parser.add_argument("-s", "--sort", help="sort type: 'progress', 'name', or 'era'", default="progress")
     parser.add_argument("-r", "--reverse", help="reverse sort", action="store_true")
+    parser.add_argument("-v", "--verbose", help="verbose (show more details)", action="store_true")
 
     args = parser.parse_args()
 
