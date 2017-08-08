@@ -10,6 +10,10 @@ def is_data_by_filename(fname):
     return "Run2017" in fname
 
 class File(object):
+    """
+    :kwarg fake: if `True`, existence of file is faked to be `True`
+    :kwarg basepath: prepended to file name if optionally specified
+    """
 
     def __init__(self, name, **kwargs):
         self.name = name
