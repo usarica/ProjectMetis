@@ -33,7 +33,9 @@ class Task(object):
         >>> print t1
         Task(blah=asdf, foo=42)
         """
-        return "{}(\n    {}\n)".format(self.__class__.__name__, ",\n    ".join(["{}={}".format(k, v) for k, v in self.kwargs.items()]))
+        # return "{}(\n    {}\n)".format(self.__class__.__name__, ",\n    ".join(["{}={}".format(k, v) for k, v in self.kwargs.items()]))
+
+        return "{}({})".format(self.__class__.__name__, ", ".join(["{}={}".format(k, v) for k, v in self.kwargs.items()]))
 
         # # short version
         # return "<{}_{}>".format(self.get_task_name(), self.get_task_hash())
