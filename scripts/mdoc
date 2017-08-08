@@ -175,11 +175,11 @@ def get_documentation_str(d_info):
         if kwargs:
             buff += "      kwargs:<br>\n"
             for cls,kw,default,docstr,lineno in kwargs:
-                buff += "      <div class='kwarg'>\n"
-                buff += "          <span class='light'>{0}</span> &nbsp; {1}  (default: <span class='code'>{2}</span>)<br>\n".format(cls,kw,default)
+                buff += "      <div class='kwarg'>"
+                buff += " <span class='light'>{0}</span> &nbsp; {1}  (default: <span class='code'>{2}</span>)<br> ".format(cls,kw,default)
                 if docstr:
-                    buff += "          <div class='docstr'>{0}</div>\n".format(docstr)
-                buff += "      </div>\n"
+                    buff += " <div class='docstr'>{0}</div>".format(docstr)
+                buff += " </div>\n"
         buff += "  </div>\n" # end classinfo
         buff += "</div></br>\n" # end class div
 

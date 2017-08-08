@@ -22,14 +22,16 @@ def progress_bar(fraction, width=40, do_color=True, override_color=[]):
     fraction = min(max(fraction, 0.), 1.)
     filled = int(round(fraction * width))
     color_open, color_close = "", ""
+    fillchar = "#"
     if do_color:
+        fillchar = unichr(0x2589).encode('utf-8')
         if override_color:
             rgb = override_color
         else:
             rgb = hsv_to_rgb(1.0 / 3.6 * fraction, 0.9, 0.9)
         color_open = "\033[38;2;%i;%i;%im" % tuple(rgb)
         color_close = "\033[0m"
-    return "[{0}{1}{2}{3}]".format(color_open,"#" * filled, color_close,"-" * (width-filled))
+    return "[{0}{1}{2}{3}]".format(color_open,fillchar* filled, color_close,"-" * (width-filled))
 
 def main(args):
 
