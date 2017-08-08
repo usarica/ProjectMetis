@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from metis.File import File, EventsFile, FileDBS
+from metis.File import File, EventsFile, FileDBS, MutableFile
 from metis.Constants import Constants
 import metis.Utils as Utils
 
@@ -96,6 +96,25 @@ class FileDBSTest(unittest.TestCase):
         fd = FileDBS("does_not_exist.root", status=Constants.VALID, nevents=100, filesizeGB=10.0)
         self.assertEqual(fd.get_filesizeGB(), 10.0)
 
+class MutableFileTest(unittest.TestCase):
+
+    def test_file(self):
+        f1 = MutableFile("file_1.root")
+        self.assertEqual(os.path.exists(f1.get_name()), False)
+        f1.touch()
+        self.assertEqual(f1.exists(), True)
+        self.assertEqual(os.path.exists(f1.get_name()), True)
+        f1.rm()
+        self.assertEqual(os.path.exists(f1.get_name()), False)
+
+    def test_directory(self):
+        d1 = MutableFile("mf_test/")
+        self.assertEqual(os.path.exists(d1.get_name()), False)
+        d1.touch()
+        self.assertEqual(d1.exists(), True)
+        self.assertEqual(os.path.exists(d1.get_name()), True)
+        d1.rm()
+        self.assertEqual(os.path.exists(d1.get_name()), False)
 
 if __name__ == "__main__":
     unittest.main()

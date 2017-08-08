@@ -200,6 +200,21 @@ class FileDBS(File):
     def __repr__(self):
         return "<File {0}: {1} events, {2:.2f}GB>".format(self.name, self.nevents, self.filesizeGB)
 
+class MutableFile(File):
+    
+    def touch(self):
+        if self.name.endswith("/"):
+            os.system("mkdir -p {0}".format(self.name))
+        else:
+            os.system("touch {0}".format(self.name))
+
+    def rm(self):
+        if os.path.isdir(self.name):
+            os.system("rmdir {0}".format(self.name))
+        elif os.path.isfile(self.name):
+            os.system("rm {0}".format(self.name))
+
+
 if __name__ == '__main__':
     pass
 
