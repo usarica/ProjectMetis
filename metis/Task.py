@@ -195,13 +195,6 @@ class Task(object):
         """
         return []
 
-    def on_failure(self, exception):
-        traceback_string = traceback.format_exc()
-        return "Runtime error:\n%s" % traceback_string
-
-    def on_success(self):
-        pass
-
 if __name__ == "__main__":
 
     pass
