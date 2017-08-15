@@ -15,13 +15,14 @@ def merge_histories(hold, hnew):
 
 class StatsParser(object):
 
-    def __init__(self, data = {}, summary_fname="summary.json", webdir="~/public_html/dump/metis_test/", do_history=True):
+    def __init__(self, data = {}, summary_fname="summary.json", webdir="~/public_html/dump/metis_test/", do_history=True, make_plots=False):
         self.data = data
         self.summary_fname = summary_fname
         self.webdir = webdir
         self.SUMMARY_NAME = "web_summary.json"
         self.do_history = do_history
         self.logger = logging.getLogger(Utils.setup_logger())
+        self.make_plots = make_plots
 
         if not self.data:
             with open(self.summary_fname,"r") as fhin:
@@ -29,8 +30,8 @@ class StatsParser(object):
 
     def do(self):
 
-        # with open("summary.json","w") as fhdump:
-        #     json.dump(self.data, fhdump)
+        with open("summary.json","w") as fhdump:
+            json.dump(self.data, fhdump)
 
         summaries = self.data.copy()
 
@@ -86,7 +87,7 @@ class StatsParser(object):
 
                 to_plot_json = {fname:LogParser.log_parser(fname)["dstat"] for fname in logs_to_plot}
 
-                if to_plot_json:
+                if to_plot_json and self.make_plots:
                     # CPU
                     import Plotter as plotter
                     plot_paths.append(plotter.plot_2DHist(to_plot_json, dsname, ("epoch","usr"), xtitle="norm. job time", ytitle="usr CPU", title="user CPU vs norm. job time", nbins=50, normx=True, colorbar=True))
