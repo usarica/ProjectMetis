@@ -59,10 +59,11 @@ def query(q, typ="basic", detail=False):
     except:
 
         # try all uafs in order of decreasing reliability (subjective)
-        for num in map(str,[6,10,8,3,4,5]):
+        for num in map(str,[4,8,10,6,3,5]):
             try:
                 url = url_pattern.replace("{NUM}",num)
-                content =  urllib2.urlopen(url).read() 
+                handle =  urllib2.urlopen(url,timeout=30)
+                content =  handle.read() 
                 data = json.loads(content)
                 break
             except: print "Failed to perform URL fetching and decoding (using uaf-%s)!" % num
