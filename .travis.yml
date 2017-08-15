@@ -1,6 +1,7 @@
 language: python
 python:
   - "2.7"
-install: true
+install: 
+  - source setup.sh
 script:
   - python scripts/mtest
