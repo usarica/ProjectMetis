@@ -25,9 +25,6 @@ Or you can import dis_client and make a query using online syntax and get a json
 """
 
 BASE_URL_PATTERN = "http://uaf-{NUM}.t2.ucsd.edu/~namin/makers/disMaker/handler.py"
-HOST = "localhost"
-PORT = 8888
-NBYTES_HEADER = 8
 
 def query(q, typ="basic", detail=False):
     query_dict = {"query": q, "type": typ, "short": "" if detail else "short"}
@@ -35,39 +32,16 @@ def query(q, typ="basic", detail=False):
 
     data = {}
 
-    # try to connect via socket, and if that fails just do regular web request
-    try:
-        if "uaf-10" not in socket.gethostname():
-            # FIXME later. only hosting socket server on uaf-10,
-            # so no chance on other computers at the moment
-            raise
-        # connect to socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((HOST,PORT))
-
-        # calculate message size and send it
-        msg = json.dumps(query_dict)
-        nbytes = str(len(msg)).zfill(NBYTES_HEADER)
-        s.sendall(nbytes+msg)
-
-        # get received payload size and fetch it
-        nbytes = int(s.recv(NBYTES_HEADER))
-        data = s.recv(nbytes)
-        data = json.loads(data)
-
-        s.close()
-    except:
-
-        # try all uafs in order of decreasing reliability (subjective)
-        for num in map(str,[4,8,10,6,3,5]):
-            try:
-                url = url_pattern.replace("{NUM}",num)
-                handle =  urllib2.urlopen(url,timeout=30)
-                content =  handle.read() 
-                data = json.loads(content)
-                break
-            except: print "Failed to perform URL fetching and decoding (using uaf-%s)!" % num
-            if "test" in BASE_URL_PATTERN: break
+    # try all uafs in order of decreasing reliability (subjective)
+    for num in map(str,[4,8,10,6,3,5]):
+        try:
+            url = url_pattern.replace("{NUM}",num)
+            handle =  urllib2.urlopen(url,timeout=30)
+            content =  handle.read() 
+            data = json.loads(content)
+            break
+        except: print "Failed to perform URL fetching and decoding (using uaf-%s)!" % num
+        if "test" in BASE_URL_PATTERN: break
 
     return data
 
