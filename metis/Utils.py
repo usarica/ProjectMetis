@@ -278,6 +278,12 @@ def hsv_to_rgb(h, s, v):
     if i == 4: return [t, p, v]
     if i == 5: return [v, p, q]
 
+def send_email(subject, body=""):
+    email = do_cmd("git config --list | grep 'user.email' | cut -d '=' -f2")
+    firstname = do_cmd("git config --list | grep 'user.name' | cut -d '=' -f2 | cut -d ' ' -f1")
+    if "@" not in email:
+        return
+    do_cmd("echo '{0}' | mail -s '[UAFNotify] {1}' {2}".format(body, subject, email))
 
 if __name__ == "__main__":
     pass
