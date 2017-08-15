@@ -107,6 +107,23 @@ class MutableFileTest(unittest.TestCase):
         f1.rm()
         self.assertEqual(os.path.exists(f1.get_name()), False)
 
+    def test_append(self):
+        f1 = MutableFile("file_2.txt")
+        f1.touch()
+        f1.append("123\n")
+        with open(f1.get_name(), "r") as fhin:
+            self.assertEqual(fhin.read(), "123\n")
+        f1.rm()
+
+    def test_cat(self):
+        f1 = MutableFile("file_2.txt")
+        f1.touch()
+        f1.append("123\n")
+        f1.append("123\n")
+        self.assertEqual(f1.cat(), "123\n123\n")
+        f1.rm()
+
+
     def test_directory(self):
         d1 = MutableFile("mf_test/")
         self.assertEqual(os.path.exists(d1.get_name()), False)

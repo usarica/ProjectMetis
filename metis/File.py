@@ -214,6 +214,17 @@ class MutableFile(File):
         elif os.path.isfile(self.name):
             os.system("rm {0}".format(self.name))
 
+    def append(self, content):
+        self.touch()
+        if os.path.isfile(self.name):
+            with open(self.name, "a") as fhout:
+                fhout.write(content)
+
+    def cat(self):
+        if os.path.isfile(self.name):
+            with open(self.name, "r") as fhin:
+                return fhin.read()
+
 
 if __name__ == '__main__':
     pass
