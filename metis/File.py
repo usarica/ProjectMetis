@@ -152,7 +152,7 @@ class EventsFile(File):
     def calculate_nevents_negative(self):
         self.nevents, self.nevents_negative = self.calculate()
 
-    def calculate(self, treename="Events"):
+    def calculate(self, treename="Events"): # pragma: no cover
         """
         Return [nevents total, nevents negative]
         """

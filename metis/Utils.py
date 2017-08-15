@@ -5,7 +5,7 @@ import logging
 import datetime
 
 
-def time_it(method):
+def time_it(method): # pragma: no cover
     """
     Decorator for timing things will come in handy for debugging
     """
@@ -49,7 +49,7 @@ def sum_dicts(dicts):
 def metis_base():
     return os.environ.get("METIS_BASE",".")+"/"
 
-class CustomFormatter(logging.Formatter):
+class CustomFormatter(logging.Formatter): # pragma: no cover
     # stolen from
     # https://stackoverflow.com/questions/1343227/can-pythons-logging-format-be-modified-depending-on-the-message-log-level
     err_fmt = '[%(asctime)s] [%(filename)s:%(lineno)s] [%(levelname)s] %(message)s'
@@ -68,7 +68,7 @@ class CustomFormatter(logging.Formatter):
         self._fmt = format_orig
         return result
 
-def setup_logger(logger_name="logger_metis"):
+def setup_logger(logger_name="logger_metis"): # pragma: no cover
     """
     logger_name = u.setup_logger()
     logger = logging.getLogger(logger_name)
@@ -245,14 +245,14 @@ def file_chunker(files, files_per_output=-1, events_per_output=-1, flush=False):
     # be empty if flushed
     return chunks, chunk
 
-def make_tarball(fname, **kwargs):
+def make_tarball(fname, **kwargs): # pragma: no cover
     from UserTarball import UserTarball
     ut = UserTarball(name=fname, **kwargs)
     ut.addFiles()
     ut.close()
     return os.path.abspath(fname)
 
-def update_dashboard(webdir=None, jsonfile=None):
+def update_dashboard(webdir=None, jsonfile=None): # pragma: no cover
     if not webdir:
         raise Exception("Um, we need a web directory, dude.")
     if not os.path.exists(os.path.expanduser(webdir)):
@@ -263,7 +263,7 @@ def update_dashboard(webdir=None, jsonfile=None):
         do_cmd("cp {} {}/".format(jsonfile, webdir), dryRun=False)
         do_cmd("cp plots/* {}/plots/".format(webdir), dryRun=False)
 
-def hsv_to_rgb(h, s, v):
+def hsv_to_rgb(h, s, v): # pragma: no cover
     """
     Takes hue, saturation, value 3-tuple
     and returns rgb 3-tuple
@@ -278,7 +278,7 @@ def hsv_to_rgb(h, s, v):
     if i == 4: return [t, p, v]
     if i == 5: return [v, p, q]
 
-def send_email(subject, body=""):
+def send_email(subject, body=""): # pragma: no cover
     email = do_cmd("git config --list | grep 'user.email' | cut -d '=' -f2")
     firstname = do_cmd("git config --list | grep 'user.name' | cut -d '=' -f2 | cut -d ' ' -f1")
     if "@" not in email:

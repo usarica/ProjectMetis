@@ -71,7 +71,7 @@ def query(q, typ="basic", detail=False):
 
     return data
 
-def listofdicts_to_table(lod):
+def listofdicts_to_table(lod): # pragma: no cover
     colnames = list(set(sum([thing.keys() for thing in lod],[])))
 
     # key is col name and value is maximum length of any entry in that column
@@ -114,7 +114,7 @@ def listofdicts_to_table(lod):
         return buff
 
         
-def get_output_string(q, typ="basic", detail=False, show_json=False, pretty_table=False):
+def get_output_string(q, typ="basic", detail=False, show_json=False, pretty_table=False): # pragma: no cover
     buff = ""
     data = query(q, typ, detail)
 
@@ -156,7 +156,7 @@ def get_output_string(q, typ="basic", detail=False, show_json=False, pretty_tabl
     buff = buff.rstrip()
     return buff
 
-def test(one=False):
+def test(one=False): # pragma: no cover
 
     queries = [
     {"q":"/*/CMSSW_8_0_5*RelVal*/MINIAOD","typ":"basic","detail":False},

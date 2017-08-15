@@ -24,7 +24,7 @@ class UserTarball(object):
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
 
-    def addFiles(self, userFiles=[]):
+    def addFiles(self, userFiles=[]): # pragma: no cover
         """
         Add the necessary files to the tarball
         """
