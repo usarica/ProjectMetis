@@ -82,7 +82,7 @@ class UserTarball(object):
         self.writeContent()
         return self.tarfile.close()
 
-    def checkdirectory(self, dir_):
+    def checkdirectory(self, dir_): # pragma: no cover
         # checking for infinite symbolic link loop
         try:
             for root, _, files in os.walk(dir_, followlinks=True):
@@ -92,7 +92,7 @@ class UserTarball(object):
             raise Exception('Error: Infinite directory loop found in: %s \nStderr: %s' % (dir_, msg))
 
 
-    def __getattr__(self, *args):
+    def __getattr__(self, *args): # pragma: no cover
         """
         Pass any unknown functions or attribute requests on to the TarFile object
         """
@@ -100,14 +100,14 @@ class UserTarball(object):
         return self.tarfile.__getattribute__(*args)
 
 
-    def __enter__(self):
+    def __enter__(self): # pragma: no cover
         """
         Allow use as context manager
         """
         return self
 
 
-    def __exit__(self, excType, excValue, excTrace):
+    def __exit__(self, excType, excValue, excTrace): # pragma: no cover
         """
         Allow use as context manager
         """
