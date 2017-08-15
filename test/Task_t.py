@@ -35,6 +35,12 @@ class TaskTest(unittest.TestCase):
         t1 = Task(a=1,b=2)
         self.assertEqual(t1.complete(), True)
 
+    def test_defaults(self):
+        t1 = Task(a=1,b=2)
+        self.assertEqual(t1.info_to_backup(), [])
+        self.assertEqual(t1.get_completed_outputs(), [])
+        self.assertEqual(t1.get_inputs(), [])
+
 
     def test_backup(self):
 
