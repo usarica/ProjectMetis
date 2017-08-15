@@ -18,6 +18,13 @@ class DBSSampleTest(unittest.TestCase):
     def test_queries(self):
         dsname = "/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"
         dbssamp = DBSSample(dataset=dsname)
+        # make initial queries
+        self.assertEqual(dbssamp.get_nevents(), 2109150)
+        self.assertEqual(dbssamp.get_globaltag(), "92X_dataRun2_Prompt_v4")
+        self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_9_2_1")
+        self.assertEqual(len(dbssamp.get_files()), 10)
+
+        # pull from cache
         self.assertEqual(dbssamp.get_nevents(), 2109150)
         self.assertEqual(dbssamp.get_globaltag(), "92X_dataRun2_Prompt_v4")
         self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_9_2_1")
