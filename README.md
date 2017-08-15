@@ -1,4 +1,5 @@
 <img src="http://i.imgur.com/oYKKgyW.png" width="400">
+[![Build Status](https://travis-ci.org/aminnj/ProjectMetis.svg?branch=master)](https://travis-ci.org/aminnj/ProjectMetis)
 
 As an overview, ProjectMetis seeks to host the following functionality:
 * Ability to create arbitrary tasks with defined inputs and outputs using Python
