@@ -2,6 +2,9 @@ language: python
 python:
   - "2.7"
 install: 
+  - pip install coveralls
   - source setup.sh
 script:
-  - python scripts/mtest
+  coverage run scripts/mtest
+after_success:
+  coveralls
