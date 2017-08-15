@@ -252,6 +252,8 @@ class DirectorySample(Sample):
         return self.info.get("gtag", "dummy_gtag")
 
     def set_files(self, fnames):
+        if self.use_xrootd:
+            fnames = [fp.replace("/hadoop/cms", "") for fp in fnames]
         self.info["files"] = map(EventsFile, fnames)
 
 class SNTSample(DirectorySample):

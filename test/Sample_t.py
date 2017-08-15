@@ -37,13 +37,13 @@ class DirectorySampleTest(unittest.TestCase):
         dirsamp = DirectorySample(dataset=dsname, location="/dummy/dir/")
         self.assertEqual(len(dirsamp.get_files()), 0)
 
-    def set_files(self):
+    def test_set_files(self):
         dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/")
         fnames = ["/hadoop/cms/store/user/blah/file_1.root","/hadoop/cms/store/user/blah/file_2.root"]
         dirsamp.set_files(fnames)
         self.assertEqual(map(lambda x: x.get_name(), dirsamp.get_files()), fnames)
 
-    def set_files_xrootd(self):
+    def test_set_files_xrootd(self):
         dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/", use_xrootd=True)
         fnames = ["/hadoop/cms/store/user/blah/file_1.root","/hadoop/cms/store/user/blah/file_2.root"]
         fnames_nocms = ["/store/user/blah/file_1.root","/store/user/blah/file_2.root"]
