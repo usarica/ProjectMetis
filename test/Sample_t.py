@@ -30,6 +30,19 @@ class DirectorySampleTest(unittest.TestCase):
         dirsamp = DirectorySample(dataset=dsname, location="/dummy/dir/")
         self.assertEqual(len(dirsamp.get_files()), 0)
 
+    def set_files(self):
+        dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/")
+        fnames = ["/hadoop/cms/store/user/blah/file_1.root","/hadoop/cms/store/user/blah/file_2.root"]
+        dirsamp.set_files(fnames)
+        self.assertEqual(map(lambda x: x.get_name(), dirsamp.get_files()), fnames)
+
+    def set_files_xrootd(self):
+        dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/", use_xrootd=True)
+        fnames = ["/hadoop/cms/store/user/blah/file_1.root","/hadoop/cms/store/user/blah/file_2.root"]
+        fnames_nocms = ["/store/user/blah/file_1.root","/store/user/blah/file_2.root"]
+        dirsamp.set_files(fnames)
+        self.assertEqual(map(lambda x: x.get_name(), dirsamp.get_files()), fnames_nocms)
+
 class SNTSampleTest(unittest.TestCase):
 
     @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
@@ -51,6 +64,8 @@ class SNTSampleTest(unittest.TestCase):
                 tag=tag,
                 )
         dummy.info["location"] = basedir
+        dummy.info["nevents"] = 123
+        dummy.info["gtag"] = "stupidtag"
         updated = dummy.do_update_dis()
         self.assertEqual(updated, True)
 
@@ -61,7 +76,11 @@ class SNTSampleTest(unittest.TestCase):
                 tag=tag,
                 )
         self.assertEqual(len(check.get_files()), nfiles)
+        self.assertEqual(check.get_globaltag(),dummy.info["gtag"])
+        self.assertEqual(check.get_nevents(), dummy.info["nevents"])
+        self.assertEqual(check.get_location(), basedir)
 
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -251,6 +251,9 @@ class DirectorySample(Sample):
     def get_globaltag(self):
         return self.info.get("gtag", "dummy_gtag")
 
+    def set_files(self, fnames):
+        self.info["files"] = map(EventsFile, fnames)
+
 class SNTSample(DirectorySample):
     """
     Sample object which queries DIS for SNT samples
