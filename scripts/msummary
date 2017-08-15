@@ -3,6 +3,7 @@
 import json
 import argparse
 import datetime
+import os
 from metis.Utils import hsv_to_rgb
 
 
@@ -51,8 +52,16 @@ def main(args):
     verbose = args.verbose
     do_color = not args.nocolor
 
-    with open(web_summary, "r") as fhin:
-        data = json.load(fhin)
+    check_path = os.path.join(os.getenv("METIS_BASE"),web_summary)
+    if os.path.exists(check_path):
+        web_summary = check_path
+
+    if os.path.exists(web_summary):
+        with open(web_summary, "r") as fhin:
+            data = json.load(fhin)
+    else:
+        raise Exception("{0} file doesn't exist!".format(web_summary))
+
 
     if which_sort == "progress":
         data["tasks"] = sorted(data["tasks"], key=lambda x: get_progress(x["general"])[-1], reverse=reverse_sort)
