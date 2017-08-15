@@ -34,6 +34,7 @@ class TaskTest(unittest.TestCase):
     def test_completion(self):
         t1 = Task(a=1,b=2)
         self.assertEqual(t1.complete(), True)
+        self.assertEqual(t1.complete(return_fraction=True), 1.0)
 
     def test_defaults(self):
         t1 = Task(a=1,b=2)
