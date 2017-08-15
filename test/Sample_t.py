@@ -1,5 +1,6 @@
 import unittest
 import os
+import logging
 
 from metis.Sample import Sample, DBSSample, DirectorySample, SNTSample
 from metis.Constants import Constants
@@ -12,6 +13,13 @@ class SampleTest(unittest.TestCase):
         samp = Sample(dataset=dsname)
         self.assertEqual(samp.get_datasetname(), dsname)
 
+    def test_failures(self):
+        logging.getLogger("logger_metis").disabled = True
+        # should return False since no dataset was provided!
+        samp = Sample()
+        self.assertEqual(samp.do_dis_query(), False)
+        self.assertEqual(samp.load_from_dis(), False)
+
 class DBSSampleTest(unittest.TestCase):
 
     @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
@@ -20,6 +28,7 @@ class DBSSampleTest(unittest.TestCase):
         dbssamp = DBSSample(dataset=dsname)
         # make initial queries
         self.assertEqual(dbssamp.get_nevents(), 2109150)
+        dbssamp.info["gtag"] = None # reset so we don't pull from cache
         self.assertEqual(dbssamp.get_globaltag(), "92X_dataRun2_Prompt_v4")
         self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_9_2_1")
         self.assertEqual(len(dbssamp.get_files()), 10)
