@@ -1,7 +1,7 @@
 import unittest
 import os
 
-from metis.File import File, EventsFile, FileDBS, MutableFile
+from metis.File import File, EventsFile, FileDBS, MutableFile, is_data_by_filename
 from metis.Constants import Constants
 import metis.Utils as Utils
 
@@ -32,12 +32,23 @@ class FileTest(unittest.TestCase):
         self.assertEqual(f.exists(), False)
 
     def test_name_manipulations(self):
-        f = File("/tmp/does_not_exist_1.root", fake=True)
-        self.assertEqual(f.get_extension(), "root")
-        self.assertEqual(f.get_basepath(), "/tmp")
-        self.assertEqual(f.get_basename(), "does_not_exist_1.root")
-        self.assertEqual(f.get_basename_noext(), "does_not_exist_1")
-        self.assertEqual(f.get_index(), 1)
+        f1 = File("/tmp/does_not_exist_1.root", fake=True)
+        self.assertEqual(f1.get_extension(), "root")
+        self.assertEqual(f1.get_basepath(), "/tmp")
+        self.assertEqual(f1.get_basename(), "does_not_exist_1.root")
+        self.assertEqual(f1.get_basename_noext(), "does_not_exist_1")
+        self.assertEqual(f1.get_index(), 1)
+
+        f2 = File("test.root", fake=True)
+        self.assertEqual(f2.get_basepath(), ".")
+
+    def test_set_name(self):
+        name = "/tmp/does_not_exist_1.root"
+        new_name = "/tmp/does_not_exist_2.root"
+        f = File(name)
+        self.assertEqual(f.get_name(), name)
+        f.set_name(new_name)
+        self.assertEqual(f.get_name(), new_name)
 
     def test_recheck_fake(self):
         f = File("does_not_exist.root", fake=True)
@@ -80,6 +91,10 @@ class FileTest(unittest.TestCase):
         self.assertEqual(f.get_status(), Constants.VALID)
         f.set_status(Constants.INVALID)
         self.assertEqual(f.get_status(), Constants.INVALID)
+
+    def test_misc(self):
+        self.assertEqual(is_data_by_filename("Run2016"),True)
+        self.assertEqual(is_data_by_filename("Run2017"),True)
 
 class EventsFileTest(unittest.TestCase):
 
