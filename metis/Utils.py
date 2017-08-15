@@ -38,14 +38,6 @@ def get_timestamp():
     # return current time as a unix timestamp
     return int(datetime.datetime.now().strftime("%s"))
 
-def sum_dicts(dicts):
-    # takes a list of dicts and sums the values
-    ret = defaultdict(int)
-    for d in dicts:
-        for k, v in d.items():
-            ret[k] += v
-    return dict(ret)
-
 def metis_base():
     return os.environ.get("METIS_BASE",".")+"/"
 
@@ -135,17 +127,17 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
             jobs.append(tmp)
     return jobs
 
-def condor_rm(cluster_ids=[]):
+def condor_rm(cluster_ids=[]): # pragma: no cover
     """
     Takes in a list of cluster_ids to condor_rm for the current user
     """
     if cluster_ids:
         do_cmd("condor_rm {0}".format(",".join(map(str,cluster_ids))))
 
-def condor_release():
+def condor_release(): # pragma: no cover
     do_cmd("condor_release {0}".format(os.getenv("USER")))
 
-def condor_submit(**kwargs):
+def condor_submit(**kwargs): # pragma: no cover
     """
     Takes in various keyword arguments to submit a condor job.
     Returns (succeeded:bool, cluster_id:int)

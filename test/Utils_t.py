@@ -140,5 +140,10 @@ ls -l
 
         self.assertEqual(exists, True)
 
+    def test_get_proxy_file(self):
+        self.assertEqual(Utils.get_proxy_file(), "/tmp/x509up_u{0}".format(os.getuid()))
+
+
 if __name__ == "__main__":
     unittest.main()
+
