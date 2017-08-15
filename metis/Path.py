@@ -20,9 +20,6 @@ class Path(object):
     def __add__(self, other):
         return Path(self.tasks + other.get_tasks())
 
-    def __radd__(self, other):
-        return Path(other.get_tasks() + self.tasks)
-
     def __len__(self):
         return len(self.tasks)
 
@@ -45,11 +42,7 @@ class Path(object):
 
         for task in self.tasks:
             if not task.complete():
-                # print "Not complete, so running", task
                 task.process()
-            else:
-                pass
-                # print "Completed", task
 
     def complete(self):
         """

@@ -23,5 +23,13 @@ class PathTest(unittest.TestCase):
         self.assertEqual((p1+p2).get_tasks(), [t1,t2])
         self.assertEqual((p2+p1).get_tasks(), [t2,t1])
 
+    def test_complete_list(self):
+        t1 = Task(foo=1)
+        t2 = Task(bar=2)
+        p1 = Path([t1,t2])
+        self.assertEqual(p1.complete_list(), [True,True])
+
+
 if __name__ == "__main__":
     unittest.main()
+
