@@ -1,8 +1,10 @@
+import math
 import time                                                
 import os
 import commands
 import logging
 import datetime
+from collections import Counter
 
 
 def time_it(method): # pragma: no cover
@@ -276,6 +278,39 @@ def send_email(subject, body=""): # pragma: no cover
     if "@" not in email:
         return
     do_cmd("echo '{0}' | mail -s '[UAFNotify] {1}' {2}".format(body, subject, email))
+
+def get_stats(nums):
+    length = len(nums)
+    totsum = sum(nums)
+    mean = 1.0*totsum/length
+    sigma = math.sqrt(1.0*sum([(mean-v)*(mean-v) for v in nums])/(length-1))
+    maximum, minimum = max(nums), min(nums)
+    return {
+            "length": length,
+            "mean": mean,
+            "sigma": sigma,
+            "totsum": totsum,
+            "minimum": minimum,
+            "maximum": maximum,
+            }
+
+def get_hist(vals, do_unicode=True, width=50): # pragma: no cover
+    d = dict(Counter(vals))
+    maxval = max([d[k] for k in d.keys()])
+    maxstrlen = max([len(k) for k in d.keys()])
+    scaleto=width-maxstrlen
+    fillchar = "*"
+    if do_unicode:
+        fillchar = unichr(0x2589).encode('utf-8')
+    buff = ""
+    for w in sorted(d, key=d.get, reverse=True):
+        strbuff = "%%-%is | %%s (%%i)" % (maxstrlen)
+        if(maxval < scaleto):
+            buff += strbuff % (w, fillchar * d[w], d[w])
+        else: # scale to scaleto width
+            buff += strbuff % (w, fillchar * max(1,int(float(scaleto)*d[w]/maxval)), d[w])
+        buff += "\n"
+    return buff
 
 if __name__ == "__main__":
     pass

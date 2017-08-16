@@ -143,6 +143,10 @@ ls -l
     def test_get_proxy_file(self):
         self.assertEqual(Utils.get_proxy_file(), "/tmp/x509up_u{0}".format(os.getuid()))
 
+    def test_statistics(self):
+        res = {'maximum': 3, 'totsum': 6, 'length': 3, 'minimum': 1, 'sigma': 1.0, 'mean': 2.0}
+        self.assertEqual(Utils.get_stats([1,2,3]),res)
+
 
 if __name__ == "__main__":
     unittest.main()
