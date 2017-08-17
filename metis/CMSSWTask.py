@@ -69,9 +69,10 @@ class CMSSWTask(CondorTask):
         pset_basename = os.path.basename(self.pset_path)
         cmssw_ver = self.cmssw_version
         scramarch = self.scram_arch
-        nevts = -1
+        nevts = self.kwargs.get("max_nevents_per_job", -1)
         firstevt = -1
-        expectedevents = out.get_nevents() if self.check_expectedevents else -1
+        expectedevents = self.kwargs.get("max_nevents_per_job",out.get_nevents()) if self.check_expectedevents else -1
+
         if self.split_within_files:
             nevts = self.events_per_output
             firstevt = 1 + (index - 1) * self.events_per_output
