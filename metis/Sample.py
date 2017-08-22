@@ -1,12 +1,17 @@
 import logging
 import glob
 import time
+import datetime
+import os
 
 import scripts.dis_client as dis
 
 from Constants import Constants
-from Utils import setup_logger
+from Utils import setup_logger, cached
 from File import FileDBS, EventsFile
+
+DIS_CACHE_SECONDS = 5*60
+if os.getenv("NOCACHE"): DIS_CACHE_SECONDS = 0
 
 class Sample(object):
     """
@@ -40,9 +45,8 @@ class Sample(object):
     def __repr__(self):
         return "<{0} dataset={1}>".format(self.__class__.__name__, self.info["dataset"])
 
-    def do_dis_query(self, typ="files"):
-
-        ds = self.info["dataset"]
+    @cached(default_max_age = datetime.timedelta(seconds=DIS_CACHE_SECONDS))
+    def do_dis_query(self, ds, typ="files"):
 
         self.logger.debug("Doing DIS query of type {0} for {1}".format(typ, ds))
 
@@ -173,7 +177,7 @@ class DBSSample(Sample):
 
     def load_from_dis(self):
 
-        response = self.do_dis_query(typ="files")
+        response = self.do_dis_query(self.info["dataset"], typ="files")
         fileobjs = [FileDBS(name=fdict["name"], nevents=fdict["nevents"], filesizeGB=fdict["sizeGB"]) for fdict in response]
         fileobjs = sorted(fileobjs, key=lambda x: x.get_name())
 
@@ -197,7 +201,7 @@ class DBSSample(Sample):
     def get_globaltag(self):
         if self.info.get("gtag", None):
             return self.info["gtag"]
-        response = self.do_dis_query(typ="config")
+        response = self.do_dis_query(self.info["dataset"], typ="config")
         self.info["gtag"] = response["global_tag"]
         self.info["native_cmssw"] = response["release_version"]
         return self.info["gtag"]
@@ -205,7 +209,7 @@ class DBSSample(Sample):
     def get_native_cmssw(self):
         if self.info.get("native_cmssw", None):
             return self.info["native_cmssw"]
-        response = self.do_dis_query(typ="config")
+        response = self.do_dis_query(self.info["dataset"], typ="config")
         self.info["gtag"] = response["global_tag"]
         self.info["native_cmssw"] = response["native_cmssw"]
         return self.info["native_cmssw"]
@@ -298,14 +302,22 @@ class SNTSample(DirectorySample):
     def get_globaltag(self):
         if self.info.get("gtag", None):
             return self.info["gtag"]
-        response = self.do_dis_query(typ="config")
+        response = self.do_dis_query(self.info["dataset"], typ="config")
         self.info["gtag"] = response["global_tag"]
         self.info["native_cmssw"] = response["release_version"]
         return self.info["gtag"]
 
 
 if __name__ == '__main__':
-    s = Sample()
+
+    s1 = DBSSample(dataset="/DoubleMuon/Run2017A-PromptReco-v3/MINIAOD")
+    print len(s1.get_files())
+
+    s1 = DBSSample(dataset="/MET/Run2017A-PromptReco-v3/MINIAOD")
+    print len(s1.get_files())
+
+    s1 = DBSSample(dataset="/JetHT/Run2017A-PromptReco-v3/MINIAOD")
+    print len(s1.get_globaltag())
 
     # ds = DirectorySample(
     #         dataset="/blah/blah/MINE",

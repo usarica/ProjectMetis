@@ -17,7 +17,6 @@ class SampleTest(unittest.TestCase):
         logging.getLogger("logger_metis").disabled = True
         # should return False since no dataset was provided!
         samp = Sample()
-        self.assertEqual(samp.do_dis_query(), False)
         self.assertEqual(samp.load_from_dis(), False)
 
 class DBSSampleTest(unittest.TestCase):

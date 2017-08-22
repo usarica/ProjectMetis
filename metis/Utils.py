@@ -4,7 +4,33 @@ import os
 import commands
 import logging
 import datetime
+import shelve
 from collections import Counter
+
+class cached(object): # pragma: no cover
+    """
+    decorate with
+    @cached(default_max_age = datetime.timedelta(seconds=5*60))
+    """
+    def __init__(self, *args, **kwargs):
+        self.cached_function_responses = {}
+        self.default_max_age = kwargs.get("default_max_age", datetime.timedelta(seconds=0))
+        self.cache_file = "cache.shelf"
+
+    def __call__(self, func):
+        def inner(*args, **kwargs):
+            self.cached_function_responses = shelve.open(self.cache_file)
+            max_age = kwargs.get('max_age', self.default_max_age)
+            funcname = func.__name__
+            key = "|".join([str(funcname), str(args), str(kwargs)])
+            if not max_age or key not in self.cached_function_responses or (datetime.datetime.now() - self.cached_function_responses[key]['fetch_time'] > max_age):
+                if 'max_age' in kwargs: del kwargs['max_age']
+                res = func(*args, **kwargs)
+                self.cached_function_responses[key] = {'data': res, 'fetch_time': datetime.datetime.now()}
+            to_ret = self.cached_function_responses[key]['data']
+            self.cached_function_responses.close()
+            return to_ret
+        return inner
 
 
 def time_it(method): # pragma: no cover
