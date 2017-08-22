@@ -56,7 +56,7 @@ class CondorTask(Task):
         # If we didn't get an output directory, use the canonical format. E.g.,
         #   /hadoop/cms/store/user/namin/ProjectMetis/MET_Run2017A-PromptReco-v2_MINIAOD_CMS4_V00-00-03
         hadoop_user = os.environ.get("USER")  # NOTE, might be different for some weird folks
-        self.output_dir = "/hadoop/cms/store/user/{0}/{1}/{2}_{3}/".format(hadoop_user, special_dir, self.sample.get_datasetname().replace("/", "_")[1:], self.tag)
+        self.output_dir = "/hadoop/cms/store/user/{0}/{1}/{2}_{3}/".format(hadoop_user, special_dir, self.sample.get_datasetname().replace("/", "_").lstrip("_"), self.tag)
 
         # I/O mapping (many-to-one as described above)
         self.io_mapping = []
@@ -67,7 +67,7 @@ class CondorTask(Task):
         self.queried_nevents = 0
 
         # Make a unique name from this task for pickling purposes
-        self.unique_name = kwargs.get("unique_name", "{0}_{1}_{2}".format(self.get_task_name(), self.sample.get_datasetname().replace("/", "_")[1:], self.tag))
+        self.unique_name = kwargs.get("unique_name", "{0}_{1}_{2}".format(self.get_task_name(), self.sample.get_datasetname().replace("/", "_").lstrip("_"), self.tag))
 
         # Pass all of the kwargs to the parent class
         super(CondorTask, self).__init__(**kwargs)
