@@ -7,3 +7,4 @@ exclude_lines =
     if __name__ == .__main__.:
     only testable on UAF
     logger.debug
+    logger.error
