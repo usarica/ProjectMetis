@@ -96,7 +96,7 @@ def main(args):
         if verbose:
             for iout,info in d_bad["jobs_not_done"].items():
                 nretries = info["retries"]
-                last_log = info["last_log"]
+                last_log = info["last_log"].replace(".out",".err")
                 red_open, color_close = "", ""
                 if do_color:
                     red_open = "\033[38;2;250;50;50m"
