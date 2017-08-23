@@ -50,10 +50,6 @@ class Sample(object):
 
         self.logger.debug("Doing DIS query of type {0} for {1}".format(typ, ds))
 
-        if not ds:
-            self.logger.error("No dataset name declared!")
-            return False
-
         rawresponse = dis.query(ds, typ=typ, detail=True)
         response = rawresponse["response"]["payload"]
         if not len(response):
