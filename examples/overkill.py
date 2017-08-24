@@ -21,7 +21,6 @@ if __name__ == "__main__":
     MutableFile(basedir).touch()
 
     # Make 3 text files (file_<i>.txt) in the base directory and fill them with text "10" 
-    mfs = [MutableFile("{0}/file_{1}.txt".format(basedir,i)) for i in range(3)]
     mfs = []
     for i in range(3):
         mf = MutableFile("{0}/file_{1}.txt".format(basedir,i))
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     echo $(( 2*$(cat $INPUTFILENAMES) )) > tmp.txt
     gfal-copy -p -f -t 4200 --verbose file://`pwd`/tmp.txt gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.txt --checksum ADLER32
     """)
-    do_cmd("chmod u+x {0}".format(exefile.get_name()))
+    exefile.chmod("u+x")
 
     # Make a CondorTask (3 in total, one for each input)
     task = CondorTask(
