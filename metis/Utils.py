@@ -66,6 +66,16 @@ def get_timestamp():
     # return current time as a unix timestamp
     return int(datetime.datetime.now().strftime("%s"))
 
+def from_timestamp(timestamp):
+    # return datetime object from unix timestamp
+    return datetime.datetime.fromtimestamp(int(timestamp))
+
+def timedelta_to_human(td):
+    if td.days >= 2:
+        return "{} days".format(td.days)
+    else:
+        return "{} hours".format(int(td.total_seconds()//3600))
+
 def metis_base():
     return os.environ.get("METIS_BASE",".")+"/"
 

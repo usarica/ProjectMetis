@@ -4,7 +4,8 @@ import json
 import argparse
 import datetime
 import os
-from metis.Utils import hsv_to_rgb
+from metis.Utils import hsv_to_rgb, from_timestamp, timedelta_to_human
+import metis.LogParser as logparser
 
 
 def is_open_dataset(d_general):
@@ -44,6 +45,26 @@ def progress_bar(fraction, width=40, do_color=True, do_unicode=True,override_col
         color_close = "\033[0m"
     return "|{0}{1}{2}{3}|".format(color_open,filled, color_close,unfilled)
 
+def get_summaries(web_summary, total_summary="summary.json"):
+    check_path = os.path.join(os.getenv("METIS_BASE"),web_summary)
+    if os.path.exists(check_path):
+        web_summary = check_path
+    if os.path.exists(web_summary):
+        with open(web_summary, "r") as fhin:
+            data = json.load(fhin)
+    else:
+        raise Exception("{0} file doesn't exist!".format(web_summary))
+
+    check_path = os.path.join(os.getenv("METIS_BASE"),total_summary)
+    data_raw = {}
+    if os.path.exists(check_path):
+        total_summary = check_path
+    if os.path.exists(total_summary):
+        with open(total_summary, "r") as fhin:
+            data_raw = json.load(fhin)
+
+    return data, data_raw
+
 def main(args):
 
     web_summary = args.summary
@@ -52,15 +73,9 @@ def main(args):
     verbose = int(args.verbosity)
     do_color = not args.nocolor
 
-    check_path = os.path.join(os.getenv("METIS_BASE"),web_summary)
-    if os.path.exists(check_path):
-        web_summary = check_path
 
-    if os.path.exists(web_summary):
-        with open(web_summary, "r") as fhin:
-            data = json.load(fhin)
-    else:
-        raise Exception("{0} file doesn't exist!".format(web_summary))
+    data, data_raw = get_summaries(web_summary)
+
 
 
     if which_sort == "progress":
@@ -70,7 +85,7 @@ def main(args):
     elif which_sort == "era":
         data["tasks"] = sorted(data["tasks"], key=lambda x: x["general"]["dataset"].split("/")[2], reverse=reverse_sort)
 
-    dt = datetime.datetime.fromtimestamp(int(data["last_updated"]))
+    dt = from_timestamp(data["last_updated"])
     if do_color:
         print "\033[93mSummary as of {0}\033[0m".format(dt.strftime("%a %b %d %T %Y"))
     else:
@@ -101,7 +116,16 @@ def main(args):
                 if do_color:
                     red_open = "\033[38;2;250;50;50m"
                     color_close = "\033[0m"
-                print "\toutput {}: {}{} retries{}, {}".format(iout, red_open, nretries, color_close, last_log)
+                duration_str = ""
+                if nretries > 5 and data_raw:
+                    first_job = data_raw["/MET/Run2017C-PromptReco-v3/MINIAOD"]["jobs"][str(iout)]["condor_jobs"][0]
+                    first_log = first_job["logfile_out"]
+                    first_timestamp = logparser.log_parser(first_log)["args"]["time"]
+                    time_then = from_timestamp(first_timestamp)
+                    time_now = datetime.datetime.now()
+                    duration_str = " (over {})".format(timedelta_to_human(time_now - time_then))
+
+                print "\toutput {}: {}{} retries{}{}, {}".format(iout, red_open, nretries, duration_str, color_close, last_log)
 
 
 if __name__ == "__main__":
