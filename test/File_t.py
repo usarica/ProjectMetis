@@ -148,5 +148,14 @@ class MutableFileTest(unittest.TestCase):
         d1.rm()
         self.assertEqual(os.path.exists(d1.get_name()), False)
 
+    def test_chmod(self):
+        f1 = MutableFile("chmodtest.txt")
+        f1.touch()
+        f1.chmod(644)
+        self.assertEqual(f1.chmod(), 644)
+        f1.chmod("u+x")
+        self.assertEqual(f1.chmod(), 744)
+        f1.rm()
+
 if __name__ == "__main__":
     unittest.main()

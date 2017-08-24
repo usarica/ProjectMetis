@@ -225,6 +225,13 @@ class MutableFile(File):
             with open(self.name, "r") as fhin:
                 return fhin.read()
 
+    def chmod(self, tomod=None):
+        if tomod:
+            if os.path.isfile(self.name):
+                os.system("chmod {0} {1}".format(tomod, self.name))
+        else:
+            return int(oct(os.stat(self.name).st_mode)[-3:])
+
 
 if __name__ == '__main__':
     pass
