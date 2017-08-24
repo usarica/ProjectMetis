@@ -13,7 +13,6 @@ header = """
     <head>
         <title>Metis Docs</title>
         <style>
-            @import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,900);
             body {
                 padding: 0px;
                 margin: 0px;
@@ -23,6 +22,15 @@ header = """
             }
             #container {
                 padding: 10px 10px 10px 10px;
+                /* width: 72%; */
+                /* float: right; */
+            }
+            #navcolumn {
+                padding: 10px 0px 10px 10px;
+                margin: 10px 0px 10px 10px;
+                width: 23%;
+                float: left;
+                border: 1px solid #999;
             }
             .classcontainer {
                 padding: 10px 10px 10px 10px;
@@ -50,10 +58,11 @@ header = """
                 background: #DDD; 
             }
         </style>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script> -->
+        <!-- <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script> -->
     </head>
     <body>
+        <!-- <div id="navcolumn"> test <br> test<br> test </div> -->
         <div id="container">
 
 """
