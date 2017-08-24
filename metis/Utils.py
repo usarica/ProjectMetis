@@ -336,11 +336,13 @@ def get_hist(vals, do_unicode=True, width=50): # pragma: no cover
     maxstrlen = max([len(k) for k in d.keys()])
     scaleto=width-maxstrlen
     fillchar = "*"
+    verticalbar = "|"
     if do_unicode:
         fillchar = unichr(0x2589).encode('utf-8')
+        verticalbar = unichr(0x2502).encode('utf-8')
     buff = ""
     for w in sorted(d, key=d.get, reverse=True):
-        strbuff = "%%-%is | %%s (%%i)" % (maxstrlen)
+        strbuff = "%%-%is %s %%s (%%i)" % (maxstrlen,verticalbar)
         if(maxval < scaleto):
             buff += strbuff % (w, fillchar * d[w], d[w])
         else: # scale to scaleto width
