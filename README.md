@@ -29,9 +29,10 @@ In the process of fulfilling the above, ProjetMetis exposes some nice standalone
 To submit CMS4 jobs on a dataset, literally just need the dataset name, a pset, and a tarred up CMSSW environment.
 Here's a quick preview, but there are more use case examples in `examples/`.
 ```python
-import time
-from Sample import DBSSample
-from CMSSWTask import CMSSWTask
+from metis.Sample import DBSSample
+from metis.CMSSWTask import CMSSWTask
+from metis.StatsParser import StatsParser
+from metis.Utils import send_email
 
 def main():
     task = CMSSWTask(
