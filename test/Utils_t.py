@@ -1,6 +1,7 @@
 import unittest
 import os
 import time
+import datetime
 
 import metis.Utils as Utils
 from metis.File import EventsFile
@@ -168,9 +169,19 @@ ls -l
         res = {'maximum': 3, 'totsum': 6, 'length': 3, 'minimum': 1, 'sigma': 1.0, 'mean': 2.0}
         self.assertEqual(Utils.get_stats([1,2,3]),res)
 
+    def test_timedelta_to_human(self):
+        self.assertEqual(Utils.timedelta_to_human(datetime.timedelta(days=3)), "3 days")
+        self.assertEqual(Utils.timedelta_to_human(datetime.timedelta(days=3.5)), "3 days")
+        self.assertEqual(Utils.timedelta_to_human(datetime.timedelta(days=0.5)), "12 hours")
+        self.assertEqual(Utils.timedelta_to_human(datetime.timedelta(days=0.49)), "11 hours")
+        self.assertEqual(Utils.timedelta_to_human(datetime.timedelta(days=1.5)), "36 hours")
+
+    def test_timestamps(self):
+        now = datetime.datetime.now()
+        timestamp = int(now.strftime("%s"))
+        self.assertEqual(abs(Utils.get_timestamp() - timestamp) < 2, True)
+        self.assertEqual(int(Utils.from_timestamp(now.strftime("%s")).strftime("%s")), timestamp)
 
 if __name__ == "__main__":
     unittest.main()
-
-
 
