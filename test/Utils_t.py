@@ -43,6 +43,27 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(success, True)
         self.assertEqual(cluster_id, -1)
 
+    def test_condor_submit_template_grid(self):
+        template = Utils.condor_submit(
+                executable="blah.sh",arguments=[],inputfiles=[],
+                logdir="./",return_template=True,
+                sites = "UAF,T2_US_UCSD",
+            )
+        self.assertEqual("executable=blah.sh" in template, True)
+        self.assertEqual("UAF,T2_US_UCSD" in template, True)
+        self.assertEqual("x509userproxy=" in template, True)
+
+
+    def test_condor_submit_template_uaf(self):
+        template = Utils.condor_submit(
+                executable="blah.sh",arguments=[],inputfiles=[],
+                logdir="./",return_template=True,
+                sites = "UAF",
+            )
+        self.assertEqual("executable=blah.sh" in template, True)
+        self.assertEqual("UAF" in template, True)
+        self.assertEqual("x509userproxy=" not in template, True)
+
     # @unittest.skip("skipped due to sleep")
     @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
     def test_condor_submission_output_local(self):
@@ -150,4 +171,6 @@ ls -l
 
 if __name__ == "__main__":
     unittest.main()
+
+
 

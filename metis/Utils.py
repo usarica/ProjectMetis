@@ -208,6 +208,9 @@ def condor_submit(**kwargs): # pragma: no cover
                 raise RuntimeError("This selection pair is not a 2-tuple: {0}".format(str(sel_pair)))
             params["extra"] += '+{0}="{1}"\n'.format(*sel_pair)
 
+    # if the sites only includes UAF, do not even bother giving a proxy
+    params["proxyline"] = "x509userproxy={proxy}" if not(params["sites"] == "UAF") else ""
+
     template = """
 universe={universe}
 +DESIRED_Sites="{sites}"
@@ -224,10 +227,13 @@ error={logdir}/std_logs/1e.$(Cluster).$(Process).err
 notification=Never
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-x509userproxy={proxy}
+{proxyline}
 {extra}
 queue
     """
+
+    if kwargs.get("return_template",False):
+        return template.format(**params)
 
     if kwargs.get("fake",False):
         return True, -1
