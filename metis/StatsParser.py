@@ -30,8 +30,13 @@ class StatsParser(object):
 
     def do(self):
 
-        with open("summary.json","w") as fhdump:
-            json.dump(self.data, fhdump)
+        oldsummary = {}
+        if os.path.isfile(self.summary_fname):
+            with open(self.summary_fname,"r") as fhin:
+                oldsummary = json.load(fhin)
+        with open(self.summary_fname,"w") as fhdump:
+            oldsummary.update(self.data)
+            json.dump(oldsummary, fhdump)
 
         summaries = self.data.copy()
 
