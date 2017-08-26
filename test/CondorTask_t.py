@@ -64,8 +64,19 @@ class CondorTaskTest(unittest.TestCase):
     def test_outputs(self):
         self.assertEqual( len(self.dummy.get_outputs()) , ((self.nfiles+1)//self.files_per_job) )
 
+    def test_sample(self):
+        self.assertEqual(self.dummy.get_sample(), self.dummy.sample)
+
+    def test_reset_mapping(self):
+        old = self.dummy.io_mapping
+        self.dummy.reset_io_mapping()
+        self.assertEqual(self.dummy.get_io_mapping(), [])
+        self.dummy.io_mapping = old
+
     def test_completion(self):
         self.assertEqual( self.dummy.complete() , True )
+        self.assertEqual( self.dummy.complete(return_fraction=True) , 1.0 )
+        self.assertEqual(len(self.dummy.get_completed_outputs()), (self.nfiles+1)//self.files_per_job)
 
     def test_summary(self):
         summary = self.dummy.get_task_summary()
@@ -78,6 +89,7 @@ class CondorTaskTest(unittest.TestCase):
         inps, output = self.dummy.get_io_mapping()[0]
         self.assertEqual(self.dummy.get_inputs_for_output(output), inps)
         self.assertEqual(self.dummy.get_inputs_for_output(output.get_name()), inps)
+        self.assertEqual(self.dummy.get_inputs_for_output("unknown"), "unknown")
 
     def test_prepare_inputs(self):
         shfiles = glob.glob(self.dummy.get_taskdir()+"/*.sh")
@@ -88,6 +100,13 @@ class CondorTaskTest(unittest.TestCase):
         ijobs = range(1,(self.nfiles+1)//self.files_per_job+1)
         self.assertEqual(sorted(history.keys()), ijobs)
         self.assertEqual(history.values(), [[-1] for _ in ijobs])
+
+    def test_backup(self):
+        self.assertEqual( "io_mapping" in self.dummy.info_to_backup(), True )
+        self.assertEqual( "executable_path" in self.dummy.info_to_backup(), True )
+        self.assertEqual( "package_path" in self.dummy.info_to_backup(), True )
+        self.assertEqual( "prepared_inputs" in self.dummy.info_to_backup(), True )
+        self.assertEqual( "job_submission_history" in self.dummy.info_to_backup(), True )
 
     def test_flush(self):
         basedir = "/tmp/{0}/metis/condortask_testflush/".format(os.getenv("USER"))
