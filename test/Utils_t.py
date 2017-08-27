@@ -52,7 +52,7 @@ class UtilsTest(unittest.TestCase):
             )
         self.assertEqual("executable=blah.sh" in template, True)
         self.assertEqual("UAF,T2_US_UCSD" in template, True)
-        self.assertEqual("x509userproxy=" in template, True)
+        self.assertEqual("x509userproxy={0}".format(Utils.get_proxy_file()) in template, True)
 
 
     def test_condor_submit_template_uaf(self):
