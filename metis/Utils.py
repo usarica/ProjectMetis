@@ -209,7 +209,7 @@ def condor_submit(**kwargs): # pragma: no cover
             params["extra"] += '+{0}="{1}"\n'.format(*sel_pair)
 
     # if the sites only includes UAF, do not even bother giving a proxy
-    params["proxyline"] = "x509userproxy={proxy}" if not(params["sites"] == "UAF") else ""
+    params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"]) if not(params["sites"] == "UAF") else ""
 
     template = """
 universe={universe}
