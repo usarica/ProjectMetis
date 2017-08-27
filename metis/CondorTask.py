@@ -255,29 +255,46 @@ class CondorTask(Task):
 
             else:
                 this_job_dict = next(rj for rj in condor_job_dicts if int(rj["jobnum"]) == index)
-                cluster_id = this_job_dict["ClusterId"]
+                action_type = self.handle_condor_job(this_job_dict, out)
 
-                running = this_job_dict.get("JobStatus", "I") == "R"
-                idle = this_job_dict.get("JobStatus", "I") == "I"
-                held = this_job_dict.get("JobStatus", "I") == "H"
-                hours_since = abs(time.time() - int(this_job_dict["EnteredCurrentStatus"])) / 3600.
 
-                if running:
-                    self.logger.debug("Job {0} for ({1}) running for {2:.1f} hrs".format(cluster_id, out, hours_since))
+    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=24.0, remove_held_x_hours=5.0):
+        """
+        takes `out` (something with repr to print out) and dictionary of condor
+        job information returns action_type specifying the type of action taken
+        given the info
+        """
+        cluster_id = this_job_dict["ClusterId"]
+        running = this_job_dict.get("JobStatus", "I") == "R"
+        idle = this_job_dict.get("JobStatus", "I") == "I"
+        held = this_job_dict.get("JobStatus", "I") == "H"
+        hours_since = abs(time.time() - int(this_job_dict["EnteredCurrentStatus"])) / 3600.
 
-                    if hours_since > 24.0:
-                        self.logger.debug("Job {0} for ({1}) removed for running for more than a day!".format(cluster_id, out))
-                        Utils.condor_rm([cluster_id])
+        action_type = "UNKNOWN"
 
-                elif idle:
-                    self.logger.debug("Job {0} for ({1}) idle for {2:.1f} hrs".format(cluster_id, out, hours_since))
+        if running:
+            self.logger.debug("Job {0} for ({1}) running for {2:.1f} hrs".format(cluster_id, out, hours_since))
+            action_type = "RUNNING"
 
-                elif held:
-                    self.logger.debug("Job {0} for ({1}) held for {2:.1f} hrs with hold reason: {3}".format(cluster_id, out, hours_since, this_job_dict["HoldReason"]))
+            if hours_since > remove_running_x_hours:
+                self.logger.debug("Job {0} for ({1}) removed for running for more than a day!".format(cluster_id, out))
+                if not fake: Utils.condor_rm([cluster_id])
+                action_type = "LONG_RUNNING_REMOVED"
 
-                    if hours_since > 5.0:
-                        self.logger.info("Job {0} for ({1}) removed for excessive hold time".format(cluster_id, out))
-                        Utils.condor_rm([cluster_id])
+        elif idle:
+            self.logger.debug("Job {0} for ({1}) idle for {2:.1f} hrs".format(cluster_id, out, hours_since))
+            action_type = "IDLE"
+
+        elif held:
+            self.logger.debug("Job {0} for ({1}) held for {2:.1f} hrs with hold reason: {3}".format(cluster_id, out, hours_since, this_job_dict.get("HoldReason", "???")))
+            action_type = "HELD"
+
+            if hours_since > remove_held_x_hours:
+                self.logger.info("Job {0} for ({1}) removed for excessive hold time".format(cluster_id, out))
+                if not fake: Utils.condor_rm([cluster_id])
+                action_type = "HELD_AND_REMOVED"
+
+        return action_type
 
     def process(self, fake=False):
         """
