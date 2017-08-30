@@ -198,7 +198,7 @@ def condor_submit(**kwargs): # pragma: no cover
 
     if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Purdue,T2_US_Nebraska,T2_US_Caltech")
     else: params["sites"] = kwargs.get("sites","T2_US_UCSD")
-    if os.getenv("USER") in ["namin"]:
+    if os.getenv("USER") in ["namin"] and "T2_US_UCSD" in params["sites"]:
         params["sites"] += ",UAF,UCSB"
 
     params["extra"] = ""
