@@ -9,9 +9,6 @@ if __name__ == "__main__":
     # Make a mutable file object
     fo = MutableFile("mutablefile_test.txt")
 
-    # Remove it if it already exists
-    fo.rm()
-
     # Touch the file to guarantee its existence
     fo.touch()
 
@@ -31,3 +28,5 @@ if __name__ == "__main__":
     print "<--- End contents ----"
 
 
+    # Clean up by removing the file
+    fo.rm()
