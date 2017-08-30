@@ -131,6 +131,26 @@ class CondorTaskTest(unittest.TestCase):
         dummy.flush()
         self.assertEqual( len(dummy.get_outputs()) , (self.nfiles//self.files_per_job+1) )
 
+    def test_completion_fraction(self):
+        # Make dummy task with no inputs
+        # and require min completion fraction to be 0
+        logging.getLogger("logger_metis").disabled = True
+        dummy = CondorTask(
+                sample = DirectorySample(
+                    location = ".",
+                    globber = "*.fake",
+                    dataset = "/testprocess/testprocess/TEST",
+                    ),
+                open_dataset = False,
+                files_per_output = 1,
+                cmssw_version = "CMSSW_8_0_20",
+                tag = "vtest",
+                no_load_from_backup = True,
+                min_completion_fraction = 0.,
+                )
+        dummy.process()
+        self.assertEqual(dummy.complete(), True)
+
     def test_condor_handler(self):
 
         epsilon_hours = 0.1
