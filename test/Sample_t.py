@@ -19,6 +19,33 @@ class SampleTest(unittest.TestCase):
         samp = Sample()
         self.assertEqual(samp.load_from_dis(), False)
 
+    def test_get_nevents(self):
+        samp = Sample(dataset="/blah/blah/BLAH/", gtag="mygtag")
+        samp.info["nevts"] = 123
+        self.assertEqual(samp.get_nevents(), 123)
+
+    def test_get_files(self):
+        samp = Sample(dataset="/blah/blah/BLAH/", files=["blah1.txt","blah2.txt"])
+        self.assertEqual(samp.get_files(), ["blah1.txt","blah2.txt"])
+
+    def test_get_globaltag(self):
+        samp = Sample(dataset="/blah/blah/BLAH/", gtag="mygtag")
+        self.assertEqual(samp.get_globaltag(), "mygtag")
+
+    def test_sort_responses(self):
+        responses = [
+                {"timestamp": 2},
+                {"timestamp": 1},
+                {"timestamp": 3},
+                ]
+        def get_values(listofdicts):
+            return map(lambda x: x.values()[0], listofdicts)
+        samp = Sample(dataset="/blah/blah/BLAH/")
+        self.assertEqual(get_values(samp.sort_query_by_timestamp(responses, descending=True)), [3,2,1])
+        self.assertEqual(get_values(samp.sort_query_by_timestamp(responses, descending=False)), [1,2,3])
+        self.assertEqual(samp.sort_query_by_timestamp({}), {})
+
+
 class DBSSampleTest(unittest.TestCase):
 
     @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
@@ -57,6 +84,11 @@ class DirectorySampleTest(unittest.TestCase):
         fnames_nocms = ["/store/user/blah/file_1.root","/store/user/blah/file_2.root"]
         dirsamp.set_files(fnames)
         self.assertEqual(map(lambda x: x.get_name(), dirsamp.get_files()), fnames_nocms)
+
+    def test_get_globaltag(self):
+        dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/")
+        dirsamp.info["gtag"] = "dummygtag"
+        self.assertEqual(dirsamp.get_globaltag(), dirsamp.info["gtag"])
 
 class SNTSampleTest(unittest.TestCase):
 
