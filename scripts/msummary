@@ -113,17 +113,20 @@ def main(args):
                 nretries = info["retries"]
                 last_log = info["last_log"].replace(".out",".err")
                 red_open, color_close = "", ""
+                duration_str = ""
                 if do_color:
                     red_open = "\033[38;2;250;50;50m"
                     color_close = "\033[0m"
                 duration_str = ""
                 if nretries > 5 and data_raw:
-                    first_job = data_raw["/MET/Run2017C-PromptReco-v3/MINIAOD"]["jobs"][str(iout)]["condor_jobs"][0]
+                    first_job = data_raw[dataset]["jobs"][str(iout)]["condor_jobs"][0]
                     first_log = first_job["logfile_out"]
-                    first_timestamp = logparser.log_parser(first_log)["args"]["time"]
-                    time_then = from_timestamp(first_timestamp)
-                    time_now = datetime.datetime.now()
-                    duration_str = " (over {})".format(timedelta_to_human(time_now - time_then))
+                    arginfo = logparser.log_parser(first_log)["args"]
+                    if arginfo:
+                        first_timestamp = arginfo["time"]
+                        time_then = from_timestamp(first_timestamp)
+                        time_now = datetime.datetime.now()
+                        duration_str = " (over {})".format(timedelta_to_human(time_now - time_then))
 
                 print "\toutput {}: {}{} retries{}{}, {}".format(iout, red_open, nretries, duration_str, color_close, last_log)
 
