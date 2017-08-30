@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 import os
 import time
@@ -153,9 +155,9 @@ ls -l
 
         exists = os.path.exists(outfile)
         if not exists:
-            print "gfal-copy failed with ----------------->"
-            print out
-            print "<---------------------------------------"
+            print("gfal-copy failed with ----------------->")
+            print(out)
+            print("<---------------------------------------")
 
         cmd = "rm -f {outfile} ; rm -f {outname}".format(outname=outname, outfile=outfile)
         Utils.do_cmd(cmd)

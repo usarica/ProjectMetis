@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import multiprocessing
@@ -14,7 +16,7 @@ try:
     from CRABClient.UserUtilities import setConsoleLogLevel, getUsernameFromSiteDB
     from CRABClient.ClientUtilities import LOGLEVEL_MUTE
 except ImportError:
-    print ">>> You need to do cmsenv and crabenv"
+    print(">>> You need to do cmsenv and crabenv")
     sys.exit()
 
 class CrabManager(object):
@@ -254,5 +256,5 @@ if __name__ == "__main__":
             request_name="test_metis_ttzlowmass",
             pset_location="pset_example.py",
         )
-    print cm
-    print cm.get_crab_config()
+    print(cm)
+    print(cm.get_crab_config())

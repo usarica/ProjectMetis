@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import math
 import time                                                
 import os
@@ -44,15 +46,15 @@ def time_it(method): # pragma: no cover
 
         # print '%r (%r, %r) %2.2f sec' % \
         #       (method.__name__, args, kw, te-ts)
-        print '%r %2.2f sec' % \
-              (method.__name__, te-ts)
+        print('%r %2.2f sec' % \
+              (method.__name__, te-ts))
         return result
 
     return timed
 
 def do_cmd(cmd, returnStatus=False, dryRun=False):
     if dryRun:
-        print "dry run: {}".format(cmd)
+        print("dry run: {}".format(cmd))
         status, out = 1, ""
     else:
         status, out = commands.getstatusoutput(cmd)

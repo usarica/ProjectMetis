@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import time
 import os
 
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     is_complete = False
     for t in [5.0, 5.0, 10.0, 15.0, 20.0]:
         task.process()
-        print "Sleeping for {0} seconds".format(int(t))
+        print("Sleeping for {0} seconds".format(int(t)))
         time.sleep(t)
         is_complete = task.complete()
         if is_complete: break
@@ -75,11 +77,11 @@ if __name__ == "__main__":
     # in order to pick up the files. Then cat out the contents and sum
     # them up. This should be 3*2*10 = 100
     if is_complete:
-        print "Job completed! Checking outputs..."
+        print("Job completed! Checking outputs...")
         outsamp = DirectorySample(location=task.get_outputdir(), dataset="/Blah/blah/BLAH", globber="*.txt")
         tot = 0
         for f in outsamp.get_files():
             mf = MutableFile(f.get_name())
             tot += int(mf.cat())
-        print "It looks like we found 3*2*10 = {0}".format(tot)
+        print("It looks like we found 3*2*10 = {0}".format(tot))
 

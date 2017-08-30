@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 
 def log_parser(fname):
@@ -76,9 +78,9 @@ if __name__ == "__main__":
     # print(logObj["epoch"])
     # print(logObj.keys())
 
-    print infer_error("/home/users/namin/2017/ProjectMetis/tasks/CMSSWTask_DoubleEG_Run2017B-PromptReco-v2_MINIAOD_CMS4_V00-00-03/logs/std_logs//1e.1124399.0.err")
+    print(infer_error("/home/users/namin/2017/ProjectMetis/tasks/CMSSWTask_DoubleEG_Run2017B-PromptReco-v2_MINIAOD_CMS4_V00-00-03/logs/std_logs//1e.1124399.0.err"))
     blah = log_parser("/home/users/namin/2017/ProjectMetis/tasks/CMSSWTask_DoubleEG_Run2017B-PromptReco-v2_MINIAOD_CMS4_V00-00-03/logs/std_logs//1e.1124399.0.out")
     # print blah["dstat"]["read"]
-    print blah["dstat"]["epoch"]
+    print(blah["dstat"]["epoch"])
     # print blah
     pass

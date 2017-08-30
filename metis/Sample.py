@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import logging
 import glob
 import time
@@ -307,13 +309,13 @@ class SNTSample(DirectorySample):
 if __name__ == '__main__':
 
     s1 = DBSSample(dataset="/DoubleMuon/Run2017A-PromptReco-v3/MINIAOD")
-    print len(s1.get_files())
+    print(len(s1.get_files()))
 
     s1 = DBSSample(dataset="/MET/Run2017A-PromptReco-v3/MINIAOD")
-    print len(s1.get_files())
+    print(len(s1.get_files()))
 
     s1 = DBSSample(dataset="/JetHT/Run2017A-PromptReco-v3/MINIAOD")
-    print len(s1.get_globaltag())
+    print(len(s1.get_globaltag()))
 
     # ds = DirectorySample(
     #         dataset="/blah/blah/MINE",

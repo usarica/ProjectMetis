@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """
     ShameFULLy stolen from
         https://github.com/dmwm/CRABClient/blob/master/src/python/CRABClient/JobType/UserTarball.py
@@ -127,4 +129,4 @@ if __name__ == "__main__":
     ut = UserTarball(name="blah.tar.gz", logger=logger)
     ut.addFiles()
     ut.close()
-    print ut
+    print(ut)
