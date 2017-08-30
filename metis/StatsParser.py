@@ -5,7 +5,7 @@ import time
 import logging
 from pprint import pprint
 
-from metis.LogParser import LogParser
+import metis.LogParser as LogParser
 import metis.Utils as Utils
 
 def merge_histories(hold, hnew):
