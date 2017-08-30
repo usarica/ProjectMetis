@@ -20,6 +20,7 @@ In the process of fulfilling the above, ProjetMetis exposes some nice standalone
 * `condor_q`, `condor_submit`, etc.
 * CRAB job submission/monitoring
 * DIS integration (i.e., queries to internal SNT database, MCM, PhEDEx, DBS)
+* File operations
 
 ## Installation and Setup
 0. Checkout this repository
@@ -32,18 +33,13 @@ Here's a quick preview, but there are more use case examples in `examples/`.
 from metis.Sample import DBSSample
 from metis.CMSSWTask import CMSSWTask
 from metis.StatsParser import StatsParser
-from metis.Utils import send_email
 
 def main():
     task = CMSSWTask(
-            sample = DBSSample(
-                dataset="/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"
-            ),
-            open_dataset = False,
+            sample = DBSSample(dataset="/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"),
             events_per_output = 450e3,
             output_name = "merged_ntuple.root",
             tag = "CMS4_V00-00-03",
-            global_tag = "",
             pset = "pset_test.py",
             pset_args = "data=True prompt=True",
             cmssw_version = "CMSSW_9_2_1",
@@ -73,7 +69,7 @@ if __name__ == "__main__":
         # and ready to process some more data
         time.sleep(1.*3600)
 
-    # Since everything is backed up, totally OK to Ctrl+C and pick up later
+        # Since everything is backed up, totally OK to Ctrl+C and pick up later
 ```
 
 
@@ -81,17 +77,16 @@ if __name__ == "__main__":
 Unit tests will be written in `test/` following the convention of appending `_t.py` to the class which it tests.
 Workflow tests will also be written in `test/` following the convention of prepending `test_` to the name, e.g., `test_DummyMoveWorkflow.py`.
 
-To run all unit tests, execute the following from this project directory:
-`python -m unittest discover -p "*_t.py"`
-
-To run all workflow tests, execute:
-`python -m unittest discover -p "test_*.py"`
-
-To run all tests, execute:
-`python -m unittest discover -s test -p "*.py"`
+The full unit test suite is run using the executable `mtest` in `scripts/` (if Metis is set up properly, you need only execute the command `mtest`). For more fine-grained control, try
+* for all class unit tests, execute the following from this project directory: `python -m unittest discover -p "*_t.py"`
+* for all workflow tests, execute `python -m unittest discover -p "test_*.py"`
+* for all tests, execute: `python -m unittest discover -s test -p "*.py"`
 
 ## TODO
+Submit a Github issue for any bug report or feature request.
+
 * SNTSample in principle allows anyone to update the sample on DIS. We don't want this for "central" samples, so rework this
 * We have all the ingredients to replicate CRAB submission/status functionality, so do it
 * Add more TODOs
 * On dashboard, a unique sample is specified by (datasetname,tag), not just (datasetname) as it is right now. Fix this
+
