@@ -3,6 +3,24 @@
 import argparse
 import unittest
 import metis.Utils as Utils
+import time
+
+class TimingTextTestResult(unittest.TextTestResult):
+    t0 = 0.
+
+    def startTest(self, test):
+        self.t0 = time.time()
+        super(TimingTextTestResult, self).startTest(test)
+
+    def addSuccess(self, test):
+        if self.showAll:
+            to_write = "ok"
+            to_write += " [{}ms]".format(int(1000.0*(time.time()-self.t0)))
+            self.stream.writeln(to_write)
+        elif self.dots:
+            self.stream.write('.')
+            self.stream.flush()
+        self.t0 = time.time()
 
 def main(args):
     """
@@ -11,7 +29,8 @@ def main(args):
     test_dir = Utils.metis_base() + "/test/"
     test_patt = args.pattern
     tests = unittest.TestLoader().discover(test_dir, test_patt)
-    test_runner = unittest.TextTestRunner(verbosity = int(args.verbosity))
+    timingresultclass = TimingTextTestResult
+    test_runner = unittest.TextTestRunner(verbosity = int(args.verbosity), resultclass=timingresultclass)
     test_runner.run(tests)
 
 if __name__ == "__main__":
