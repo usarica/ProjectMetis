@@ -345,7 +345,7 @@ def get_hist(vals, do_unicode=True, width=50): # pragma: no cover
     verticalbar = "|"
     if do_unicode:
         fillchar = unichr(0x2589).encode('utf-8')
-        verticalbar = unichr(0x2502).encode('utf-8')
+        verticalbar = "\x1b(0x\x1b(B"
     buff = ""
     for w in sorted(d, key=d.get, reverse=True):
         strbuff = "%%-%is %s %%s (%%i)" % (maxstrlen,verticalbar)
@@ -358,17 +358,4 @@ def get_hist(vals, do_unicode=True, width=50): # pragma: no cover
 
 if __name__ == "__main__":
     pass
-
-    make_tarball("cscval_v2.tar.gz")
-
-    # from collections import Counter
-    # jobs = condor_q(user="")
-    # print Counter([j["JobStatus"] for j in jobs])
-    # print Counter([j["HoldReason"] for j in jobs])
-    # # print Counter([j["FileSystemDomain"] for j in jobs])
-    # print jobs[-1]
-    # # print jobs
-
-    # print [j for j in jobs if j["JobStatus"] == "HELD"]
-
 
