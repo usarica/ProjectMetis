@@ -6,7 +6,7 @@ class DummyMoveTask(Task):
         # Handle whatever kwargs we want here
         self.inputs = kwargs.get("inputs", [])
         self.outputs = kwargs.get("outputs", [])
-        self.create_inputs = kwargs.get("create_inputs", [])
+        self.create_inputs = kwargs.get("create_inputs", False)
         self.min_completion_fraction = kwargs.get("min_completion_fraction", 1.0)
 
         # Now pass all of them to the parent class
