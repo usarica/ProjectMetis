@@ -4,7 +4,7 @@ import unittest
 
 from metis.DummyTask import DummyMoveTask
 from metis.Path import Path
-from metis.File import File
+from metis.File import File, MutableFile
 from metis.Utils import do_cmd
 
 
@@ -12,34 +12,37 @@ class DummyMoveWorkflowTest(unittest.TestCase):
 
     def test_workflow(self):
 
-        basepath = "/tmp/{}/metis".format(os.getenv("USER"))
+        basepath = "/tmp/{}/metis/".format(os.getenv("USER"))
 
         # Clean up before running
         do_cmd("rm {}/*.root".format(basepath))
 
+        # Make the base directory
+        MutableFile(basepath).touch()
+
         # Set up 4 layers of input->output files
         step0, step1, step2, step3 = [], [], [], []
-        do_cmd("mkdir -p {}".format(basepath))
         for i in range(3):
-            step0.append( File(basepath=basepath, name="step0_{}.root".format(i)) )
-            step1.append( File(basepath=basepath, name="step1_{}.root".format(i)) )
-            step2.append( File(basepath=basepath, name="step2_{}.root".format(i)) )
-            step3.append( File(basepath=basepath, name="step3_{}.root".format(i)) )
+            step0.append( MutableFile(name="{}/step0_{}.root".format(basepath,i)) )
+            step1.append( MutableFile(name="{}/step1_{}.root".format(basepath,i)) )
+            step2.append( MutableFile(name="{}/step2_{}.root".format(basepath,i)) )
+            step3.append( MutableFile(name="{}/step3_{}.root".format(basepath,i)) )
+
+        # Touch the step0 files to ensure they "exist", but they're still empty
+        map(lambda x: x.touch(), step0)
 
         # Make a DummyMoveTask with previous inputs, outputs
         # each input will be moved to the corresponding output file
         # by default, completion fraction must be 1.0, but can be specified
-        # create_inputs = True will touch the input files for this task only
         t1 = DummyMoveTask(
                 inputs = step0,
                 outputs = step1,
                 # min_completion_fraction = 0.6,
-                create_inputs=True,
                 )
 
         # Clone first task for subsequent steps
-        t2 = t1.clone(inputs = step1, outputs = step2, create_inputs=False)
-        t3 = t1.clone(inputs = step2, outputs = step3, create_inputs=False)
+        t2 = t1.clone(inputs = step1, outputs = step2)
+        t3 = t1.clone(inputs = step2, outputs = step3)
 
         # Make a path, which will run tasks in sequence provided previous tasks
         # finish. Default dependency graph ("scheduled mode") will make it so 
