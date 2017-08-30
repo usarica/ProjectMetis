@@ -41,6 +41,7 @@ class StatsParser(object):
         summaries = self.data.copy()
 
         tasks = []
+        # 5 minute quantization
         timestamp = int(time.time()/300)*300
         for dsname in summaries.keys():
 
@@ -155,14 +156,8 @@ class StatsParser(object):
                             old_history = task.get("history",{})
                             new_task = [t for t in tasks if t["general"]["dataset"] == task["general"]["dataset"]][0]
                             new_history = new_task.get("history", {})
-                            # print new_task
                             if self.do_history:
-                                # print "old", old_history
-                                # print "new", new_history
                                 new_task["history"] = merge_histories(old_history, new_history)
-                                # print merge_histories(old_history, new_history)
-                            # print task
-                            # print task["history"]
                 except ValueError:
                     # if we fail to decode JSON, 
                     # could be because the summary file is just empty
