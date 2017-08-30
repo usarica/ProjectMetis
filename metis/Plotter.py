@@ -5,7 +5,7 @@ import scipy.stats
 # from tqdm import *
 
 # Other imports
-import LogParser as lp
+import metis.LogParser as lp
 
 
 # Takes list of log file paths, outputs list of log file dictionaries -> {"key":[list of values]}

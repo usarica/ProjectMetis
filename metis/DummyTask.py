@@ -1,5 +1,5 @@
-from Task import Task
-from Utils import do_cmd
+from metis.Task import Task
+from metis.Utils import do_cmd
 
 class DummyMoveTask(Task):
     def __init__(self, **kwargs):
@@ -19,7 +19,7 @@ class DummyMoveTask(Task):
         return self.outputs
 
     def complete(self):
-        bools = map(lambda output: output.exists(), self.get_outputs())
+        bools = list(map(lambda output: output.exists(), self.get_outputs()))
         frac = 1.0 * sum(bools) / len(bools)
         return frac >= self.min_completion_fraction
 

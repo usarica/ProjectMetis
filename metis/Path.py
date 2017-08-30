@@ -1,6 +1,6 @@
 import logging
 
-from Utils import setup_logger
+from metis.Utils import setup_logger
 
 class Path(object):
     def __init__(self, tasks):
@@ -56,7 +56,7 @@ class Path(object):
         Returns list of booleans for completion status of
         each task in the path
         """
-        return map(lambda x: x.complete(), self.tasks)
+        return list(map(lambda x: x.complete(), self.tasks))
 
 
 

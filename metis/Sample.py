@@ -8,9 +8,9 @@ import os
 
 import scripts.dis_client as dis
 
-from Constants import Constants
-from Utils import setup_logger, cached
-from File import FileDBS, EventsFile
+from metis.Constants import Constants
+from metis.Utils import setup_logger, cached
+from metis.File import FileDBS, EventsFile
 
 DIS_CACHE_SECONDS = 5*60
 if os.getenv("NOCACHE"): DIS_CACHE_SECONDS = 0
@@ -243,7 +243,7 @@ class DirectorySample(Sample):
         filepaths = glob.glob(self.info["location"] + "/" + self.globber)
         if self.use_xrootd:
             filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
-        self.info["files"] = map(EventsFile, filepaths)
+        self.info["files"] = list(map(EventsFile, filepaths))
 
         return self.info["files"]
 
@@ -256,7 +256,7 @@ class DirectorySample(Sample):
     def set_files(self, fnames):
         if self.use_xrootd:
             fnames = [fp.replace("/hadoop/cms", "") for fp in fnames]
-        self.info["files"] = map(EventsFile, fnames)
+        self.info["files"] = list(map(EventsFile, fnames))
 
 class SNTSample(DirectorySample):
     """
@@ -293,7 +293,7 @@ class SNTSample(DirectorySample):
         filepaths = glob.glob(self.get_location() + "/" + self.globber)
         if self.use_xrootd:
             filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
-        self.info["files"] = map(EventsFile, filepaths)
+        self.info["files"] = list(map(EventsFile, filepaths))
 
         return self.info["files"]
 

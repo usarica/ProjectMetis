@@ -29,7 +29,7 @@ class DummyMoveWorkflowTest(unittest.TestCase):
             step3.append( MutableFile(name="{}/step3_{}.root".format(basepath,i)) )
 
         # Touch the step0 files to ensure they "exist", but they're still empty
-        map(lambda x: x.touch(), step0)
+        list(map(lambda x: x.touch(), step0))
 
         # Make a DummyMoveTask with previous inputs, outputs
         # each input will be moved to the corresponding output file

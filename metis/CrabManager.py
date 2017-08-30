@@ -7,7 +7,7 @@ import logging
 import httplib
 import datetime
 
-from Utils import do_cmd, get_proxy_file, setup_logger
+from metis.Utils import do_cmd, get_proxy_file, setup_logger
 
 try:
     pass

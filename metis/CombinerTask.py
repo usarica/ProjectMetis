@@ -1,5 +1,5 @@
-from Task import Task
-from File import File
+from metis.Task import Task
+from metis.File import File
 
 class CombinerTask(Task):
     def __init__(self, **kwargs):

@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 
-import urllib, urllib2, json
+from __future__ import print_function
+
+import json
+try:
+    from urllib2 import urlopen
+    from urllib import urlencode
+except:
+    # python3 compatibility
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
 import sys
 import argparse
 import socket
@@ -28,7 +37,7 @@ BASE_URL_PATTERN = "http://uaf-{NUM}.t2.ucsd.edu/~namin/makers/disMaker/handler.
 
 def query(q, typ="basic", detail=False):
     query_dict = {"query": q, "type": typ, "short": "" if detail else "short"}
-    url_pattern = '%s?%s' % (BASE_URL_PATTERN, urllib.urlencode(query_dict))
+    url_pattern = '%s?%s' % (BASE_URL_PATTERN, urlencode(query_dict))
 
     data = {}
 
@@ -36,11 +45,11 @@ def query(q, typ="basic", detail=False):
     for num in map(str,[4,8,10,6,3,5]):
         try:
             url = url_pattern.replace("{NUM}",num)
-            handle =  urllib2.urlopen(url,timeout=30)
+            handle =  urlopen(url,timeout=30)
             content =  handle.read() 
             data = json.loads(content)
             break
-        except: print "Failed to perform URL fetching and decoding (using uaf-%s)!" % num
+        except: print("Failed to perform URL fetching and decoding (using uaf-%s)!" % num)
         if "test" in BASE_URL_PATTERN: break
 
     return data
@@ -143,7 +152,7 @@ def test(one=False): # pragma: no cover
     ]
     if one: queries = queries[3:4]
     for q_params in queries:
-        print get_output_string(**q_params)
+        print(get_output_string(**q_params))
 
 if __name__ == '__main__':
     
@@ -160,10 +169,10 @@ if __name__ == '__main__':
 
     
     if args.dev: 
-        print ">>> Using dev instance"
+        print(">>> Using dev instance")
         BASE_URL_PATTERN = BASE_URL_PATTERN.replace("disMaker","test_disMaker")
 
     if not args.type: args.type = "basic"
 
-    print get_output_string(args.query, typ=args.type, detail=args.detail, show_json=args.json, pretty_table=args.table)
+    print(get_output_string(args.query, typ=args.type, detail=args.detail, show_json=args.json, pretty_table=args.table))
 

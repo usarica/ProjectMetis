@@ -80,7 +80,7 @@ class CondorTaskTest(unittest.TestCase):
 
     def test_summary(self):
         summary = self.dummy.get_task_summary()
-        self.assertEqual(sum([x["is_on_condor"] for x in summary["jobs"].values()]), 0)
+        self.assertEqual(sum([x["is_on_condor"] for x in list(summary["jobs"].values())]), 0)
         self.assertEqual(summary["cmssw_version"], self.cmssw)
         self.assertEqual(summary["tag"], self.tag)
         self.assertEqual(len(summary["jobs"].keys()), (self.nfiles+1)//self.files_per_job)
@@ -98,8 +98,8 @@ class CondorTaskTest(unittest.TestCase):
     def test_get_job_submission_history(self):
         history = self.dummy.get_job_submission_history()
         ijobs = range(1,(self.nfiles+1)//self.files_per_job+1)
-        self.assertEqual(sorted(history.keys()), ijobs)
-        self.assertEqual(history.values(), [[-1] for _ in ijobs])
+        self.assertEqual(sorted(history.keys()), list(ijobs))
+        self.assertEqual(list(history.values()), [[-1] for _ in ijobs])
 
     def test_backup(self):
         self.assertEqual( "io_mapping" in self.dummy.info_to_backup(), True )

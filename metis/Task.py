@@ -3,7 +3,7 @@ import traceback
 import logging
 import pickle
 
-from Utils import setup_logger, do_cmd, metis_base
+from metis.Utils import setup_logger, do_cmd, metis_base
 
 class Task(object):
 
@@ -145,7 +145,7 @@ class Task(object):
         if `return_fraction` is ``True``, return fraction
         instead of boolean completeness
         """
-        bools = map(lambda output: output.exists(), self.get_outputs())
+        bools = list(map(lambda output: output.exists(), self.get_outputs()))
         if len(bools) == 0:
             frac = 1.0
         else:

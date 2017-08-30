@@ -39,7 +39,7 @@ class SampleTest(unittest.TestCase):
                 {"timestamp": 3},
                 ]
         def get_values(listofdicts):
-            return map(lambda x: x.values()[0], listofdicts)
+            return list(map(lambda x: list(x.values())[0], listofdicts))
         samp = Sample(dataset="/blah/blah/BLAH/")
         self.assertEqual(get_values(samp.sort_query_by_timestamp(responses, descending=True)), [3,2,1])
         self.assertEqual(get_values(samp.sort_query_by_timestamp(responses, descending=False)), [1,2,3])
@@ -76,14 +76,14 @@ class DirectorySampleTest(unittest.TestCase):
         dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/")
         fnames = ["/hadoop/cms/store/user/blah/file_1.root","/hadoop/cms/store/user/blah/file_2.root"]
         dirsamp.set_files(fnames)
-        self.assertEqual(map(lambda x: x.get_name(), dirsamp.get_files()), fnames)
+        self.assertEqual(list(map(lambda x: x.get_name(), dirsamp.get_files())), fnames)
 
     def test_set_files_xrootd(self):
         dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/", use_xrootd=True)
         fnames = ["/hadoop/cms/store/user/blah/file_1.root","/hadoop/cms/store/user/blah/file_2.root"]
         fnames_nocms = ["/store/user/blah/file_1.root","/store/user/blah/file_2.root"]
         dirsamp.set_files(fnames)
-        self.assertEqual(map(lambda x: x.get_name(), dirsamp.get_files()), fnames_nocms)
+        self.assertEqual(list(map(lambda x: x.get_name(), dirsamp.get_files())), fnames_nocms)
 
     def test_get_globaltag(self):
         dirsamp = DirectorySample(dataset= "/blah/blah/BLAH/", location="/dummy/dir/")

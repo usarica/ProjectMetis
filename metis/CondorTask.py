@@ -1,10 +1,10 @@
 import os
 import time
 
-from Constants import Constants
-from Task import Task
-from File import EventsFile
-import Utils
+from metis.Constants import Constants
+from metis.Task import Task
+from metis.File import EventsFile
+import metis.Utils as Utils
 
 class CondorTask(Task):
     def __init__(self, **kwargs):
@@ -119,7 +119,7 @@ class CondorTask(Task):
 
         # get set of filenames from File objects that have already been mapped
         already_mapped_inputs = set(map(lambda x: x.get_name(), self.get_inputs(flatten=True)))
-        already_mapped_outputs = map(lambda x: x.get_index(), self.get_outputs())
+        already_mapped_outputs = list(map(lambda x: x.get_index(), self.get_outputs()))
         nextidx = 1
         if already_mapped_outputs:
             nextidx = max(already_mapped_outputs) + 1
@@ -210,7 +210,7 @@ class CondorTask(Task):
         Return bool for completion, or fraction if
         return_fraction specified as True
         """
-        bools = map(lambda output: output.get_status() == Constants.DONE, self.get_outputs())
+        bools = list(map(lambda output: output.get_status() == Constants.DONE, self.get_outputs()))
         if len(bools) == 0:
             frac = 0.
         else:

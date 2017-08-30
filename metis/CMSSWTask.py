@@ -1,9 +1,9 @@
 import os
 import json
 
-from CondorTask import CondorTask
-from Constants import Constants
-import Utils
+from metis.CondorTask import CondorTask
+from metis.Constants import Constants
+import metis.Utils
 
 class CMSSWTask(CondorTask):
     def __init__(self, **kwargs):
@@ -158,7 +158,7 @@ def set_output_name(outputname):
         for ins, out in self.get_io_mapping():
             if out.get_status() != Constants.DONE:
                 continue
-            d_metadata["ijob_to_miniaod"][out.get_index()] = map(lambda x: x.get_name(), ins)
+            d_metadata["ijob_to_miniaod"][out.get_index()] = list(map(lambda x: x.get_name(), ins))
             nevents = out.get_nevents()
             nevents_pos = out.get_nevents_positive() if self.output_is_tree else 0
             nevents_eff = nevents_pos - (nevents - nevents_pos)

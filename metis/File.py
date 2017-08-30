@@ -1,6 +1,6 @@
 import os
 
-from Constants import Constants
+from metis.Constants import Constants
 
 def is_data_by_filename(fname):
     """

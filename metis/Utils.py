@@ -3,7 +3,11 @@ from __future__ import print_function
 import math
 import time                                                
 import os
-import commands
+try:
+    import commands
+except:
+    # python3 compatibility
+    import subprocess as commands
 import logging
 import datetime
 import shelve

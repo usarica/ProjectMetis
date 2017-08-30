@@ -1,4 +1,4 @@
-from Task import Task
+from metis.Task import Task
 
 class ConcurrentFailureMoveTask(Task):
     def __init__(self, **kwargs):
@@ -51,7 +51,7 @@ class ConcurrentFailureMoveTask(Task):
         Return bool for completion, or fraction if
         return_fraction specified as True
         """
-        bools = map(lambda output: output.exists(), self.get_outputs(flatten=True))
+        bools = list(map(lambda output: output.exists(), self.get_outputs(flatten=True)))
         frac = 1.0 * sum(bools) / len(bools)
         if return_fraction:
             return frac
