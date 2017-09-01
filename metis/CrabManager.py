@@ -248,7 +248,7 @@ if __name__ == "__main__":
     stat = cm.crab_status()
     import pprint
     pprint.pprint(stat)
-    print cm.get_minutes_since_crab_submit()
+    print(cm.get_minutes_since_crab_submit())
 
     # minimal set of inputs to make CONFIG and SUBMIT
     cm = CrabManager(
