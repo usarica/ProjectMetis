@@ -410,6 +410,7 @@ class CondorTask(Task):
             "tag": self.tag,
             "global_tag": self.global_tag,
             "cmssw_version": self.cmssw_version,
+            "timestamp": <timestamp>,
         }
         """
 
@@ -457,6 +458,7 @@ class CondorTask(Task):
                 "tag": self.tag,
                 "global_tag": self.global_tag,
                 "cmssw_version": self.cmssw_version,
+                "timestamp": Utils.get_timestamp(),
                 "executable": self.input_executable,
         }
 

@@ -121,12 +121,15 @@ def main(args):
                 if nretries > 5 and data_raw:
                     first_job = data_raw[dataset]["jobs"][str(iout)]["condor_jobs"][0]
                     first_log = first_job["logfile_out"]
-                    arginfo = logparser.log_parser(first_log)["args"]
-                    if arginfo:
-                        first_timestamp = arginfo["time"]
-                        time_then = from_timestamp(first_timestamp)
-                        time_now = datetime.datetime.now()
-                        duration_str = " (over {})".format(timedelta_to_human(time_now - time_then))
+                    try:
+                        arginfo = logparser.log_parser(first_log)["args"]
+                        if arginfo:
+                            first_timestamp = arginfo["time"]
+                            time_then = from_timestamp(first_timestamp)
+                            time_now = datetime.datetime.now()
+                            duration_str = " (over {})".format(timedelta_to_human(time_now - time_then))
+                    except:
+                        pass
 
                 print "\toutput {}: {}{} retries{}{}, {}".format(iout, red_open, nretries, duration_str, color_close, last_log)
 
