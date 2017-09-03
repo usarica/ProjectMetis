@@ -40,8 +40,11 @@ class File(object):
             info = "name={},status={}".format(self.name, stat)
             return "{}({})".format(self.__class__.__name__, info)
 
+    def __hash__(self):
+        return hash(self.name)
+
     def __eq__(self, other):
-        if type(other) is str:
+        if type(other) in [unicode, str]:
             return self.name == other
         else:
             return self.name == other.get_name()
@@ -190,6 +193,9 @@ class FileDBS(File):
         self.filesizeGB = kwargs.get("filesizeGB", 0.)
 
         super(self.__class__, self).__init__(name, **kwargs)
+
+    def __hash__(self):
+        return hash((self.name, self.nevents))
 
     def get_nevents(self):
         return self.nevents
