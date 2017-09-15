@@ -76,6 +76,11 @@ echo -e "\n--- begin running ---\n" #                           <----- section d
 
 cmsRun pset.py ${PSETARGS}
 
+if [ "$?" != "0" ]; then
+    echo "Removing output file because cmsRun crashed"
+    rm ${OUTPUTNAME}.root
+fi
+
 # Add some metadata
 # Right now, total/negative event counts, but obviously extensible
 python << EOL
