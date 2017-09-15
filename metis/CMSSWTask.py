@@ -3,7 +3,7 @@ import json
 
 from metis.CondorTask import CondorTask
 from metis.Constants import Constants
-import metis.Utils
+import metis.Utils as Utils
 
 class CMSSWTask(CondorTask):
     def __init__(self, **kwargs):
