@@ -140,6 +140,11 @@ ls -lrth
 echo -e "\n--- begin copying output ---\n" #                    <----- section division
 echo "Sending output file $OUTPUTNAME.root"
 gfal-copy -p -f -t 4200 --verbose file://`pwd`/${OUTPUTNAME}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root --checksum ADLER32
+if [ "$?" != "0" ]; then
+    echo "Removing output file because gfal-copy crashed"
+    gfal-rm --verbose gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
+    rm ${OUTPUTNAME}.root
+fi
 echo -e "\n--- end copying output ---\n" #                      <----- section division
 
 echo -e "\n--- begin dstat output ---\n" #                      <----- section division
