@@ -260,7 +260,7 @@ class CondorTask(Task):
 
     def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=24.0, remove_held_x_hours=5.0):
         """
-        takes `out` (something with repr to print out) and dictionary of condor
+        takes `out` (File object) and dictionary of condor
         job information returns action_type specifying the type of action taken
         given the info
         """
@@ -271,10 +271,12 @@ class CondorTask(Task):
         hours_since = abs(time.time() - int(this_job_dict["EnteredCurrentStatus"])) / 3600.
 
         action_type = "UNKNOWN"
+        out.set_status(Constants.RUNNING)
 
         if running:
             self.logger.debug("Job {0} for ({1}) running for {2:.1f} hrs".format(cluster_id, out, hours_since))
             action_type = "RUNNING"
+            out.set_status(Constants.RUNNING)
 
             if hours_since > remove_running_x_hours:
                 self.logger.debug("Job {0} for ({1}) removed for running for more than a day!".format(cluster_id, out))
@@ -284,10 +286,12 @@ class CondorTask(Task):
         elif idle:
             self.logger.debug("Job {0} for ({1}) idle for {2:.1f} hrs".format(cluster_id, out, hours_since))
             action_type = "IDLE"
+            out.set_status(Constants.IDLE)
 
         elif held:
             self.logger.debug("Job {0} for ({1}) held for {2:.1f} hrs with hold reason: {3}".format(cluster_id, out, hours_since, this_job_dict.get("HoldReason", "???")))
             action_type = "HELD"
+            out.set_status(Constants.HELD)
 
             if hours_since > remove_held_x_hours:
                 self.logger.info("Job {0} for ({1}) removed for excessive hold time".format(cluster_id, out))
