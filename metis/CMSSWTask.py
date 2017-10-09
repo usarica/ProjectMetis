@@ -56,7 +56,8 @@ class CMSSWTask(CondorTask):
         """
         d_metadata = self.get_legacy_metadata()
         self.write_metadata(d_metadata)
-        self.update_dis(d_metadata)
+        if self.kwargs.get("publish_to_dis", True):
+            self.update_dis(d_metadata)
 
 
     def submit_condor_job(self, ins, out, fake=False):
@@ -93,11 +94,12 @@ class CMSSWTask(CondorTask):
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full, pset_full] if self.tarfile else [pset_full]
+        extra = self.kwargs.get("condor_submit_params", {})
         return Utils.condor_submit(
                     executable=executable, arguments=arguments,
                     inputfiles=input_files, logdir=logdir_full,
                     selection_pairs=[["taskname", self.unique_name], ["jobnum", index]],
-                    fake=fake
+                    fake=fake, **extra
                )
 
 
@@ -134,6 +136,10 @@ def set_output_name(outputname):
         getattr(process,attr).fileName = outputname
 \n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag)
             )
+
+            if self.sparms:
+                sparms = ['"{0}"'.format(sparm) for sparm in self.sparms]
+                fhin.write("\nprocess.sParmMaker.vsparms = cms.untracked.vstring(\n{0}\n)\n\n".format(",\n".join(sparms)))
 
         # for LHE where we want to split within files,
         # we specify all the files at once, and then shove them in the pset
