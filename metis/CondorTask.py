@@ -39,6 +39,7 @@ class CondorTask(Task):
         self.global_tag = kwargs.get("global_tag",None)
         self.cmssw_version = kwargs.get("cmssw_version", None)
         self.tarfile = kwargs.get("tarfile", None)
+        self.sparms = kwargs.get("sparms", [])
         # LHE, for example, might be large, and we want to use
         # skip events to process event chunks within files
         # in that case, we need events_per_output > 0 and total_nevents > 0
@@ -199,6 +200,12 @@ class CondorTask(Task):
         """
         return [o for o in self.get_outputs() if o.get_status() == Constants.DONE]
 
+    def get_uncompleted_outputs(self):
+        """
+        Return list of uncompleted output objects
+        """
+        return [o for o in self.get_outputs() if o.get_status() != Constants.DONE]
+
     def get_outputs(self):
         """
         Return list of lists, but only list if flatten is True
@@ -219,6 +226,35 @@ class CondorTask(Task):
             return frac
         else:
             return frac >= self.min_completion_fraction
+
+    def try_to_complete(self):
+        """
+        Try to force the task to complete
+        (e.g., through min_completion_fraction satisfaction
+        or otherwise), and also do so by removing residual condor
+        jobs and deleting output files that aren't explicitly done
+        but may have been put there in the meantime by a condor job
+        """
+        # if min_completion_fraction is 1, then don't do anything
+        if self.min_completion_fraction > 1.-1.e-3: return
+        # if it's not complete by the min_completion_fraction standard, then
+        # don't even bother killing tail jobs.
+        if not self.complete(): return
+
+        for cjob in self.get_running_condor_jobs():
+            cluster_id = cjob["ClusterId"]
+            Utils.condor_rm([cluster_id])
+            self.logger.info("Tail condor job {} removed".format(cluster_id))
+        files_to_remove = [output.get_name() for output in self.get_uncompleted_outputs()]
+        new_mapping = []
+        for ins, out in self.get_io_mapping():
+            if out in files_to_remove:
+                continue
+            new_mapping.append([ins,out])
+        for fname in files_to_remove:
+            Utils.do_cmd("rm {}".format(fname))
+            self.logger.info("Tail root file {} removed".format(fname))
+        self.io_mapping = new_mapping
 
     def run(self, fake=False):
         """
@@ -312,6 +348,7 @@ class CondorTask(Task):
 
         self.run(fake=fake)
 
+        self.try_to_complete()
         if self.complete():
             self.finalize()
 
