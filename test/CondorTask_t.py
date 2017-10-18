@@ -158,7 +158,7 @@ class CondorTaskTest(unittest.TestCase):
         remove_held_x_hours = 3.
 
         params = {
-                "out": "blah",
+                "out": File("blah"),
                 "fake": True,
                 "remove_running_x_hours": remove_running_x_hours,
                 "remove_held_x_hours": remove_held_x_hours,
