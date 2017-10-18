@@ -20,7 +20,7 @@ class CMSSWTask(CondorTask):
         self.is_data = kwargs.get("is_data", False)
         self.input_executable = kwargs.get("executable", self.get_metis_base() + "metis/executables/condor_cmssw_exe.sh")
         self.output_is_tree = kwargs.get("is_tree_output", True)
-        self.publish_to_dis = kwargs.get("publish_to_dis", True):
+        self.publish_to_dis = kwargs.get("publish_to_dis", True)
         # Pass all of the kwargs to the parent class
         super(CMSSWTask, self).__init__(**kwargs)
 
