@@ -83,6 +83,16 @@ The full unit test suite is run using the executable `mtest` in `scripts/` (if M
 * for all workflow tests, execute `python -m unittest discover -p "test_*.py"`
 * for all tests, execute: `python -m unittest discover -s test -p "*.py"`
 
+## Development
+General workflow is 
+* Make changes
+* Test with `mtest` (or if it's a minor change, ignore this and let the continuous integration take care of testing)
+* Submit a PR
+Some design/development philosophies
+* Every commit :blue_book: should contain at least :one: emoji representing the theme of the commit. For example,
+:new: can be used with a completely new feature, :beetle: for bugs, :question: if you're unsure if something is broken
+by the commit, :anguished: to express frustration, and :poop: for those super-special commits.
+
 ## TODO
 Submit a Github issue for any bug report or feature request.
 
