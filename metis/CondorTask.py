@@ -25,6 +25,8 @@ class CondorTask(Task):
         :kwarg split_within_files: `True` for LHE processing
         :kwarg total_nevents: needed for LHE processing
         :kwarg special_dir: customize where to put files in hadoop (see `output_dir`)
+        :kwarg max_jobs: only consider as many inputs as needed to provide `max_jobs` outputs
+        :kwarg min_completion_fraction: force completion of job if this fraction of outputs is reached
         """
         self.sample = kwargs.get("sample", None)
         self.min_completion_fraction = kwargs.get("min_completion_fraction", 1.0)
@@ -45,6 +47,7 @@ class CondorTask(Task):
         # in that case, we need events_per_output > 0 and total_nevents > 0
         self.split_within_files = kwargs.get("split_within_files", False)
         self.total_nevents = kwargs.get("total_nevents", -1)
+        self.max_jobs = kwargs.get("max_jobs",0)
 
         # If we have this attribute, then we must have gotten it from
         # a subclass (so use that executable instead of just bland condor exe)
@@ -143,6 +146,9 @@ class CondorTask(Task):
             leftoverchunk = []
         else:
             chunks, leftoverchunk = Utils.file_chunker(files, events_per_output=self.events_per_output, files_per_output=self.files_per_output, flush=flush)
+            if self.max_jobs > 0:
+                chunks = chunks[:self.max_jobs]
+                leftoverchunk = []
         if len(override_chunks) > 0:
             self.logger.info("Manual override to have {0} chunks".format(len(override_chunks)))
             chunks = override_chunks
