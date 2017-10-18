@@ -11,6 +11,7 @@ class CMSSWTask(CondorTask):
         """
         :kwarg pset_args: extra arguments to pass to cmsRun along with pset
         :kwarg is_tree_output: is the output file of the job a tree?
+        :kwarg publish_to_dis: publish the sample information to DIS upon completion
         """
 
         self.pset = kwargs.get("pset", None)
@@ -19,6 +20,7 @@ class CMSSWTask(CondorTask):
         self.is_data = kwargs.get("is_data", False)
         self.input_executable = kwargs.get("executable", self.get_metis_base() + "metis/executables/condor_cmssw_exe.sh")
         self.output_is_tree = kwargs.get("is_tree_output", True)
+        self.publish_to_dis = kwargs.get("publish_to_dis", True):
         # Pass all of the kwargs to the parent class
         super(CMSSWTask, self).__init__(**kwargs)
 
@@ -56,7 +58,7 @@ class CMSSWTask(CondorTask):
         """
         d_metadata = self.get_legacy_metadata()
         self.write_metadata(d_metadata)
-        if self.kwargs.get("publish_to_dis", True):
+        if self.publish_to_dis:
             self.update_dis(d_metadata)
 
 
