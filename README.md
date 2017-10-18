@@ -88,6 +88,7 @@ General workflow is
 * Make changes
 * Test with `mtest` (or if it's a minor change, ignore this and let the continuous integration take care of testing)
 * Submit a PR
+
 Some design/development philosophies
 * Every commit :blue_book: should contain at least :one: emoji representing the theme of the commit. For example,
 :new: can be used with a completely new feature, :beetle: for bugs, :question: if you're unsure if something is broken
