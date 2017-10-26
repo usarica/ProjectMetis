@@ -70,7 +70,7 @@ def main(args):
     web_summary = args.summary
     which_sort = args.sort
     reverse_sort = args.reverse
-    verbose = int(args.verbosity)
+    verbosity = int(args.verbosity)
     do_color = not args.nocolor
 
 
@@ -108,7 +108,7 @@ def main(args):
             dataset_short = dataset[:dswidth-3]+"..."
         print ("{0:<%is} {1} {2:3.0f}%% [{3}/{4}]" % dswidth).format(dataset_short, progress, 100.0*fraction, done, total)
 
-        if verbose:
+        if verbosity > 0:
             for iout,info in d_bad["jobs_not_done"].items():
                 nretries = info["retries"]
                 last_log = info["last_log"].replace(".out",".err")
@@ -132,6 +132,15 @@ def main(args):
                         pass
 
                 print "\toutput {}: {}{} retries{}{}, {}".format(iout, red_open, nretries, duration_str, color_close, last_log)
+                if verbosity > 1:
+                    nlines = 15
+                    if os.path.exists(last_log):
+                        with open(last_log,"r") as fhlog:
+                            print "\t\t __________ LAST {} LINES >>>>>> __________".format(nlines)
+                            for line in fhlog.readlines()[-15:]:
+                                print "\t\t{}".format(line.replace("\n",""))
+                            print "\t\t __________ LAST {} LINES <<<<<< __________".format(nlines)
+
 
 
 if __name__ == "__main__":
