@@ -77,7 +77,7 @@ echo -e "\n--- begin running ---\n" #                           <----- section d
 cmsRun pset.py ${PSETARGS}
 
 if [ "$?" != "0" ]; then
-    echo "Removing output file because cmsRun crashed"
+    echo "Removing output file because cmsRun crashed with exit code $?"
     rm ${OUTPUTNAME}.root
 fi
 
