@@ -20,11 +20,12 @@ class UserTarball(object):
             Also adds user specified files in the right place.
     """
 
-    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None):
+    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False):
         # self.logger = logger
         self.CMSSW_BASE = override_cmssw_base if override_cmssw_base else os.getenv("CMSSW_BASE", "")
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
+        self.exclude_root_files = exclude_root_files
 
     def addFiles(self, userFiles=[]): # pragma: no cover
         """
@@ -44,6 +45,13 @@ class UserTarball(object):
         dataDirs = ['data', 'interface']
 
 
+        if self.exclude_root_files:
+            def exclude_function(filename):
+                return filename.endswith('.root')
+        else:
+            def exclude_function(filename):
+                return False
+
         # Tar up whole directories
         for directory in directories:
             fullPath = os.path.join(self.CMSSW_BASE, directory)
@@ -51,7 +59,7 @@ class UserTarball(object):
             if os.path.exists(fullPath):
                 # self.logger.debug("Adding directory %s to tarball" % fullPath)
                 self.checkdirectory(fullPath)
-                self.tarfile.add(fullPath, directory, recursive=True)
+                self.tarfile.add(fullPath, directory, recursive=True, exclude=exclude_function)
 
         # Search for and tar up "data" directories in src/
         srcPath = os.path.join(self.CMSSW_BASE, 'src')
@@ -60,7 +68,7 @@ class UserTarball(object):
                 directory = root.replace(srcPath, 'src')
                 # self.logger.debug("Adding data directory %s to tarball" % root)
                 self.checkdirectory(root)
-                self.tarfile.add(root, directory, recursive=True)
+                self.tarfile.add(root, directory, recursive=True, exclude=exclude_function)
 
         # Tar up extra files the user needs
         for globName in userFiles:
@@ -70,7 +78,7 @@ class UserTarball(object):
             for filename in fileNames:
                 # self.logger.debug("Adding file %s to tarball" % filename)
                 self.checkdirectory(filename)
-                self.tarfile.add(filename, os.path.basename(filename), recursive=True)
+                self.tarfile.add(filename, os.path.basename(filename), recursive=True, exclude=exclude_function)
 
     def writeContent(self):
         """Save the content of the tarball"""
