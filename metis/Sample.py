@@ -173,10 +173,21 @@ class DBSSample(Sample):
     for central samples
     """
 
+    def set_selection_function(self, selection):
+        """
+        Use this to specify a function returning True for files we 
+        want to consider only. Input to the selection function is
+        the filename
+        """
+        self.selection = selection
+
     def load_from_dis(self):
 
         response = self.do_dis_query(self.info["dataset"], typ="files")
-        fileobjs = [FileDBS(name=fdict["name"], nevents=fdict["nevents"], filesizeGB=fdict["sizeGB"]) for fdict in response]
+        fileobjs = [
+                FileDBS(name=fdict["name"], nevents=fdict["nevents"], filesizeGB=fdict["sizeGB"]) for fdict in response
+                if (not hasattr(self,"selection") or self.selection(fdict["name"]))
+                ]
         fileobjs = sorted(fileobjs, key=lambda x: x.get_name())
 
         self.info["files"] = fileobjs
@@ -309,7 +320,9 @@ class SNTSample(DirectorySample):
 if __name__ == '__main__':
 
     s1 = DBSSample(dataset="/DoubleMuon/Run2017A-PromptReco-v3/MINIAOD")
+    s1.set_selection_function(lambda x: "296/980/" in x)
     print(len(s1.get_files()))
+    print(s1.get_nevents())
 
     s1 = DBSSample(dataset="/MET/Run2017A-PromptReco-v3/MINIAOD")
     print(len(s1.get_files()))
