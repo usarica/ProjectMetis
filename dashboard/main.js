@@ -139,9 +139,10 @@ function handleDuckMode() {
             $(".duckAudio").trigger('pause');
         } else {
             duckMode = true;
-            $(".mainlogo").attr('src', 'images/ducklogo.png');
-            $("#container").css("background", "url(images/ducklogo.png");
-            $("#firstTitle").text("duck");
+            $(".mainlogo").attr('src', 'images/cena.jpeg');
+            $("#container").css("background", "url(images/cena.jpeg");
+            // $("#firstTitle").text("john");
+            $("#secondTitle").text("Cena");
             $(".duckAudio").prop("currentTime",0);
             $(".duckAudio").trigger('play');
         }
