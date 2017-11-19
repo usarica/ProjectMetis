@@ -206,7 +206,14 @@ class FileDBS(File):
     def __repr__(self):
         return "<File {0}: {1} events, {2:.2f}GB>".format(self.name, self.nevents, self.filesizeGB)
 
-class MutableFile(File):
+class ImmutableFile(File):
+
+    def cat(self):
+        if os.path.isfile(self.name):
+            with open(self.name, "r") as fhin:
+                return fhin.read()
+
+class MutableFile(ImmutableFile):
     
     def touch(self):
         if self.name.endswith("/"):
@@ -225,11 +232,6 @@ class MutableFile(File):
         if os.path.isfile(self.name):
             with open(self.name, "a") as fhout:
                 fhout.write(content)
-
-    def cat(self):
-        if os.path.isfile(self.name):
-            with open(self.name, "r") as fhin:
-                return fhin.read()
 
     def chmod(self, tomod=None):
         if tomod:
