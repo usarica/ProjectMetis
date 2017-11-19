@@ -362,6 +362,69 @@ def get_hist(vals, do_unicode=True, width=50): # pragma: no cover
         buff += "\n"
     return buff
 
+def nlines_back(n):
+    """
+    return escape sequences to move character up `n` lines
+    and to the beginning of the line
+    """
+    return "\033[{0}A\r".format(n+1)
+
+def print_logo(animation=True):
+
+    main_template = """
+          a          __  ___      / \    @
+          b         /  |/  / ___  | |_   _   ___
+      f d c e g    / /|_/ / / _ \ | __| | | / __|
+      h   i   j   / /  / / |  __/ | |_  | | \__ \\
+      k   l   m  /_/  /_/   \___|  \__| |_| |___/
+      """
+
+    d_symbols = {}
+    d_symbols["v"] = unichr(0x21E3).encode('utf-8')
+    d_symbols[">"] = unichr(0x21E2).encode('utf-8')
+    d_symbols["<"] = unichr(0x21E0).encode('utf-8')
+    d_symbols["o"] = unichr(0x25C9).encode('utf-8')
+    d_symbols["#"] = unichr(0x25A3).encode('utf-8')
+
+    d_mapping = {}
+    d_mapping["a"] = d_symbols["o"]
+    d_mapping["b"] = d_symbols["v"]
+    d_mapping["c"] = d_symbols["#"]
+    d_mapping["d"] = d_symbols["<"]
+    d_mapping["e"] = d_symbols[">"]
+    d_mapping["f"] = d_symbols["#"]
+    d_mapping["g"] = d_symbols["#"]
+    d_mapping["h"] = d_symbols["v"]
+    d_mapping["i"] = d_symbols["v"]
+    d_mapping["j"] = d_symbols["v"]
+    d_mapping["k"] = d_symbols["#"]
+    d_mapping["l"] = d_symbols["#"]
+    d_mapping["m"] = d_symbols["#"]
+
+    steps = [
+            "a",
+            "ab",
+            "abc",
+            "abcde",
+            "abcdefg",
+            "abcdefghij",
+            "abcdefghijklm",
+            ]
+
+    if not animation:
+        to_print = main_template[:]
+        for key in d_mapping: to_print = to_print.replace(key, d_mapping[key])
+        print(to_print)
+    else:
+        for istep,step in enumerate(steps):
+            if istep != 0: print(nlines_back(7))
+            to_print = main_template[:]
+            for key in d_mapping:
+                if key in step: to_print = to_print.replace(key, d_mapping[key])
+                else: to_print = to_print.replace(key, " ")
+            print(to_print)
+            time.sleep(0.07)
+
 if __name__ == "__main__":
     pass
 
