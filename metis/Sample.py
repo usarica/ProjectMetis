@@ -47,7 +47,7 @@ class Sample(object):
     def __repr__(self):
         return "<{0} dataset={1}>".format(self.__class__.__name__, self.info["dataset"])
 
-    @cached(default_max_age = datetime.timedelta(seconds=DIS_CACHE_SECONDS))
+    # @cached(default_max_age = datetime.timedelta(seconds=DIS_CACHE_SECONDS))
     def do_dis_query(self, ds, typ="files"):
 
         self.logger.debug("Doing DIS query of type {0} for {1}".format(typ, ds))
