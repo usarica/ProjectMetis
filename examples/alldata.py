@@ -18,8 +18,11 @@ if __name__ == "__main__":
             # ("Run2017B","v1"),
             # ("Run2017B","v2"),
             # ("Run2017C","v1"),
-            ("Run2017C","v2"),
-            ("Run2017C","v3"),
+            # ("Run2017C","v2"),
+            # ("Run2017C","v3"),
+            # ("Run2017D","v1"),
+            # ("Run2017E","v1"),
+            ("Run2017F","v1"),
             ]
     dataset_names =  ["/{0}/{1}-PromptReco-{2}/MINIAOD".format(x[0],x[1][0],x[1][1]) for x in itertools.product(pds,proc_vers)]
 
@@ -37,13 +40,27 @@ if __name__ == "__main__":
             tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-06.tar.gz"
 
             if "2017C-PromptReco-v2" in dsname: 
-                open_dataset = True
+                open_dataset = False
 
             if "2017C-PromptReco-v3" in dsname: 
                 cmsswver = "CMSSW_9_2_8"
                 tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-06_928.tar.gz"
-                open_dataset = True
-            
+                open_dataset = False
+
+            if "2017D-PromptReco-v1" in dsname: 
+                cmsswver = "CMSSW_9_2_10"
+                tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-06_9210.tar.gz"
+                open_dataset = False
+
+            if "2017E-PromptReco-v1" in dsname: 
+                cmsswver = "CMSSW_9_2_12"
+                tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-06_9212.tar.gz"
+                open_dataset = False
+
+            if "2017F-PromptReco-v1" in dsname: 
+                cmsswver = "CMSSW_9_2_13"
+                tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V00-00-06_9213.tar.gz"
+                open_dataset = False
 
             try:
 
@@ -62,6 +79,7 @@ if __name__ == "__main__":
                         condor_submit_params = {"use_xrootd":True},
                         tarfile = tarfile,
                         is_data = True,
+                        publish_to_dis = True,
                 )
             
                 task.process()
@@ -73,7 +91,7 @@ if __name__ == "__main__":
 
             total_summary[dsname] = task.get_task_summary()
 
-        StatsParser(data=total_summary, webdir="~/public_html/dump/metis/").do()
+        StatsParser(data=total_summary, webdir="~/public_html/dump/metis/", make_plots=False).do()
 
         # time.sleep(1.*3600)
         time.sleep(60.*60)
