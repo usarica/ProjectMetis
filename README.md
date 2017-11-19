@@ -97,7 +97,6 @@ by the commit, :anguished: to express frustration, and :poop: for those super-sp
 ## TODO
 Submit a Github issue for any bug report or feature request.
 
-* SNTSample in principle allows anyone to update the sample on DIS. We don't want this for "central" samples, so rework this
 * We have all the ingredients to replicate CRAB submission/status functionality, so do it
 * Add more TODOs
 * On dashboard, a unique sample is specified by (datasetname,tag), not just (datasetname) as it is right now. Fix this

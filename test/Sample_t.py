@@ -109,10 +109,18 @@ class SNTSampleTest(unittest.TestCase):
         dummy = SNTSample(
                 dataset=dsname,
                 tag=tag,
+                read_only=True, # note that this is the default!
                 )
         dummy.info["location"] = basedir
         dummy.info["nevents"] = 123
         dummy.info["gtag"] = "stupidtag"
+
+        # will fail the first time, since it's read only
+        updated = dummy.do_update_dis()
+        self.assertEqual(updated, False)
+
+        # flip the bool and updating should succeed
+        dummy.read_only = False
         updated = dummy.do_update_dis()
         self.assertEqual(updated, True)
 

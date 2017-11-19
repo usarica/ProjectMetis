@@ -104,6 +104,11 @@ class Sample(object):
             return False
 
     def do_update_dis(self):
+
+        if hasattr(self,"read_only") and self.read_only:
+            self.logger.debug("Not updating DIS since this sample has read_only=True")
+            return False
+
         self.logger.debug("Updating DIS")
         query_str = "dataset_name={},sample_type={},cms3tag={},gtag={},location={},nevents_in={},nevents_out={},xsec={},kfactor={},filter_eff={},timestamp={}".format(
            self.info["dataset"], self.info["tier"], self.info["tag"], self.info["gtag"],
@@ -277,6 +282,7 @@ class SNTSample(DirectorySample):
     def __init__(self, **kwargs):
 
         self.typ = kwargs.get("typ", "CMS3")
+        self.read_only = kwargs.get("read_only", True)
 
         # Pass all of the kwargs to the parent class
         super(SNTSample, self).__init__(**kwargs)
