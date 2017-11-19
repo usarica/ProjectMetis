@@ -10,7 +10,7 @@ import scripts.dis_client as dis
 
 from metis.Constants import Constants
 from metis.Utils import setup_logger, cached
-from metis.File import FileDBS, EventsFile
+from metis.File import FileDBS, EventsFile, ImmutableFile
 
 DIS_CACHE_SECONDS = 5*60
 if os.getenv("NOCACHE"): DIS_CACHE_SECONDS = 0
@@ -277,6 +277,7 @@ class DirectorySample(Sample):
 class SNTSample(DirectorySample):
     """
     Sample object which queries DIS for SNT samples
+    :kwarg read_only: if `False`, prevent DIS updating
     """
 
     def __init__(self, **kwargs):
@@ -322,6 +323,35 @@ class SNTSample(DirectorySample):
         self.info["native_cmssw"] = response["release_version"]
         return self.info["gtag"]
 
+class TextfileSample(DirectorySample):
+    """
+    Sample object made from a filelist
+    """
+
+    def __init__(self, **kwargs):
+
+        self.filelist = kwargs.get("filelist", None)
+
+        # Pass all of the kwargs to the parent class
+        super(TextfileSample, self).__init__(**kwargs)
+
+    def needed_params(self):
+        return ["dataset","filelist"]
+
+    def get_files(self):
+        if self.info.get("files", None):
+            return self.info["files"]
+
+        imf = ImmutableFile(self.filelist)
+        if not imf.exists(): raise Exception("Filelist {} does not exist!".format(imf.get_name()))
+
+        filepaths = map(lambda x: x.strip(), imf.cat().splitlines())
+
+        if self.use_xrootd:
+            filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
+        self.info["files"] = list(map(EventsFile, filepaths))
+        return self.info["files"]
+
 
 if __name__ == '__main__':
 
@@ -343,3 +373,5 @@ if __name__ == '__main__':
     # print ds.get_files()
     # print ds.get_globaltag()
     # print ds.get_datasetname()
+
+

@@ -2,8 +2,9 @@ import unittest
 import os
 import logging
 
-from metis.Sample import Sample, DBSSample, DirectorySample, SNTSample
+from metis.Sample import Sample, DBSSample, DirectorySample, SNTSample, TextfileSample
 from metis.Constants import Constants
+from metis.File import MutableFile
 import metis.Utils as Utils
 
 class SampleTest(unittest.TestCase):
@@ -135,6 +136,23 @@ class SNTSampleTest(unittest.TestCase):
         self.assertEqual(check.get_nevents(), dummy.info["nevents"])
         self.assertEqual(check.get_location(), basedir)
 
+class TextfileSampleTest(unittest.TestCase):
+
+    def test_all(self):
+        dsname = "/blah/blah/BLAH/"
+        fname = "tfsampletest.tmp"
+
+        # make a temporary file putting in some dummy filenames
+        # to be picked up by TextfileSample
+        mf = MutableFile(fname)
+        mf.touch()
+        nfiles = 3
+        for i in range(1,nfiles+1): mf.append("ntuple{}.root\n".format(i))
+        tfsamp = TextfileSample(dataset=dsname, filelist=fname)
+        self.assertEqual(len(tfsamp.get_files()), nfiles)
+
+        # clean up
+        mf.rm()
 
 if __name__ == "__main__":
     unittest.main()
