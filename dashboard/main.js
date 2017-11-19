@@ -431,7 +431,7 @@ function fillDOM(data) {
         var id = general["dataset"].replace(/\//g,"_");
 
         var progress = getProgress(general);
-        var pct = Math.round(progress.pct);
+        var pct = Math.floor(progress.pct);
         var color = 'hsl(' + pct*0.8 + ', 70%, 50%)';
         if(duckMode) {
             color = 'hsl(' + (pct*0.8+50) + ', 70%, 50%)';
