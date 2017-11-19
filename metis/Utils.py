@@ -369,7 +369,7 @@ def nlines_back(n):
     """
     return "\033[{0}A\r".format(n+1)
 
-def print_logo(animation=True):
+def print_logo(animation=True): # pragma: no cover
 
     main_template = """
           a          __  ___      / \    @
