@@ -10,6 +10,12 @@ into a tarfile to be shipped off to worker nodes. Take note of the tarfile locat
 
 Now make a python script to serve as a job manager/submitter and put in the below content.
 Feel free to read the comments.
+
+Ignoring the excessive comments and unnecessary stuff, it is <20 lines! And since this is Python code,
+you can of course script this to your heart's content (e.g., loop over several datasets to submit them).
+<details>
+<summary>Click to show script</summary>
+
 ```python
 from metis.Sample import DBSSample
 from metis.CMSSWTask import CMSSWTask
@@ -74,5 +80,7 @@ if __name__ == "__main__":
         # Since everything is backed up, totally OK to Ctrl+C and pick up later
 ```
 
-Ignoring the excessive comments and unnecessary stuff, that was <20 lines! And since this is Python code,
-you can of course script this to your heart's content (e.g., loop over several datasets to submit them).
+</details>
+
+
+
