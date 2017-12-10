@@ -98,7 +98,7 @@ class StatsParser(object):
 
             event_rate = -1
             if len(event_rates) > 0:
-                event_rate = 1.0*sum(event_rates) / len(event_rates)
+                event_rate = round(1.0*sum(event_rates) / len(event_rates),1)
                 
 
             plot_paths = []
