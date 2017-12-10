@@ -12,7 +12,7 @@ clobbering. This can become a pain when looking at the dashboard
 (or using msummary) which will show old/irrelevant tasks. 
 
 This script lets you clean up the jsons. Ex.,
-$ mclean MINIAODSIM
+`mclean MINIAODSIM`
 will tell you what datasets in the jsons match your pattern MINIAODSIM
 and tell you to re-run the command with `--rm` tacked on if you want
 to get rid of those.
@@ -22,10 +22,10 @@ want to trim the timestamps so you're not staring at a plot going back months
 with no ability to see trends in the past few days. 
 
 You can do
-$ mclean nomatch -d 15
+`mclean nomatch -d 15`
 which will prompt you to delete *no* tasks (unless something matchines nomatch),
 but that's ok. We want to keep everything, but only retain the last 15
-days of timestamps (-d 15) for current tasks. Then similarly add `--rm`
+days of timestamps (`-d 15`) for current tasks. Then similarly add `--rm`
 if you're sure you want to modify the jsons.
 
 #### _mdoc_
@@ -41,9 +41,9 @@ Run it for fun. Does nothing super useful, other than fun. Fun can be useful.
 Provides a summary of ongoing Metis tasks.
 
 
-#### mtarfile
+#### _mtarfile_
 Used to make a tarfile for Metis submission.
 
-#### mtest
+#### _mtest_
 Runs all unit tests.
 
