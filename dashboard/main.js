@@ -452,6 +452,9 @@ function fillDOM(data) {
         $("#pbar_"+id).find(".ui-progressbar-value").css({"background": color});
         $("#pbartextright_"+id).html(towrite);
         $("#pbartextleft_"+id).html(""); 
+        if ("event_rate" in general && general["event_rate"] > 0) {
+            $("#pbartextleft_"+id).html("avg. event rate: "+general["event_rate"]+" Hz"); 
+        }
 
         if(adminMode) {
             var buff = "";
