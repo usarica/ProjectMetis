@@ -423,7 +423,7 @@ def print_logo(animation=True): # pragma: no cover
                 if key in step: to_print = to_print.replace(key, d_mapping[key])
                 else: to_print = to_print.replace(key, " ")
             print(to_print)
-            time.sleep(0.07)
+            time.sleep(0.10)
 
 if __name__ == "__main__":
     pass
