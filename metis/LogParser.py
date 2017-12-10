@@ -1,6 +1,9 @@
 from __future__ import print_function
 
 import os
+import datetime
+import time
+import numpy as np
 
 def log_parser(fname):
     if fname.endswith(".err"):
@@ -68,10 +71,27 @@ def infer_error(fname):
         exception_name = exception.split("An exception of category", 1)[-1].split()[0].replace("'","")
         last_lines = ", ".join(map(lambda x: x.strip(), exception.strip().splitlines()[-4:]))
         to_return = "[{0}] {1}".format(exception_name, last_lines[:500])
-
-
-
     return to_return
+
+def get_event_rate(fname):
+    fname = fname.replace(".out", ".err")
+    avg_rate = -1
+    if not os.path.exists(fname):
+        return avg_rate
+    processingpairs = []
+    with open(fname, "r") as fhin:
+        for line in fhin:
+            if line.startswith("Begin processing the"):
+                record = float("".join([b for b in line.split("record")[0].split("the")[-1] if b in "1234567890"]))
+                dtobj = datetime.datetime.strptime( line.split()[-2], "%H:%M:%S.%f" ).replace(year=2016)
+                ts = time.mktime(dtobj.timetuple())+(dtobj.microsecond/1.e6)
+                processingpairs.append([record,ts])
+    pp = np.array(processingpairs)
+    try:
+        avg_rate = np.median(np.diff(pp[:,0])/np.diff(pp[:,1]))
+    except IndexError:
+        pass
+    return avg_rate
 
 if __name__ == "__main__":
     # logObj = log_parser("/home/jguiang/ProjectMetis/log_files/tasks/CMSSWTask_SinglePhoton_Run2017B-PromptReco-v1_MINIAOD_CMS4_V00-00-03/logs/std_logs/1e.1090614.0.out")

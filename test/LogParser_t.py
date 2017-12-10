@@ -1,5 +1,8 @@
 import unittest
 import os
+import datetime
+import time
+import numpy as np
 
 import metis.LogParser as LogParser
 import metis.Utils as Utils
@@ -122,7 +125,8 @@ TimeReport> Time report complete in 10366.8 seconds
 
         self.assertEqual(LogParser.infer_error("does_not_exist.txt"),"")
 
-
+    def test_event_rate(self):
+        self.assertEqual(abs(LogParser.get_event_rate(self.errlog)-8.7965)<0.1, True)
 
 
 if __name__ == "__main__":

@@ -50,21 +50,28 @@ class StatsParser(object):
             sample = summaries[dsname]["jobs"]
             outnevents = 0
             queriednevents = summaries[dsname]["queried_nevents"]
+            task_type = summaries[dsname].get("task_type", "Task")
             logs_to_plot = []
             bad_jobs = {}
             njobs = len(sample.keys())
             njobsdone = 0
+            event_rates = []
             for iout in sample.keys():
                 job = sample[iout]
 
                 is_done  = job["output_exists"] and not job["is_on_condor"]
+                condor_jobs = job["condor_jobs"]
 
                 if is_done:
                     outnevents += job["output"][1]
+                    if "CMSSW" in task_type:
+                        errlog = condor_jobs[-1]["logfile_err"]
+                        rate = LogParser.get_event_rate(errlog)
+                        if rate > 0.:
+                            event_rates.append(rate)
                     njobsdone += 1
                     continue
 
-                condor_jobs = job["condor_jobs"]
                 retries = max(0, len(condor_jobs)-1)
                 inputs = job["inputs"]
                 innames, innevents = zip(*inputs)
@@ -88,6 +95,11 @@ class StatsParser(object):
                         "last_error": last_error,
                         "last_log": last_log,
                         }
+
+            event_rate = -1
+            if len(event_rates) > 0:
+                event_rate = 1.0*sum(event_rates) / len(event_rates)
+                
 
             plot_paths = []
             if logs_to_plot:
@@ -114,14 +126,16 @@ class StatsParser(object):
             d_task = {}
             d_task["general"] = tasksummary.copy()
             del d_task["general"]["jobs"]
+            if "task_type" in d_task["general"]: del d_task["general"]["task_type"]
             d_task["general"].update({
                     "dataset": dsname,
                     "nevents_total": queriednevents,
                     "nevents_done": outnevents,
                     "njobs_total": njobs,
                     "njobs_done": njobsdone,
+                    "event_rate": event_rate,
                     "status": "running",
-                    "type": "CMSSW",
+                    "type": task_type,
             })
             d_task["bad"] = {
                     "plots": plot_paths,
