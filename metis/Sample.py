@@ -352,6 +352,29 @@ class TextfileSample(DirectorySample):
         self.info["files"] = list(map(EventsFile, filepaths))
         return self.info["files"]
 
+class DummySample(DirectorySample):
+    """
+    Dummy sample object made from a number of inputs
+    Used for tasks where you have a known number of jobs,
+    but no inputs
+    """
+
+    def __init__(self, **kwargs):
+
+        self.n_dummy_files = kwargs.get("N", 0)
+
+        # Pass all of the kwargs to the parent class
+        super(DummySample, self).__init__(**kwargs)
+
+    def needed_params(self):
+        return ["dataset"]
+
+    def get_files(self):
+        if self.info.get("files", None):
+            return self.info["files"]
+        self.info["files"] = [EventsFile("dummy_{}.root".format(i),fake=True) for i in range(self.n_dummy_files)]
+        return self.info["files"]
+
 
 if __name__ == '__main__':
 

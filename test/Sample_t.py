@@ -2,7 +2,7 @@ import unittest
 import os
 import logging
 
-from metis.Sample import Sample, DBSSample, DirectorySample, SNTSample, TextfileSample
+from metis.Sample import Sample, DBSSample, DirectorySample, SNTSample, TextfileSample, DummySample
 from metis.Constants import Constants
 from metis.File import MutableFile
 import metis.Utils as Utils
@@ -153,6 +153,16 @@ class TextfileSampleTest(unittest.TestCase):
 
         # clean up
         mf.rm()
+
+class DummySampleTest(unittest.TestCase):
+
+    def test_all(self):
+        dsname = "/blah/blah/BLAH/"
+        nfiles = 15
+
+        s1 = DummySample(N=nfiles,dataset=dsname)
+        self.assertEqual(len(s1.get_files()), nfiles)
+
 
 if __name__ == "__main__":
     unittest.main()
