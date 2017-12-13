@@ -362,6 +362,8 @@ class DummySample(DirectorySample):
     def __init__(self, **kwargs):
 
         self.n_dummy_files = kwargs.get("N", 0)
+        self.dummy_name = kwargs.get("name", "dummy")
+        self.dummy_extension = kwargs.get("extension", "root")
 
         # Pass all of the kwargs to the parent class
         super(DummySample, self).__init__(**kwargs)
@@ -372,7 +374,7 @@ class DummySample(DirectorySample):
     def get_files(self):
         if self.info.get("files", None):
             return self.info["files"]
-        self.info["files"] = [EventsFile("dummy_{}.root".format(i),fake=True) for i in range(self.n_dummy_files)]
+        self.info["files"] = [EventsFile("{}_{}.{}".format(self.dummy_name,i,self.dummy_extension),fake=True) for i in range(self.n_dummy_files)]
         return self.info["files"]
 
 
