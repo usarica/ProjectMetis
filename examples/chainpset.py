@@ -56,7 +56,7 @@ step3 = CMSSWTask(
         other_outputs = ["step3_inMINIAODSIM.root","step3_inDQM.root"],
         cmssw_version = "CMSSW_10_0_0_pre1",
         scram_arch = "slc6_amd64_gcc630",
-        condor_submit_params = {"sites":"UAF,UCSD"},
+        # condor_submit_params = {"sites":"UAF,UCSD"},
         )
 
 step4 = CMSSWTask(
@@ -76,7 +76,7 @@ step4 = CMSSWTask(
         output_name = "DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root",
         cmssw_version = "CMSSW_10_0_0_pre1",
         scram_arch = "slc6_amd64_gcc630",
-        condor_submit_params = {"sites":"UAF,UCSD"},
+        # condor_submit_params = {"sites":"UAF,UCSD"},
         )
 
 for _ in range(25):
