@@ -11,6 +11,7 @@ class CMSSWTask(CondorTask):
         """
         :kwarg pset_args: extra arguments to pass to cmsRun along with pset
         :kwarg is_tree_output: is the output file of the job a tree?
+        :kwarg other_outputs: list of other output files to copy back (in addition to output_name)
         :kwarg publish_to_dis: publish the sample information to DIS upon completion
         """
 
@@ -19,6 +20,7 @@ class CMSSWTask(CondorTask):
         self.check_expectedevents = kwargs.get("check_expectedevents", True)
         self.is_data = kwargs.get("is_data", False)
         self.input_executable = kwargs.get("executable", self.get_metis_base() + "metis/executables/condor_cmssw_exe.sh")
+        self.other_outputs = kwargs.get("other_outputs", [])
         self.output_is_tree = kwargs.get("is_tree_output", True)
         self.publish_to_dis = kwargs.get("publish_to_dis", False)
         # Pass all of the kwargs to the parent class
@@ -88,11 +90,12 @@ class CMSSWTask(CondorTask):
             inputs_commasep = "dummyfile"
         pset_args = self.pset_args
         executable = self.executable_path
+        other_outputs = ",".join(self.other_outputs) or "None"
         # note that pset_args must be the last argument since it can have spaces
         # check executables/condor_cmssw_exe.sh to see why
         arguments = [outdir, outname_noext, inputs_commasep,
                      index, pset_basename, cmssw_ver, scramarch,
-                     nevts, firstevt, expectedevents, pset_args]
+                     nevts, firstevt, expectedevents, other_outputs, pset_args]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full, pset_full] if self.tarfile else [pset_full]
@@ -132,10 +135,13 @@ if hasattr(process,"eventMaker"):
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 def set_output_name(outputname):
+    to_change = []
     for attr in dir(process):
         if not hasattr(process,attr): continue
         if type(getattr(process,attr)) != cms.OutputModule: continue
-        getattr(process,attr).fileName = outputname
+        to_change.append([process,attr])
+    if len(to_change) == 1:
+        getattr(to_change[0][0],to_change[0][1]).fileName = outputname
 \n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag)
             )
 
@@ -150,7 +156,8 @@ def set_output_name(outputname):
         if self.split_within_files:
             fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms", "")) for fo in self.get_inputs(flatten=True)]
             with open(pset_location_out, "a") as fhin:
-                fhin.write("\nprocess.source.fileNames = cms.untracked.vstring(\n{0}\n)\n\n".format(",\n".join(fnames)))
+                fhin.write("\nif hasattr(process.source,\"fileNames\"): process.source.fileNames = cms.untracked.vstring(\n{0}\n)\n\n".format(",\n".join(fnames)))
+                fhin.write("\nif hasattr(process,\"RandomNumberGeneratorService\"): process.RandomNumberGeneratorService.generator.initialSeed = int(__import__('random').getrandbits(28))\n\n".format(",\n".join(fnames))) # max accepted by CMSSW is 29 bits or so. Try higher and you'll see.
 
         # take care of package tar file. easy.
         Utils.do_cmd("cp {0} {1}".format(self.tarfile, self.package_path))
