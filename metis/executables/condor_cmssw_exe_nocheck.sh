@@ -10,7 +10,8 @@ SCRAMARCH=$7
 NEVTS=$8
 FIRSTEVT=$9
 EXPECTEDNEVTS=${10}
-PSETARGS="${@:11}" # since args can have spaces, we take 10th-->last argument as one
+OTHEROUTPUTS=${11}
+PSETARGS="${@:12}" # since args can have spaces, we take 10th-->last argument as one
 
 # Make sure OUTPUTNAME doesn't have .root since we add it manually
 OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
@@ -25,6 +26,7 @@ echo "CMSSWVERSION: $CMSSWVERSION"
 echo "SCRAMARCH: $SCRAMARCH"
 echo "NEVTS: $NEVTS"
 echo "EXPECTEDNEVTS: $EXPECTEDNEVTS"
+echo "OTHEROUTPUTS: $OTHEROUTPUTS"
 echo "PSETARGS: $PSETARGS"
 
 echo "hostname: $(hostname)"
@@ -64,8 +66,9 @@ if [ "$INPUTFILENAMES" != "dummyfile" ]; then
 fi
 if [ "$FIRSTEVT" -ge 0 ]; then
     # events to skip, event number to assign to first event
-    echo "process.source.skipEvents = cms.untracked.uint32(max(${FIRSTEVT}-1,0))" >> pset.py
-    echo "process.source.firstEvent = cms.untracked.uint32(${FIRSTEVT})" >> pset.py
+    echo "if hasattr(process.source,'fileNames'):" >> pset.py
+    echo "    process.source.skipEvents = cms.untracked.uint32(max(${FIRSTEVT}-1,0))" >> pset.py
+    echo "    process.source.firstEvent = cms.untracked.uint32(${FIRSTEVT})" >> pset.py
 fi
 
 echo "before running: ls -lrth"
@@ -80,9 +83,23 @@ echo -e "\n--- end running ---\n" #                             <----- section d
 echo "after running: ls -lrth"
 ls -lrth
 
+
 echo -e "\n--- begin copying output ---\n" #                    <----- section division
 echo "Sending output file $OUTPUTNAME.root"
+export LD_PRELOAD=/usr/lib64/gfal2-plugins//libgfal_plugin_xrootd.so # needed in CMSSW_10 (and some late CMSSW_9)
 gfal-copy -p -f -t 4200 --verbose file://`pwd`/${OUTPUTNAME}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root --checksum ADLER32
+if [ "$?" != "0" ]; then
+    echo "Removing output file because gfal-copy crashed"
+    gfal-rm --verbose gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root
+fi
+
+for OTHEROUTPUT in $(echo "$OTHEROUTPUTS" | sed -n 1'p' | tr ',' '\n'); do
+    [ -e ${OTHEROUTPUT} ] && {
+        NOROOT=$(echo $OTHEROUTPUT | sed 's/\.root//')
+        gfal-copy -p -f -t 4200 --verbose file://`pwd`/${NOROOT}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${NOROOT}_${IFILE}.root --checksum ADLER32
+    }
+done
+
 echo -e "\n--- end copying output ---\n" #                      <----- section division
 
 echo -e "\n--- begin dstat output ---\n" #                      <----- section division

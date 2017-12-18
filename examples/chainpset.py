@@ -76,6 +76,10 @@ step4 = CMSSWTask(
         output_name = "DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root",
         cmssw_version = "CMSSW_10_0_0_pre1",
         scram_arch = "slc6_amd64_gcc630",
+        # DQM outputs hists, not trees, so don't crash if we expect trees
+        # and also use different executable that doesn't do various checks
+        is_tree_output = False,
+        executable = "ProjectMetis/metis/executables/condor_cmssw_exe_nocheck.sh",
         # condor_submit_params = {"sites":"UAF,UCSD"},
         )
 
