@@ -73,7 +73,6 @@ def infer_error(fname):
     return to_return
 
 def get_event_rate(fname): # pragma: no cover
-    import numpy as np
     fname = fname.replace(".out", ".err")
     avg_rate = -1
     if not os.path.exists(fname):
@@ -86,9 +85,16 @@ def get_event_rate(fname): # pragma: no cover
                 dtobj = datetime.datetime.strptime( line.split()[-2], "%H:%M:%S.%f" ).replace(year=2016)
                 ts = time.mktime(dtobj.timetuple())+(dtobj.microsecond/1.e6)
                 processingpairs.append([record,ts])
-    pp = np.array(processingpairs)
     try:
-        avg_rate = np.median(np.diff(pp[:,0])/np.diff(pp[:,1]))
+        records, tss = zip(*processingpairs)
+        drecords = map(lambda x:x[0]-x[1],zip(records[1::2],records[::2]))
+        dtss = map(lambda x:x[0]-x[1],zip(tss[1::2],tss[::2]))
+        divs = map(lambda x:x[1]/x[0],zip(drecords,dtss))
+        avg_rate = 1.0/(sorted(divs)[len(divs)//2])
+        # Above 5 lines equivalent to the below two lines
+        # I just didn't want numpy as a dependency
+        # pp = np.array(processingpairs)
+        # avg_rate = np.median(np.diff(pp[:,0])/np.diff(pp[:,1]))
     except IndexError:
         pass
     return avg_rate
