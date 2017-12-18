@@ -73,7 +73,7 @@ def infer_error(fname):
         to_return = "[{0}] {1}".format(exception_name, unicode(last_lines[:500], errors="ignore"))
     return to_return
 
-def get_event_rate(fname):
+def get_event_rate(fname): # pragma: no cover
     fname = fname.replace(".out", ".err")
     avg_rate = -1
     if not os.path.exists(fname):
