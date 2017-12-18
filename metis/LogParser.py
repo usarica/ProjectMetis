@@ -97,6 +97,8 @@ def get_event_rate(fname): # pragma: no cover
         # avg_rate = np.median(np.diff(pp[:,0])/np.diff(pp[:,1]))
     except IndexError:
         pass
+    except ValueError:
+        pass
     return avg_rate
 
 if __name__ == "__main__":
