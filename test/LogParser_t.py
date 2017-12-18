@@ -2,7 +2,6 @@ import unittest
 import os
 import datetime
 import time
-import numpy as np
 
 import metis.LogParser as LogParser
 import metis.Utils as Utils
