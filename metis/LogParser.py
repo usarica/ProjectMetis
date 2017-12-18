@@ -3,7 +3,6 @@ from __future__ import print_function
 import os
 import datetime
 import time
-import numpy as np
 
 def log_parser(fname):
     if fname.endswith(".err"):
@@ -74,6 +73,7 @@ def infer_error(fname):
     return to_return
 
 def get_event_rate(fname): # pragma: no cover
+    import numpy as np
     fname = fname.replace(".out", ".err")
     avg_rate = -1
     if not os.path.exists(fname):
