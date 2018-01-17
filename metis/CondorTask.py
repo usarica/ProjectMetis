@@ -27,6 +27,10 @@ class CondorTask(Task):
         :kwarg special_dir: customize where to put files in hadoop (see `output_dir`)
         :kwarg max_jobs: only consider as many inputs as needed to provide `max_jobs` outputs
         :kwarg min_completion_fraction: force completion of job if this fraction of outputs is reached
+        :kwarg additional_input_files: list of extra files to ship to the worker node
+        :kwarg snt_dir: use /hadoop/cms/store/group/snt/ as the base output directory
+        :kwarg outdir_name: use custom directory in user's hadoop
+        :kwarg output_dir: override output directory
         """
         self.sample = kwargs.get("sample", None)
         self.min_completion_fraction = kwargs.get("min_completion_fraction", 1.0)
@@ -41,6 +45,7 @@ class CondorTask(Task):
         self.global_tag = kwargs.get("global_tag",None)
         self.cmssw_version = kwargs.get("cmssw_version", None)
         self.tarfile = kwargs.get("tarfile", None)
+        self.additional_input_files = kwargs.get("additional_input_files", [])
         self.sparms = kwargs.get("sparms", [])
         # LHE, for example, might be large, and we want to use
         # skip events to process event chunks within files
@@ -48,6 +53,7 @@ class CondorTask(Task):
         self.split_within_files = kwargs.get("split_within_files", False)
         self.total_nevents = kwargs.get("total_nevents", -1)
         self.max_jobs = kwargs.get("max_jobs",0)
+        self.snt_dir = kwargs.get("snt_dir",False)
 
         # If we have this attribute, then we must have gotten it from
         # a subclass (so use that executable instead of just bland condor exe)
@@ -59,8 +65,13 @@ class CondorTask(Task):
 
         # If we didn't get an output directory, use the canonical format. E.g.,
         #   /hadoop/cms/store/user/namin/ProjectMetis/MET_Run2017A-PromptReco-v2_MINIAOD_CMS4_V00-00-03
-        hadoop_user = os.environ.get("USER")  # NOTE, might be different for some weird folks
-        self.output_dir = "/hadoop/cms/store/user/{0}/{1}/{2}_{3}/".format(hadoop_user, special_dir, self.sample.get_datasetname().replace("/", "_").lstrip("_"), self.tag)
+        if self.snt_dir:
+            self.output_dir = "/hadoop/cms/store/group/snt/{0}/{1}_{2}/".format(special_dir, self.sample.get_datasetname().replace("/", "_").lstrip("_"), self.tag)
+        else:
+            hadoop_user = os.environ.get("USER")  # NOTE, might be different for some weird folks
+            self.outdir_name = kwargs.get("outdir_name", self.sample.get_datasetname().replace("/", "_").lstrip("_"))
+            self.output_dir = kwargs.get("output_dir", "/hadoop/cms/store/user/{0}/{1}/{2}_{3}/".format(hadoop_user, special_dir, self.outdir_name, self.tag))
+
 
         # I/O mapping (many-to-one as described above)
         self.io_mapping = []
@@ -300,7 +311,7 @@ class CondorTask(Task):
                 action_type = self.handle_condor_job(this_job_dict, out)
 
 
-    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=24.0, remove_held_x_hours=5.0):
+    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=32.0, remove_held_x_hours=5.0):
         """
         takes `out` (File object) and dictionary of condor
         job information returns action_type specifying the type of action taken
@@ -396,6 +407,7 @@ class CondorTask(Task):
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full] if self.tarfile else []
+        input_files += self.additional_input_files
         extra = self.kwargs.get("condor_submit_params", {})
         return Utils.condor_submit(
                     executable=executable, arguments=arguments,
