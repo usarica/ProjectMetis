@@ -42,7 +42,7 @@ def query(q, typ="basic", detail=False):
     data = {}
 
     # try all uafs in order of decreasing reliability (subjective)
-    for num in map(str,[10,6,3,5,4,8]):
+    for num in map(str,[8,10,6,3,5,4]):
         try:
             url = url_pattern.replace("{NUM}",num)
             handle =  urlopen(url,timeout=30)
