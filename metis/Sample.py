@@ -10,7 +10,7 @@ import scripts.dis_client as dis
 
 from metis.Constants import Constants
 from metis.Utils import setup_logger, cached
-from metis.File import FileDBS, EventsFile, ImmutableFile
+from metis.File import FileDBS, EventsFile, ImmutableFile, MutableFile
 
 DIS_CACHE_SECONDS = 5*60
 if os.getenv("NOCACHE"): DIS_CACHE_SECONDS = 0
@@ -323,9 +323,9 @@ class SNTSample(DirectorySample):
         self.info["native_cmssw"] = response["release_version"]
         return self.info["gtag"]
 
-class TextfileSample(DirectorySample):
+class FilelistSample(DirectorySample):
     """
-    Sample object made from a filelist
+    Sample object made from a filelist (text file, or python list)
     """
 
     def __init__(self, **kwargs):
@@ -333,7 +333,7 @@ class TextfileSample(DirectorySample):
         self.filelist = kwargs.get("filelist", None)
 
         # Pass all of the kwargs to the parent class
-        super(TextfileSample, self).__init__(**kwargs)
+        super(FilelistSample, self).__init__(**kwargs)
 
     def needed_params(self):
         return ["dataset","filelist"]
@@ -342,10 +342,12 @@ class TextfileSample(DirectorySample):
         if self.info.get("files", None):
             return self.info["files"]
 
-        imf = ImmutableFile(self.filelist)
-        if not imf.exists(): raise Exception("Filelist {} does not exist!".format(imf.get_name()))
-
-        filepaths = map(lambda x: x.strip(), imf.cat().splitlines())
+        if type(self.filelist) == list:
+            filepaths = self.filelist
+        else:
+            imf = ImmutableFile(self.filelist)
+            if not imf.exists(): raise Exception("Filelist {} does not exist!".format(imf.get_name()))
+            filepaths = map(lambda x: x.strip(), imf.cat().splitlines())
 
         if self.use_xrootd:
             filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
