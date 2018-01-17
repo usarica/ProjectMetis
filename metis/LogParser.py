@@ -82,7 +82,9 @@ def get_event_rate(fname): # pragma: no cover
         for line in fhin:
             if line.startswith("Begin processing the"):
                 record = float("".join([b for b in line.split("record")[0].split("the")[-1] if b in "1234567890"]))
-                dtobj = datetime.datetime.strptime( line.split()[-2], "%H:%M:%S.%f" ).replace(year=2016)
+                toparse = line.split()[-2]
+                if ":" not in toparse: continue
+                dtobj = datetime.datetime.strptime( toparse, "%H:%M:%S.%f" ).replace(year=2016)
                 ts = time.mktime(dtobj.timetuple())+(dtobj.microsecond/1.e6)
                 processingpairs.append([record,ts])
     try:
@@ -112,3 +114,4 @@ if __name__ == "__main__":
     print(blah["dstat"]["epoch"])
     # print blah
     pass
+
