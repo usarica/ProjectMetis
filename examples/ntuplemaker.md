@@ -8,6 +8,14 @@ Check out this repository, `source setup.sh`. Now go back into your local copy o
 `mtarfile tarfile.tar.gz` (replacing the name of the tarfile with whatever you want). This packages the CMSSW code (including NtupleMaker of course)
 into a tarfile to be shipped off to worker nodes. Take note of the tarfile location.
 
+Note: temporarily, you may have to use 
+```
+mtarfile tarfile.tar.gz -e $CMSSW_BASE/external/slc6_amd64_gcc630/lib/libmxnet.so \
+  $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected/{mxnet,openblas}.xml \
+  $CMSSW_BASE/src/NNKit/data/{preprocessing.json,resnet-symbol.json,resnet.params}
+```
+to include things for DeepAK8 until it gets integrated into CMSSW.
+
 Now make a python script to serve as a job manager/submitter and put in the below content.
 Feel free to read the comments.
 

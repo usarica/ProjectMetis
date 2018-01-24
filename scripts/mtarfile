@@ -4,17 +4,19 @@ import os
 import argparse
 from metis.Utils import make_tarball
 
-def make(output, cmssw_base=None, skip_root=False):
+def make(output, cmssw_base=None, skip_root=False, extra_paths=[]):
 
     extra = {}
     if cmssw_base:
         if not os.path.exists(cmssw_base):
             raise Exception("That cmssw base directory does not exist!")
-        cmssw_base = os.path.abspath(cmssw_base)
-        extra = {
-                "override_cmssw_base": cmssw_base,
-                "exclude_root_files": skip_root,
-                }
+            cmssw_base = os.path.abspath(cmssw_base)
+
+    extra = {
+            "override_cmssw_base": cmssw_base,
+            "exclude_root_files": skip_root,
+            "extra_paths": extra_paths,
+            }
 
     print "[mtarfile] Making tarfile"
     if skip_root:
@@ -30,7 +32,8 @@ if __name__ == "__main__":
     parser.add_argument("output", help="name of output tar file")
     parser.add_argument("-c", "--cmssw", help="CMSSW_BASE directory, default is $CMSSW_BASE", default=None)
     parser.add_argument("-n", "--norootfiles", help="don't tar up root files", action="store_true")
+    parser.add_argument("-e", "--extrapaths", help="extra files/dirs to include in tarfile", nargs="+")
 
     args = parser.parse_args()
 
-    make(args.output, args.cmssw, args.norootfiles)
+    make(args.output, args.cmssw, args.norootfiles, args.extrapaths)

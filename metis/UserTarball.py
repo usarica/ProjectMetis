@@ -20,12 +20,14 @@ class UserTarball(object):
             Also adds user specified files in the right place.
     """
 
-    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False):
+    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, extra_paths=[]):
         # self.logger = logger
         self.CMSSW_BASE = override_cmssw_base if override_cmssw_base else os.getenv("CMSSW_BASE", "")
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
         self.exclude_root_files = exclude_root_files
+        self.extra_paths = extra_paths
+        print(extra_paths)
 
     def addFiles(self, userFiles=[]): # pragma: no cover
         """
@@ -38,6 +40,7 @@ class UserTarball(object):
             raise Exception("You need a local CMSSW environment, not cvmfs")
 
         directories = ['lib', 'biglib', 'module', 'python', 'cfipython']
+        # directories += ["config", "external"]
 
         # Note that dataDirs are only looked-for and added under the src/ folder.
         # /data/ subdirs contain data files needed by the code
@@ -51,6 +54,9 @@ class UserTarball(object):
         else:
             def exclude_function(filename):
                 return False
+
+        for path in self.extra_paths:
+            self.tarfile.add(path, path.replace(self.CMSSW_BASE,""), recursive=True, exclude=exclude_function)
 
         # Tar up whole directories
         for directory in directories:
