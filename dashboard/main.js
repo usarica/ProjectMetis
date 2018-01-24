@@ -386,7 +386,8 @@ function setUpDOM(data) {
     for(var i = 0; i < data["tasks"].length; i++) {
         var general = data["tasks"][i]["general"];
         var toappend = "";
-        var id = general["dataset"].replace(/\//g,"_");
+        var tag = data["tasks"][i]["general"]["tag"].replace(/\ /g,"_");
+        var id = general["dataset"].replace(/\//g,"_")+"_"+tag;
         // toappend += "<br>\n";
         toappend += "<div id='"+id+"' class='sample'>\n";
         toappend += "<a href='#/' class='thick' onClick=\"$('#details_"+id+"').slideToggle(100)\">";
@@ -395,7 +396,7 @@ function setUpDOM(data) {
         } else if (general["type"] == "CMS4") {
             toappend += "<span style='color: purple'>[CMS4]</span> ";
         } else {
-            toappend += "<span style='color: blue'>["+general["type"]+"]</span> ";
+            toappend += "<span style='color: blue'>["+general["type"]+", "+tag+"]</span> ";
         }
         toappend += general["dataset"]+"</a>";
         toappend += "<div class='pbar' id='pbar_"+id+"'>";
@@ -428,7 +429,8 @@ function fillDOM(data) {
         var sample = data["tasks"][i];
         var bad = data["tasks"][i]["bad"] || {};
         var general = data["tasks"][i]["general"];
-        var id = general["dataset"].replace(/\//g,"_");
+        var tag = data["tasks"][i]["general"]["tag"].replace(/\ /g,"_");
+        var id = general["dataset"].replace(/\//g,"_")+"_"+tag;
 
         var progress = getProgress(general);
         var pct = Math.floor(progress.pct);
@@ -490,13 +492,13 @@ function fillDOM(data) {
 
         // turn dataset into a DIS link
         // var link = "http://uaf-7.t2.ucsd.edu/~namin/makers/disMaker/?type=basic&short=short&query="+general["dataset"];
-        var link = "http://uaf-7.t2.ucsd.edu/~namin/makers/disMaker/?type=basic&short=short&query="+general["dataset"];
+        var link = "http://uaf-10.t2.ucsd.edu/~namin/makers/disMaker/?type=basic&short=short&query="+general["dataset"];
         jsStr = jsStr.replace("\"dataset\":", " <a href='"+link+"' class='forqtooltip_dis' style='text-decoration: underline'>dataset</a>: ");
 
-        var link = "http://uaf-7.t2.ucsd.edu/~namin/makers/disMaker/?type=config&short=short&query="+general["dataset"];
+        var link = "http://uaf-10.t2.ucsd.edu/~namin/makers/disMaker/?type=config&short=short&query="+general["dataset"];
         jsStr = jsStr.replace("\"global_tag\":", " <a href='"+link+"' class='forqtooltip_dis' style='text-decoration: underline'>global_tag</a>: ");
 
-        var link = "http://uaf-7.t2.ucsd.edu/~namin/makers/disMaker/?type=snt&short=short&query="+general["dataset"];
+        var link = "http://uaf-10.t2.ucsd.edu/~namin/makers/disMaker/?type=snt&short=short&query="+general["dataset"];
         jsStr = jsStr.replace("\"output_dir\":", " <a href='"+link+"' class='forqtooltip_dis' style='text-decoration: underline'>output_dir</a>: ");
         
         $("#details_"+id).html(beforedetails+"<pre>" + jsStr + "</pre>"+afterdetails);
