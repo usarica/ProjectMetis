@@ -64,7 +64,7 @@ class StatsParser(object):
 
                 if is_done:
                     outnevents += job["output"][1]
-                    if "CMSSW" in task_type:
+                    if "CMSSW" in task_type and len(condor_jobs) > 0:
                         errlog = condor_jobs[-1]["logfile_err"]
                         rate = LogParser.get_event_rate(errlog)
                         if rate > 0.:
@@ -98,7 +98,8 @@ class StatsParser(object):
 
             event_rate = -1
             if len(event_rates) > 0:
-                event_rate = round(1.0*sum(event_rates) / len(event_rates),1)
+                # faux median
+                event_rate = round(sorted(event_rates)[len(event_rates)//2],1)
                 
 
             plot_paths = []
