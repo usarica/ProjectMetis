@@ -4,7 +4,7 @@ import os
 import argparse
 from metis.Utils import make_tarball
 
-def make(output, cmssw_base=None, skip_root=False, extra_paths=[]):
+def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_paths=[]):
 
     extra = {}
     if cmssw_base:
@@ -15,12 +15,15 @@ def make(output, cmssw_base=None, skip_root=False, extra_paths=[]):
     extra = {
             "override_cmssw_base": cmssw_base,
             "exclude_root_files": skip_root,
+            "exclude_pattern": exclude_pattern,
             "extra_paths": extra_paths,
             }
 
     print "[mtarfile] Making tarfile"
     if skip_root:
         print "[mtarfile] Skipping root files"
+    if exclude_pattern:
+        print "[mtarfile] Skipping paths/files containing \"{}\"".format(exclude_pattern)
     make_tarball(output, **extra)
     print "[mtarfile] Made {0:.1f}MB tarfile: {1}".format(1.e-6*os.path.getsize(output), output)
 
@@ -33,7 +36,8 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--cmssw", help="CMSSW_BASE directory, default is $CMSSW_BASE", default=None)
     parser.add_argument("-n", "--norootfiles", help="don't tar up root files", action="store_true")
     parser.add_argument("-e", "--extrapaths", help="extra files/dirs to include in tarfile", nargs="+")
+    parser.add_argument("-x", "--excludepattern", help="str to match to exclude in tarfile", default=None)
 
     args = parser.parse_args()
 
-    make(args.output, args.cmssw, args.norootfiles, args.extrapaths)
+    make(args.output, args.cmssw, args.norootfiles, args.excludepattern, args.extrapaths)
