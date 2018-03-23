@@ -178,6 +178,12 @@ class DBSSample(Sample):
     for central samples
     """
 
+    def __init__(self, **kwargs):
+
+        self.allow_invalid_files = kwargs.get("allow_invalid_files", False)
+
+        super(DBSSample, self).__init__(**kwargs)
+
     def set_selection_function(self, selection):
         """
         Use this to specify a function returning True for files we 
@@ -188,7 +194,10 @@ class DBSSample(Sample):
 
     def load_from_dis(self):
 
-        response = self.do_dis_query(self.info["dataset"], typ="files")
+        query = self.info["dataset"]
+        if self.allow_invalid_files:
+            query += ",all"
+        response = self.do_dis_query(query, typ="files")
         fileobjs = [
                 FileDBS(name=fdict["name"], nevents=fdict["nevents"], filesizeGB=fdict["sizeGB"]) for fdict in response
                 if (not hasattr(self,"selection") or self.selection(fdict["name"]))
