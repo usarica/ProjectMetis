@@ -115,6 +115,12 @@ class CMSSWTask(CondorTask):
         self.package_path = "{0}/package.tar.gz".format(self.get_taskdir())
         self.pset_path = "{0}/pset.py".format(self.get_taskdir())
 
+        # see if the path was given relative to $METIS_BASE
+        if not os.path.exists(self.input_executable):
+            to_check = os.path.join(self.get_metis_base(),self.input_executable)
+            if os.path.exists(to_check):
+                self.input_executable = to_check
+
         # take care of executable. easy.
         Utils.do_cmd("cp {0} {1}".format(self.input_executable, self.executable_path))
 
