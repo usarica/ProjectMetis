@@ -103,11 +103,11 @@ class StatsParser(object):
                 
 
             plot_paths = []
-            if logs_to_plot:
+            if logs_to_plot and self.make_plots:
 
                 to_plot_json = {fname:LogParser.log_parser(fname)["dstat"] for fname in logs_to_plot}
 
-                if to_plot_json and self.make_plots:
+                if to_plot_json:
                     # CPU
                     import Plotter as plotter
                     plot_paths.append(plotter.plot_2DHist(to_plot_json, dsname, ("epoch","usr"), xtitle="norm. job time", ytitle="usr CPU", title="user CPU vs norm. job time", nbins=50, normx=True, colorbar=True))

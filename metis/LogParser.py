@@ -15,6 +15,9 @@ def log_parser(fname):
     valuematrix = []
     d_log = {"args": {}, "dstat": {}}
 
+    if not os.path.exists(fname):
+        return d_log
+
     def try_float(x):
         if ":" in x:
             return x
