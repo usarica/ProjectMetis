@@ -20,14 +20,15 @@ class UserTarball(object):
             Also adds user specified files in the right place.
     """
 
-    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, extra_paths=[]):
+    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, exclude_pattern=None, extra_paths=[]):
         # self.logger = logger
         self.CMSSW_BASE = override_cmssw_base if override_cmssw_base else os.getenv("CMSSW_BASE", "")
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
         self.exclude_root_files = exclude_root_files
+        self.exclude_pattern = exclude_pattern
+        print(self.exclude_pattern)
         self.extra_paths = extra_paths
-        print(extra_paths)
 
     def addFiles(self, userFiles=[]): # pragma: no cover
         """
@@ -48,15 +49,14 @@ class UserTarball(object):
         dataDirs = ['data', 'interface', "python"]
 
 
-        if self.exclude_root_files:
-            def exclude_function(filename):
-                return filename.endswith('.root')
-        else:
-            def exclude_function(filename):
-                return False
+        def exclude_function(filename):
+            if self.exclude_root_files and filename.endswith('.root'): return True
+            if self.exclude_pattern and self.exclude_pattern in filename: return True
+            return False
 
-        for path in self.extra_paths:
-            self.tarfile.add(path, path.replace(self.CMSSW_BASE,""), recursive=True, exclude=exclude_function)
+        if self.extra_paths:
+            for path in self.extra_paths:
+                self.tarfile.add(path, path.replace(self.CMSSW_BASE,""), recursive=True, exclude=exclude_function)
 
         # Tar up whole directories
         for directory in directories:
