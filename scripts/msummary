@@ -4,6 +4,7 @@ import json
 import argparse
 import datetime
 import os
+from fnmatch import fnmatch
 from metis.Utils import hsv_to_rgb, from_timestamp, timedelta_to_human
 import metis.LogParser as logparser
 
@@ -72,6 +73,10 @@ def main(args):
     reverse_sort = args.reverse
     verbosity = int(args.verbosity)
     do_color = not args.nocolor
+    do_unicode = not args.nounicode
+    pattern = str(args.pattern)
+    if pattern:
+        pattern = "*{0}*".format(args.pattern)
 
 
     data, data_raw = get_summaries(web_summary)
@@ -86,7 +91,7 @@ def main(args):
         data["tasks"] = sorted(data["tasks"], key=lambda x: x["general"]["dataset"].split("/")[2], reverse=reverse_sort)
 
     dt = from_timestamp(data["last_updated"])
-    if do_color:
+    if do_color and not do_unicode:
         print "\033[93mSummary as of {0}\033[0m".format(dt.strftime("%a %b %d %T %Y"))
     else:
         print "Summary as of {0}".format(dt.strftime("%a %b %d %T %Y"))
@@ -95,18 +100,24 @@ def main(args):
         d_bad = d_ds["bad"]
         dataset = d_general["dataset"]
 
+        if pattern:
+            if not fnmatch(dataset, pattern): continue
+
         done, total, fraction = get_progress(d_general)
         is_open = is_open_dataset(d_general)
         if is_open:
-            progress =  progress_bar(fraction, override_color=[255,170,59], do_color=do_color)
+            progress =  progress_bar(fraction, override_color=[255,170,59], do_color=do_color, do_unicode=do_unicode)
         else:
-            progress =  progress_bar(fraction, do_color=do_color)
+            progress =  progress_bar(fraction, do_color=do_color, do_unicode=do_unicode)
 
         dataset_short = dataset
         dswidth = 45
         if len(dataset) > dswidth:
             dataset_short = dataset[:dswidth-3]+"..."
-        print ("{0:<%is} {1} {2:3.0f}%% [{3}/{4}]" % dswidth).format(dataset_short, progress, 100.0*fraction, done, total)
+        ending = ""
+        if done == total:
+            ending = " [DONE]"
+        print ("{0:<%is} {1} {2:3.0f}%% [{3}/{4}]{5}" % dswidth).format(dataset_short, progress, 100.0*fraction, done, total, ending)
 
         if verbosity > 0:
             for iout,info in d_bad["jobs_not_done"].items():
@@ -148,9 +159,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--summary", help="web summary JSON file", default="web_summary.json")
     parser.add_argument("-c", "--nocolor", help="disable colors", action="store_true")
+    parser.add_argument("-u", "--nounicode", help="disable unicode", action="store_true")
     parser.add_argument("-s", "--sort", help="sort type: 'progress', 'name', or 'era'", default="progress")
     parser.add_argument("-r", "--reverse", help="reverse sort", action="store_true")
     parser.add_argument("-v", "--verbosity", help="verbosity (default is 1)", default="1")
+    parser.add_argument("-p", "--pattern", help="dataset matching pattern, e.g., SingleElectron. Wildcards assumed on both sides.", default="")
 
     args = parser.parse_args()
 
