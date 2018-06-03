@@ -50,6 +50,7 @@ mv ../$PSET pset.py
 }
 cp $CMSSW_BASE/src/NNKit/data/*.{json,params} .
 scram b
+[ -e package.tar.gz ] && tar xzf package.tar.gz
 
 
 # logging every 45 seconds gives ~100kb log file/3 hours
