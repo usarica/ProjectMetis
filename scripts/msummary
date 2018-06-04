@@ -75,6 +75,7 @@ def main(args):
     do_color = not args.nocolor
     do_unicode = not args.nounicode
     pattern = str(args.pattern)
+    show_total = args.total
     if pattern:
         pattern = "*{0}*".format(args.pattern)
 
@@ -95,13 +96,17 @@ def main(args):
         print "\033[93mSummary as of {0}\033[0m".format(dt.strftime("%a %b %d %T %Y"))
     else:
         print "Summary as of {0}".format(dt.strftime("%a %b %d %T %Y"))
-    for d_ds in data["tasks"]:
+
+    tasks = data["tasks"]
+    if pattern:
+        tasks = filter(lambda t: fnmatch(t["general"]["dataset"], pattern), tasks)
+
+
+    dswidth = 45
+    for d_ds in tasks:
         d_general = d_ds["general"]
         d_bad = d_ds["bad"]
         dataset = d_general["dataset"]
-
-        if pattern:
-            if not fnmatch(dataset, pattern): continue
 
         done, total, fraction = get_progress(d_general)
         is_open = is_open_dataset(d_general)
@@ -111,7 +116,6 @@ def main(args):
             progress =  progress_bar(fraction, do_color=do_color, do_unicode=do_unicode)
 
         dataset_short = dataset
-        dswidth = 45
         if len(dataset) > dswidth:
             dataset_short = dataset[:dswidth-3]+"..."
         ending = ""
@@ -152,6 +156,14 @@ def main(args):
                                 print "\t\t{}".format(line.replace("\n",""))
                             print "\t\t __________ LAST {} LINES <<<<<< __________".format(nlines)
 
+    if show_total:
+        done,total,fraction = map(sum,zip(*[get_progress(t["general"]) for t in tasks]))
+        fraction = 1.0*done/total
+        progress =  progress_bar(fraction, do_color=do_color, do_unicode=do_unicode)
+        print ("{0:<%is} {1} {2:3.0f}%% [{3}/{4}]{5}" % dswidth).format(
+                "-"*15+" TOTAL "+"-"*15,
+                progress, 100.0*fraction, done, total, ""
+                )
 
 
 if __name__ == "__main__":
@@ -164,6 +176,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--reverse", help="reverse sort", action="store_true")
     parser.add_argument("-v", "--verbosity", help="verbosity (default is 1)", default="1")
     parser.add_argument("-p", "--pattern", help="dataset matching pattern, e.g., SingleElectron. Wildcards assumed on both sides.", default="")
+    parser.add_argument("-t", "--total", help="show total progress", action="store_true")
 
     args = parser.parse_args()
 
