@@ -162,7 +162,8 @@ def set_output_name(outputname):
         if self.split_within_files:
             fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms", "")) for fo in self.get_inputs(flatten=True)]
             with open(pset_location_out, "a") as fhin:
-                fhin.write("\nif hasattr(process.source,\"fileNames\"): process.source.fileNames = cms.untracked.vstring(\n{0}\n)\n\n".format(",\n".join(fnames)))
+                # hard limit at 255 input files since that's the max CMSSW allows in process.source
+                fhin.write("\nif hasattr(process.source,\"fileNames\"): process.source.fileNames = cms.untracked.vstring([\n{0}\n][:255])\n\n".format(",\n".join(fnames)))
                 fhin.write("\nif hasattr(process,\"RandomNumberGeneratorService\"): process.RandomNumberGeneratorService.generator.initialSeed = int(__import__('random').getrandbits(28))\n\n".format(",\n".join(fnames))) # max accepted by CMSSW is 29 bits or so. Try higher and you'll see.
 
         # take care of package tar file. easy.
