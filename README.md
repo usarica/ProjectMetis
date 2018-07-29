@@ -17,7 +17,7 @@ Concrete things that ProjectMetis can do:
   * Coupled with the above, this facilitates babymaking
 * By chaining a set of CMSSW tasks, can go from LHE to MINIAOD quite elegantly
 
-In the process of fulfilling the above, ProjetMetis exposes some nice standalone API for:
+In the process of fulfilling the above, ProjectMetis exposes some nice standalone API for:
 * `condor_q`, `condor_submit`, etc.
 * CRAB job submission/monitoring
 * DIS integration (i.e., queries to internal SNT database, MCM, PhEDEx, DBS)
