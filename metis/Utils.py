@@ -233,10 +233,12 @@ error={logdir}/std_logs/1e.$(Cluster).$(Process).err
 notification=Never
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
+Requirements = HAS_SINGULARITY=?=True
 {proxyline}
 {extra}
 queue
     """
+# Requirements = HAS_SINGULARITY=?=True
 
     if kwargs.get("return_template",False):
         return template.format(**params)
