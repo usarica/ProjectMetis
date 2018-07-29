@@ -282,11 +282,26 @@ class CondorTask(Task):
         condor_job_dicts = self.get_running_condor_jobs()
         condor_job_indices = set([int(rj["jobnum"]) for rj in condor_job_dicts])
 
+        # reset file existence cache value for files that used to exist (maybe we
+        # deleted and want to regenerate them)
+        # this saves time so we don't `ls` every file every iteration
+        nfiles_reset = 0
+        if self.io_mapping:
+            # get first output
+            path_to_check = self.io_mapping[0][1].get_basepath()
+            fnames = []
+            if os.path.exists(path_to_check):
+                fnames = [os.path.normpath("{}/{}".format(path_to_check,x)) for x in os.listdir(path_to_check)]
+            for _, out in self.io_mapping:
+                if out.exists() and (os.path.normpath(out.get_name()) not in fnames):
+                    # file apparently exists (according to cache), but not actually there, so reset cache
+                    out.recheck()
+                    nfiles_reset += 1
+        if nfiles_reset > 0:
+            self.logger.info("{0} files may have been deleted".format(nfiles_reset))
+
         # main loop over input-output map
         for ins, out in self.io_mapping:
-            # force a recheck to see if file exists or not
-            # in case we delete it by hand to regenerate
-            out.recheck()
             index = out.get_index()  # "merged_ntuple_42.root" --> 42
             on_condor = index in condor_job_indices
             done = (out.exists() and not on_condor)
@@ -311,7 +326,7 @@ class CondorTask(Task):
                 action_type = self.handle_condor_job(this_job_dict, out)
 
 
-    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=32.0, remove_held_x_hours=5.0):
+    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=48.0, remove_held_x_hours=5.0):
         """
         takes `out` (File object) and dictionary of condor
         job information returns action_type specifying the type of action taken
@@ -380,7 +395,7 @@ class CondorTask(Task):
         """
         pass
 
-    def get_running_condor_jobs(self):
+    def get_running_condor_jobs(self, extra_columns=[]):
         """
         Get list of dictionaries for condor jobs satisfying the
         classad given by the unique_name, requesting an extra
@@ -390,7 +405,7 @@ class CondorTask(Task):
         within a task has a unique job num corresponding to the
         output file index
         """
-        return Utils.condor_q(selection_pairs=[["taskname", self.unique_name]], extra_columns=["jobnum"])
+        return Utils.condor_q(selection_pairs=[["taskname", self.unique_name]], extra_columns=["jobnum"]+extra_columns)
 
 
     def submit_condor_job(self, ins, out, fake=False):
