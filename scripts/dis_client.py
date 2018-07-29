@@ -33,7 +33,7 @@ Or you can import dis_client and make a query using online syntax and get a json
        dis_client.query(q="..." [, typ="basic"] [, detail=False])
 """
 
-BASE_URL_PATTERN = "http://uaf-{NUM}.t2.ucsd.edu/~namin/makers/disMaker/handler.py"
+BASE_URL_PATTERN = "http://uaf-{NUM}.t2.ucsd.edu/~namin/dis/handler.py"
 
 def query(q, typ="basic", detail=False):
     query_dict = {"query": q, "type": typ, "short": "" if detail else "short"}
@@ -42,10 +42,10 @@ def query(q, typ="basic", detail=False):
     data = {}
 
     # try all uafs in order of decreasing reliability (subjective)
-    for num in map(str,[8,10,6,3,5,4]):
+    for num in map(str,[1,7,10,8,3,5,4]):
         try:
             url = url_pattern.replace("{NUM}",num)
-            handle =  urlopen(url,timeout=30)
+            handle =  urlopen(url,timeout=2*60)
             content =  handle.read() 
             data = json.loads(content)
             break
