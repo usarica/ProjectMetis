@@ -41,7 +41,7 @@ class UserTarball(object):
             raise Exception("You need a local CMSSW environment, not cvmfs")
 
         directories = ['lib', 'biglib', 'module', 'python', 'cfipython']
-        # directories += ["config", "external"]
+        directories += ["config", "external"]
 
         # Note that dataDirs are only looked-for and added under the src/ folder.
         # /data/ subdirs contain data files needed by the code
