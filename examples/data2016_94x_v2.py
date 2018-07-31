@@ -6,26 +6,26 @@ from metis.CMSSWTask import CMSSWTask
 from metis.StatsParser import StatsParser
 from metis.Utils import send_email
 
+import scripts.dis_client as dis
+
 if __name__ == "__main__":
-
-    pds = ["MuonEG","SingleElectron","MET","SinglePhoton","SingleMuon","DoubleMuon","JetHT","DoubleEG","HTMHT"]
-    letters = list("BCDEF")
-
-    dataset_names = []
-    for pd in pds:
-        for letter in letters:
-            dataset_names.append("/{}/Run2017{}-31Mar2018-v1/MINIAOD".format(pd,letter))
-
 
     for i in range(10000):
 
+        pds = [
+                "MuonEG",
+                # "SingleElectron","MET","SinglePhoton","SingleMuon","DoubleMuon","JetHT","DoubleEG","HTMHT"
+                ]
+        out = dis.query("/*/Run2016*-17Jul2018-*/MINIAOD") # this precludes 17Jul2018_ver1-v1 which is not in the golden JSON anyway
+        dataset_names = out["response"]["payload"]
+        dataset_names = sorted([ds for ds in dataset_names if any("/{}/".format(pd) in ds for pd in pds)])
 
         total_summary = {}
         total_counts = {}
         for dsname in dataset_names:
 
-            cmsswver = "CMSSW_9_4_6_patch1"
-            tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-16_946p1.tar.gz"
+            cmsswver = "CMSSW_9_4_9"
+            tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-16_949.tar.gz"
             pset = "psets_cms4/main_pset_V09-04-16.py"
             scramarch = "slc6_amd64_gcc630"
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
                         output_name = "merged_ntuple.root",
                         tag = "CMS4_V09-04-16",
                         pset = pset,
-                        pset_args = "data=True prompt=False",
+                        pset_args = "data=True prompt=False name=DQM",
                         scram_arch = scramarch,
                         cmssw_version = cmsswver,
                         condor_submit_params = {"use_xrootd":True},
@@ -46,7 +46,7 @@ if __name__ == "__main__":
                         is_data = True,
                         publish_to_dis = True,
                         snt_dir = True,
-                        special_dir = "run2_data2017/",
+                        special_dir = "run2_data2016_94x/",
                 )
 
                 if not task.complete():
