@@ -9,8 +9,7 @@ from metis.StatsParser import StatsParser
 from metis.Utils import send_email
 
 
-if __name__ == "__main__":
-
+def get_tasks():
 
     infos = [
 
@@ -47,7 +46,6 @@ if __name__ == "__main__":
             "/TTHH_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|0.000757|1|1",
             "/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|831.76|1|1",
             "/TTTJ_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|0.000474|1|1",
-            "/TTTT_TuneCP5_13TeV-amcatnlo-pythia8/RunIIFall17MiniAODv2-PU2017_pilot_94X_mc2017_realistic_v14-v1/MINIAODSIM|0.009103|1|1",
             "/TTTT_TuneCP5_PSweights_13TeV-amcatnlo-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|0.009103|1|1",
             "/TTTW_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|0.000788|1|1",
             "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|72.1|1.0|1.0",
@@ -125,51 +123,63 @@ if __name__ == "__main__":
             "/QCD_Pt-120to170_MuEnrichedPt5_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM|479500|1|0.04958",
             "/QCD_Pt-170to300_MuEnrichedPt5_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM|118100|1|0.07022",
             "/QCD_Pt-300to470_MuEnrichedPt5_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM|7820.25|1|0.10196",
+            "/QCD_Pt-470to600_MuEnrichedPt5_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM|648.8|1|0.08722",
             "/QCD_Pt-600to800_MuEnrichedPt5_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM|187.109|1|0.13412",
 
             ]
 
 
+    tasks = []
+    for info in infos:
+        dsname = info.split("|")[0].strip()
+        xsec = float(info.split("|")[1].strip())
+        kfact = float(info.split("|")[2].strip())
+        efact = float(info.split("|")[3].strip())
+        cmsswver = "CMSSW_9_4_6_patch1"
+        tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-16_946p1.tar.gz"
+        pset = "psets_cms4/main_pset_V09-04-16.py"
+        scramarch = "slc6_amd64_gcc630"
+        task = CMSSWTask(
+                sample = DBSSample(
+                    dataset=dsname,
+                    xsec=xsec,
+                    kfact=kfact,
+                    efact=efact,
+                    ),
+                events_per_output = 300e3,
+                output_name = "merged_ntuple.root",
+                tag = "CMS4_V09-04-16",
+                pset = pset,
+                pset_args = "data=False",
+                scram_arch = scramarch,
+                condor_submit_params = {"use_xrootd":True},
+                cmssw_version = cmsswver,
+                tarfile = tarfile,
+                # min_completion_fraction = 0.90,
+                # min_completion_fraction = 0.84,
+                publish_to_dis = True,
+                snt_dir = True,
+                special_dir = "run2_mc2017/",
+        )
+        tasks.append(task)
+    return tasks
+
+if __name__ == "__main__":
+
     for i in range(10000):
         total_summary = {}
-        # for dsname in dataset_names:
-        for info in infos:
-            dsname = info.split("|")[0].strip()
-            xsec = float(info.split("|")[1].strip())
-            kfact = float(info.split("|")[2].strip())
-            efact = float(info.split("|")[3].strip())
-            cmsswver = "CMSSW_9_4_6_patch1"
-            tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-16_946p1.tar.gz"
-            pset = "psets_cms4/main_pset_V09-04-16.py"
-            scramarch = "slc6_amd64_gcc630"
+        total_counts = {}
+        tasks = []
+        tasks.extend(get_tasks())
+        for task in tasks:
+            dsname = task.get_sample().get_datasetname()
             try:
-                task = CMSSWTask(
-                        sample = DBSSample(
-                            dataset=dsname,
-                            xsec=xsec,
-                            kfact=kfact,
-                            efact=efact,
-                            ),
-                        events_per_output = 300e3,
-                        output_name = "merged_ntuple.root",
-                        tag = "CMS4_V09-04-16",
-                        pset = pset,
-                        pset_args = "data=False",
-                        scram_arch = scramarch,
-                        condor_submit_params = {"use_xrootd":True},
-                        cmssw_version = cmsswver,
-                        tarfile = tarfile,
-                        # min_completion_fraction = 0.90,
-                        # min_completion_fraction = 0.84,
-                        publish_to_dis = True,
-                        snt_dir = True,
-                        special_dir = "run2_mc2017/",
-                )
-                task.process()
+                if not task.complete():
+                    task.process()
             except:
                 traceback_string = traceback.format_exc()
                 print "Runtime error:\n{0}".format(traceback_string)
                 send_email(subject="metis error", body=traceback_string)
             total_summary[dsname] = task.get_task_summary()
-        StatsParser(data=total_summary, webdir="~/public_html/dump/metis/").do()
-        time.sleep(3.*3600)
+        StatsParser(data=total_summary, webdir="~/public_html/dump/metis/", make_plots=False).do()
+        time.sleep(1.*3600)
