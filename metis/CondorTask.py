@@ -374,6 +374,7 @@ class CondorTask(Task):
         Execute main logic
         Backup
         """
+        self.logger.info("Began processing {0}".format(self.sample.get_datasetname()))
         # set up condor input if it's the first time submitting
         if not self.prepared_inputs:
             self.prepare_inputs()
