@@ -28,6 +28,7 @@ def get_tasks():
             "/QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|1005|1.0|1.0",
             "/QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM|101.8|1.0|1.0",
             "/QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM|20.54|1.0|1.0",
+            "/QCD_HT200to300_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|1559000|1.0|1.0",
             "/QCD_HT300to500_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|311900|1.0|1.0",
             "/QCD_HT500to700_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_old_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM|29070|1.0|1.0",
             "/QCD_HT700to1000_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM|5962|1.0|1.0",
@@ -136,8 +137,8 @@ def get_tasks():
         kfact = float(info.split("|")[2].strip())
         efact = float(info.split("|")[3].strip())
         cmsswver = "CMSSW_9_4_6_patch1"
-        tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-16_946p1.tar.gz"
-        pset = "psets_cms4/main_pset_V09-04-16.py"
+        tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-17_946p1.tar.gz"
+        pset = "psets_cms4/main_pset_V09-04-17.py"
         scramarch = "slc6_amd64_gcc630"
         task = CMSSWTask(
                 sample = DBSSample(
@@ -148,7 +149,7 @@ def get_tasks():
                     ),
                 events_per_output = 300e3,
                 output_name = "merged_ntuple.root",
-                tag = "CMS4_V09-04-16",
+                tag = "CMS4_V09-04-17",
                 pset = pset,
                 pset_args = "data=False",
                 scram_arch = scramarch,

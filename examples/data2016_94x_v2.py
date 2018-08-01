@@ -22,8 +22,8 @@ def get_tasks():
     for dsname in dataset_names:
 
         cmsswver = "CMSSW_9_4_9"
-        tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-16_949.tar.gz"
-        pset = "psets_cms4/main_pset_V09-04-16.py"
+        tarfile = "/nfs-7/userdata/libCMS3/lib_CMS4_V09-04-17_949.tar.gz"
+        pset = "psets_cms4/main_pset_V09-04-17.py"
         scramarch = "slc6_amd64_gcc630"
 
         task = CMSSWTask(
@@ -31,7 +31,7 @@ def get_tasks():
                 open_dataset = False,
                 events_per_output = 400e3,
                 output_name = "merged_ntuple.root",
-                tag = "CMS4_V09-04-16",
+                tag = "CMS4_V09-04-17",
                 pset = pset,
                 pset_args = "data=True prompt=False name=DQM",
                 scram_arch = scramarch,
