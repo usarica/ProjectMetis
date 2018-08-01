@@ -268,6 +268,7 @@ class DirectorySample(Sample):
         filepaths = glob.glob(self.info["location"] + "/" + self.globber)
         if self.use_xrootd:
             filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
+        filepaths = sorted(filepaths)
         self.info["files"] = list(map(EventsFile, filepaths))
 
         return self.info["files"]

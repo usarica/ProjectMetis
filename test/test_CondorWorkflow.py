@@ -23,7 +23,7 @@ class CondorWorkflowTest(unittest.TestCase):
         Check output to make sure job completed
         """
 
-        njobs = 1
+        njobs = 2
         cmssw =  "CMSSW_8_0_21"
         basedir = "/tmp/{0}/metis/condortask_testfull/".format(os.getenv("USER"))
         Utils.do_cmd("mkdir -p {0}".format(basedir))

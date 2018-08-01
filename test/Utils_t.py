@@ -67,6 +67,23 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual("UAF" in template, True)
         self.assertEqual("x509userproxy=" not in template, True)
 
+    def test_condor_submit_template_multiple(self):
+        template = Utils.condor_submit(
+                executable="blah.sh",inputfiles=[],
+                arguments=[[1,2],[3,4],[5,6]],
+                selection_pairs=[
+                    [["jobnum","1"],["taskname","test"]],
+                    [["jobnum","2"],["taskname","test"]],
+                    [["jobnum","3"],["taskname","test"]],
+                    ],
+                logdir="./",
+                return_template=True,
+                sites = "UAF,T2_US_UCSD",
+                multiple=True,
+            )
+        self.assertEqual(template.count("arguments"),3)
+        self.assertEqual(template.count("queue"),3)
+
     # @unittest.skip("skipped due to sleep")
     @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
     def test_condor_submission_output_local(self):
@@ -87,6 +104,35 @@ class UtilsTest(unittest.TestCase):
                         """.format(test_file))
         Utils.do_cmd("chmod a+x {0}/temp_test_local.sh".format(basedir))
         success, cluster_id =  Utils.condor_submit(executable=basedir+"temp_test_local.sh", arguments=[], inputfiles=[], logdir=basedir, universe="local")
+        found_it = False
+        for t in [1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 5.0, 10.0]:
+            time.sleep(t)
+            if os.path.exists(test_file):
+                found_it = True
+                break
+        self.assertEqual(found_it, True)
+
+    # @unittest.skip("skipped due to sleep")
+    @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
+    def test_condor_submission_output_local_multiple(self):
+        """
+        Save as `test_condor_submission_output_local` but for multiple jobs within
+        a single submit file/cluster_id
+        """
+        basedir = "/tmp/{0}/metis/condor_test_multiple/".format(os.getenv("USER"))
+        Utils.do_cmd("mkdir -p {0}".format(basedir))
+        test_file = "{0}/super_secret_file_for_test.txt".format(basedir)
+        Utils.do_cmd("rm {0}".format(test_file))
+        with open("{0}/temp_test_local.sh".format(basedir),"w") as fhout:
+            fhout.write( """#!/usr/bin/env bash
+                            echo "Metis"
+                            touch {0}
+                        """.format(test_file))
+        Utils.do_cmd("chmod a+x {0}/temp_test_local.sh".format(basedir))
+        success, cluster_id =  Utils.condor_submit(
+                executable=basedir+"temp_test_local.sh",
+                arguments=[[1,2],[3,4]],
+                inputfiles=[], logdir=basedir, universe="local",multiple=True)
         found_it = False
         for t in [1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 5.0, 10.0]:
             time.sleep(t)
