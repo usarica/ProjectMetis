@@ -11,7 +11,9 @@ except:
 import logging
 import datetime
 import shelve
+import fcntl
 from collections import Counter
+from contextlib import contextmanager
 
 class cached(object): # pragma: no cover
     """
@@ -55,6 +57,22 @@ def time_it(method): # pragma: no cover
         return result
 
     return timed
+
+
+@contextmanager
+def locked_open(filename, mode='r'):
+    """locked_open(filename, mode='r') -> <open file object>
+        from https://gist.github.com/lonetwin/7b4ccc93241958ff6967
+
+       Context manager that on entry opens the path `filename`, using `mode`
+       (default: `r`), and applies an advisory write lock on the file which
+       is released when leaving the context. Yields the open file object for
+       use within the context.
+    """
+    with open(filename, mode) as fd:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield fd
+        fcntl.flock(fd, fcntl.LOCK_UN)
 
 def do_cmd(cmd, returnStatus=False, dryRun=False):
     if dryRun:
@@ -202,7 +220,10 @@ def condor_submit(**kwargs): # pragma: no cover
     params["proxy"] = "/tmp/x509up_u{0}".format(os.getuid())
     params["timestamp"] = get_timestamp()
 
-    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech")
+    exe_dir = params["executable"].rsplit("/",1)[0]
+
+    # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech")
+    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Caltech")
     else: params["sites"] = kwargs.get("sites","T2_US_UCSD")
     # if os.getenv("USER") in ["namin"] and "T2_US_UCSD" in params["sites"]:
     #     params["sites"] += ",UAF,UCSB"
@@ -246,10 +267,10 @@ queue
     if kwargs.get("fake",False):
         return True, -1
 
-    with open(".tmp_submit.cmd","w") as fhout:
+    with open("{0}/.tmp_submit.cmd".format(exe_dir),"w") as fhout:
         fhout.write(template.format(**params))
 
-    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit .tmp_submit.cmd ".format(params["logdir"]))
+    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/.tmp_submit.cmd ".format(params["logdir"],exe_dir))
 
     succeeded = False
     cluster_id = -1
