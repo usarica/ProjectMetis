@@ -13,8 +13,22 @@ class TimingTextTestResult(unittest.TextTestResult):
         super(TimingTextTestResult, self).startTest(test)
 
     def addSuccess(self, test):
+        col = '\033[92m'
+        end = '\033[0m'
         if self.showAll:
-            to_write = "ok"
+            to_write = "{}ok{}".format(col,end)
+            to_write += " [{}ms]".format(int(1000.0*(time.time()-self.t0)))
+            self.stream.writeln(to_write)
+        elif self.dots:
+            self.stream.write('.')
+            self.stream.flush()
+        self.t0 = time.time()
+
+    def addFailure(self, test, reason):
+        col = '\033[91m'
+        end = '\033[0m'
+        if self.showAll:
+            to_write = "{}FAIL{}".format(col,end)
             to_write += " [{}ms]".format(int(1000.0*(time.time()-self.t0)))
             self.stream.writeln(to_write)
         elif self.dots:
