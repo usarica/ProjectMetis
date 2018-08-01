@@ -300,6 +300,8 @@ class CondorTask(Task):
         if nfiles_reset > 0:
             self.logger.info("{0} files may have been deleted".format(nfiles_reset))
 
+        to_submit = []
+
         # main loop over input-output map
         for ins, out in self.io_mapping:
             index = out.get_index()  # "merged_ntuple_42.root" --> 42
@@ -314,17 +316,28 @@ class CondorTask(Task):
 
             if not on_condor:
                 # Submit and keep a log of condor_ids for each output file that we've submitted
-                succeeded, cluster_id = self.submit_condor_job(ins, out, fake=fake)
-                if succeeded:
-                    if index not in self.job_submission_history:
-                        self.job_submission_history[index] = []
-                    self.job_submission_history[index].append(cluster_id)
-                    self.logger.info("Job for ({0}) submitted to {1}".format(out, cluster_id))
+                to_submit.append({
+                    "ins": ins,
+                    "out": out,
+                    })
 
             else:
                 this_job_dict = next(rj for rj in condor_job_dicts if int(rj["jobnum"]) == index)
                 action_type = self.handle_condor_job(this_job_dict, out)
 
+        if to_submit:
+            v_ins = [d["ins"] for d in to_submit]
+            v_out = [d["out"] for d in to_submit]
+            succeeded, cluster_id = self.submit_multiple_condor_jobs(v_ins, v_out, fake=fake)
+            procids = map(str,range(len(v_out)))
+            if succeeded:
+                for out,procid in zip(v_out,procids):
+                    index = out.get_index()  # "merged_ntuple_42.root" --> 42
+                    cid = str(cluster_id).split(".")[0] + "." + procid
+                    if index not in self.job_submission_history:
+                        self.job_submission_history[index] = []
+                    self.job_submission_history[index].append(cid)
+                    self.logger.info("Job for ({0}) submitted to {1}".format(out, cid))
 
     def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=48.0, remove_held_x_hours=5.0):
         """
@@ -407,6 +420,36 @@ class CondorTask(Task):
         output file index
         """
         return Utils.condor_q(selection_pairs=[["taskname", self.unique_name]], extra_columns=["jobnum"]+extra_columns)
+
+    def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False):
+
+        outdir = self.output_dir
+        outname_noext = self.output_name.rsplit(".", 1)[0]
+        v_inputs_commasep = [",".join(map(lambda x: x.get_name(), ins)) for ins in v_ins]
+        v_index = [out.get_index() for out in v_out]
+        cmssw_ver = self.cmssw_version
+        scramarch = self.scram_arch
+        executable = self.executable_path
+        v_arguments = [[outdir, outname_noext, inputs_commasep,
+                     index, cmssw_ver, scramarch, self.arguments]
+                     for (index,inputs_commasep) in zip(v_index,v_inputs_commasep)]
+        v_selection_pairs = [
+                [["taskname", self.unique_name], ["jobnum", index]] 
+                for index in v_index
+                ]
+
+        logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
+        package_full = os.path.abspath(self.package_path)
+        input_files = [package_full] if self.tarfile else []
+        input_files += self.additional_input_files
+        extra = self.kwargs.get("condor_submit_params", {})
+        return Utils.condor_submit(
+                    executable=executable, arguments=v_arguments,
+                    inputfiles=input_files, logdir=logdir_full,
+                    selection_pairs=v_selection_pairs,
+                    multiple=True,
+                    fake=fake, **extra
+               )
 
 
     def submit_condor_job(self, ins, out, fake=False):
