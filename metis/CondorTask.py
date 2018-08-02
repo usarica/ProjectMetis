@@ -539,7 +539,7 @@ class CondorTask(Task):
         # map from clusterid to condor dict
         d_oncondor = {}
         for job in self.get_running_condor_jobs():
-            d_oncondor[int(job["ClusterId"])] = job
+            d_oncondor[job["ClusterId"]] = job
 
         # map from output index to historical list of clusterids
         d_history = self.get_job_submission_history()
@@ -564,8 +564,8 @@ class CondorTask(Task):
             for clusterid in submission_history:
                 d_job = {
                         "cluster_id": clusterid,
-                        "logfile_err": "{0}/1e.{1}.0.{2}".format(logdir_full, clusterid, "err"),
-                        "logfile_out": "{0}/1e.{1}.0.{2}".format(logdir_full, clusterid, "out"),
+                        "logfile_err": "{0}/1e.{1}.{2}".format(logdir_full, clusterid, "err"),
+                        "logfile_out": "{0}/1e.{1}.{2}".format(logdir_full, clusterid, "out"),
                 }
                 d_jobs[index]["condor_jobs"].append(d_job)
 
