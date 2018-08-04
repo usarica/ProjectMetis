@@ -27,7 +27,6 @@ class UserTarball(object):
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
         self.exclude_root_files = exclude_root_files
         self.exclude_pattern = exclude_pattern
-        print(self.exclude_pattern)
         self.extra_paths = extra_paths
 
     def addFiles(self, userFiles=[]): # pragma: no cover
