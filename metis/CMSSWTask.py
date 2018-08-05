@@ -258,7 +258,8 @@ def set_output_name(outputname):
         with open(metadata_file, "w") as fhout:
             json.dump(d_metadata, fhout, sort_keys=True, indent=4)
         # self.logger.info("Dumped metadata to {0}".format(metadata_file))
-        self.logger.info("Dumped metadata")
+        Utils.do_cmd("cp {0}/backup.pkl {1}/".format(self.get_taskdir(), d_metadata["finaldir"]))
+        self.logger.info("Dumped metadata and backup pickle")
 
     def supplement_task_summary(self, task_summary):
         """
