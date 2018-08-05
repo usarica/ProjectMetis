@@ -10,11 +10,13 @@ from metis.File import File, MutableFile
 
 from pprint import pprint
 
-import ROOT as r
 
 class LocalMergeWorkflowTest(unittest.TestCase):
 
+    @unittest.skipIf("uaf-" not in os.uname()[1], "ROOT only on UAF")
     def test_workflow(self):
+
+        import ROOT as r
 
         basepath = "/tmp/{}/metis/localmerge/".format(os.getenv("USER"))
 
