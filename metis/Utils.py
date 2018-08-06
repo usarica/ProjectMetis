@@ -224,7 +224,7 @@ def condor_submit(**kwargs): # pragma: no cover
     params["executable"] = kwargs["executable"]
     params["inputfiles"] = ",".join(kwargs["inputfiles"])
     params["logdir"] = kwargs["logdir"]
-    params["proxy"] = "/tmp/x509up_u{0}".format(os.getuid())
+    params["proxy"] = get_proxy_file()
     params["timestamp"] = get_timestamp()
 
 
@@ -306,10 +306,10 @@ when_to_transfer_output = ON_EXIT
         return template.format(**params)
 
 
-    with open("{0}/.tmp_submit.cmd".format(exe_dir),"w") as fhout:
+    with open("{0}/submit.cmd".format(exe_dir),"w") as fhout:
         fhout.write(template.format(**params))
 
-    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/.tmp_submit.cmd ".format(params["logdir"],exe_dir))
+    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/submit.cmd ".format(params["logdir"],exe_dir))
 
     succeeded = False
     cluster_id = -1
