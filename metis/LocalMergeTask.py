@@ -53,6 +53,7 @@ class LocalMergeTask(Task):
         for inp in inputs:
             ngood += fm.AddFile(inp.get_name(), False)
         if ngood != len(inputs):
+            MutableFile(output).rm()
             raise RuntimeError("Trying to merge {0} files into {1}, but only {2} of them got included properly".format(len(inputs), output.get_name(), ngood))
         self.logger.info("Added {0} files to be merged".format(len(inputs)))
         fm.Merge()
