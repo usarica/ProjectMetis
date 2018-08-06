@@ -16,6 +16,8 @@ class File(object):
     """
 
     def __init__(self, name, **kwargs):
+        if isinstance(name, File):
+            name = name.get_name()
         self.name = name
         self.status = kwargs.get("status", None)
         self.fake = kwargs.get("fake", False)
@@ -32,7 +34,7 @@ class File(object):
     def __repr__(self):
         short = True
         if short:
-            return "<File: {0}>".format(self.name)
+            return "<{}: {}>".format(self.__class__.__name__,self.name)
         else:
             stat = "None"
             if self.status:
@@ -183,7 +185,7 @@ class EventsFile(File):
 
 
     def __repr__(self):
-        return "<File {0}: {1} events>".format(self.name, self.nevents)
+        return "<{} {}: {} events>".format(self.__class__.__name__, self.name, self.nevents)
         # return "<File (.../){0}: {1} events>".format(self.get_basename(),self.nevents)
 
 class FileDBS(File):
@@ -204,7 +206,7 @@ class FileDBS(File):
         return self.filesizeGB
 
     def __repr__(self):
-        return "<File {0}: {1} events, {2:.2f}GB>".format(self.name, self.nevents, self.filesizeGB)
+        return "<{} {}: {} events, {:.2f}GB>".format(self.__class__.__name__, self.name, self.nevents, self.filesizeGB)
 
 class ImmutableFile(File):
 

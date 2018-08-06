@@ -64,6 +64,56 @@ class CMSSWTask(CondorTask):
             self.update_dis(d_metadata)
 
 
+    def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False):
+        # TODO this is blatant code duplication. fix it later (i.e., never)
+
+        outdir = self.output_dir
+        outname_noext = self.output_name.rsplit(".", 1)[0]
+        v_inputs_commasep = [",".join(map(lambda x: x.get_name(), ins)) for ins in v_ins]
+        v_index = [out.get_index() for out in v_out]
+        pset_full = os.path.abspath(self.pset_path)
+        pset_basename = os.path.basename(self.pset_path)
+        cmssw_ver = self.cmssw_version
+        scramarch = self.scram_arch
+        max_nevents_per_job = self.kwargs.get("max_nevents_per_job", -1)
+        nevts = max_nevents_per_job
+        firstevt = -1
+        expectedevents = -1
+        if self.check_expectedevents:
+            expectedevents = out.get_nevents()
+            if max_nevents_per_job > 0:
+                expectedevents = max_nevents_per_job
+
+        if self.split_within_files:
+            nevts = self.events_per_output
+            firstevt = 1 + (index - 1) * self.events_per_output
+            expectedevents = -1
+            inputs_commasep = "dummyfile"
+        pset_args = self.pset_args
+        executable = self.executable_path
+        other_outputs = ",".join(self.other_outputs) or "None"
+        # note that pset_args must be the last argument since it can have spaces
+        # check executables/condor_cmssw_exe.sh to see why
+        v_arguments = [[outdir, outname_noext, inputs_commasep,
+                     index, pset_basename, cmssw_ver, scramarch,
+                     nevts, firstevt, expectedevents, other_outputs, pset_args]
+                     for (index,inputs_commasep) in zip(v_index,v_inputs_commasep)]
+        v_selection_pairs = [
+                [["taskname", self.unique_name], ["jobnum", index]] 
+                for index in v_index
+                ]
+        logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
+        package_full = os.path.abspath(self.package_path)
+        input_files = [package_full, pset_full] if self.tarfile else [pset_full]
+        extra = self.kwargs.get("condor_submit_params", {})
+        return Utils.condor_submit(
+                    executable=executable, arguments=v_arguments,
+                    inputfiles=input_files, logdir=logdir_full,
+                    selection_pairs=v_selection_pairs,
+                    multiple=True,
+                    fake=fake, **extra
+               )
+
     def submit_condor_job(self, ins, out, fake=False):
 
         outdir = self.output_dir

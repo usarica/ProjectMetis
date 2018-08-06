@@ -162,7 +162,7 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
     """
 
     # These are the condor_q -l row names
-    columns = ["ClusterId", "JobStatus", "EnteredCurrentStatus", "CMD", "ARGS", "Out", "Err", "HoldReason"]
+    columns = ["ClusterId", "ProcId", "JobStatus", "EnteredCurrentStatus", "CMD", "ARGS", "Out", "Err", "HoldReason"]
     columns.extend(extra_columns)
 
     # HTCondor mappings (http://pages.cs.wisc.edu/~adesmet/status.html)
@@ -186,6 +186,7 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
         if len(parts) == len(columns):
             tmp = dict(zip(columns, parts))
             tmp["JobStatus"] = status_LUT.get( int(tmp.get("JobStatus",0)),"U" ) if tmp.get("JobStatus",0).isdigit() else "U"
+            tmp["ClusterId"] += "." + tmp["ProcId"]
             jobs.append(tmp)
     return jobs
 
@@ -202,9 +203,14 @@ def condor_release(): # pragma: no cover
 def condor_submit(**kwargs): # pragma: no cover
     """
     Takes in various keyword arguments to submit a condor job.
-    Returns (succeeded:bool, cluster_id:int)
+    Returns (succeeded:bool, cluster_id:str)
     fake=True kwarg returns (True, -1)
+    multiple=True will let `arguments` and `selection_pairs` be lists (of lists)
+    and will queue up one job for each element
     """
+
+    if kwargs.get("fake",False):
+        return True, -1
 
     for needed in ["executable","arguments","inputfiles","logdir"]:
         if needed not in kwargs:
@@ -212,15 +218,19 @@ def condor_submit(**kwargs): # pragma: no cover
 
     params = {}
 
+    queue_multiple = kwargs.get("multiple",False)
+
     params["universe"] = kwargs.get("universe", "Vanilla")
     params["executable"] = kwargs["executable"]
-    params["arguments"] = " ".join(map(str,kwargs["arguments"]))
     params["inputfiles"] = ",".join(kwargs["inputfiles"])
     params["logdir"] = kwargs["logdir"]
-    params["proxy"] = "/tmp/x509up_u{0}".format(os.getuid())
+    params["proxy"] = get_proxy_file()
     params["timestamp"] = get_timestamp()
 
+
     exe_dir = params["executable"].rsplit("/",1)[0]
+    if "/" not in os.path.normpath(params["executable"]):
+        exe_dir = "."
 
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech")
     if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Caltech")
@@ -228,21 +238,42 @@ def condor_submit(**kwargs): # pragma: no cover
     # if os.getenv("USER") in ["namin"] and "T2_US_UCSD" in params["sites"]:
     #     params["sites"] += ",UAF,UCSB"
 
-    params["extra"] = ""
-    if "selection_pairs" in kwargs:
-        for sel_pair in kwargs["selection_pairs"]:
-            if len(sel_pair) != 2:
-                raise RuntimeError("This selection pair is not a 2-tuple: {0}".format(str(sel_pair)))
-            params["extra"] += '+{0}="{1}"\n'.format(*sel_pair)
+    if queue_multiple:
+        if len(kwargs["arguments"]) and (type(kwargs["arguments"][0]) not in [tuple,list]):
+            raise RuntimeError("If queueing multiple jobs in one cluster_id, arguments must be a list of lists")
+        params["arguments"] = map(lambda x: " ".join(map(str,x)), kwargs["arguments"])
+        params["extra"] = []
+        if "selection_pairs" in kwargs:
+            sps = kwargs["selection_pairs"]
+            if len(sps) != len(kwargs["arguments"]):
+                raise RuntimeError("Selection pairs must match argument list in length")
+            for sel_pairs in sps:
+                extra = ""
+                for sel_pair in sel_pairs:
+                    if len(sel_pair) != 2:
+                        raise RuntimeError("This selection pair is not a 2-tuple: {0}".format(str(sel_pair)))
+                    extra += '+{0}="{1}"\n'.format(*sel_pair)
+                params["extra"].append(extra)
+    else:
+        params["arguments"] = " ".join(map(str,kwargs["arguments"]))
+        params["extra"] = ""
+        if "selection_pairs" in kwargs:
+            for sel_pair in kwargs["selection_pairs"]:
+                if len(sel_pair) != 2:
+                    raise RuntimeError("This selection pair is not a 2-tuple: {0}".format(str(sel_pair)))
+                params["extra"] += '+{0}="{1}"\n'.format(*sel_pair)
 
     # if the sites only includes UAF, do not even bother giving a proxy
     params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"]) if not(params["sites"] == "UAF") else ""
+
+    singularity_line = "Requirements = HAS_SINGULARITY=?=True"
+    if params["universe"].lower() == "local":
+        singularity_line = ""
 
     template = """
 universe={universe}
 +DESIRED_Sites="{sites}"
 executable={executable}
-arguments={arguments}
 transfer_executable=True
 transfer_input_files={inputfiles}
 transfer_output_files = ""
@@ -254,29 +285,37 @@ error={logdir}/std_logs/1e.$(Cluster).$(Process).err
 notification=Never
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-Requirements = HAS_SINGULARITY=?=True
-{proxyline}
-{extra}
-queue
-    """
-# Requirements = HAS_SINGULARITY=?=True
+"""
+    template += "{0}\n".format(params["proxyline"])
+    template += "{0}\n".format(singularity_line)
+    do_extra = len(params["extra"]) == len(params["arguments"])
+    if queue_multiple:
+        template += "\n"
+        for ijob,args in enumerate(params["arguments"]):
+            template += "arguments={0}\n".format(args)
+            if do_extra:
+                template += "{0}\n".format(params["extra"][ijob])
+            template += "queue\n"
+            template += "\n"
+    else:
+        template += "arguments={0}\n".format(params["arguments"])
+        template += "{0}\n".format(params["extra"])
+        template += "queue\n"
 
     if kwargs.get("return_template",False):
         return template.format(**params)
 
-    if kwargs.get("fake",False):
-        return True, -1
 
-    with open("{0}/.tmp_submit.cmd".format(exe_dir),"w") as fhout:
+    with open("{0}/submit.cmd".format(exe_dir),"w") as fhout:
         fhout.write(template.format(**params))
 
-    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/.tmp_submit.cmd ".format(params["logdir"],exe_dir))
+    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/submit.cmd ".format(params["logdir"],exe_dir))
 
     succeeded = False
     cluster_id = -1
     if "job(s) submitted to cluster" in out:
         succeeded = True
-        cluster_id = int(out.split("submitted to cluster ")[-1].split(".",1)[0])
+        cluster_id = out.split("submitted to cluster ")[-1].split(".",1)[0].strip()
     else:
         raise RuntimeError("Couldn't submit job to cluster because:\n----\n{0}\n----".format(out))
 
