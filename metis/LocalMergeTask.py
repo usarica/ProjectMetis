@@ -46,9 +46,17 @@ class LocalMergeTask(Task):
         fdir = output.get_basepath()
         if not os.path.exists(fdir): Utils.do_cmd("mkdir -p {0}".format(fdir))
 
-        fm = r.TFileMerger(True)
+        # when merging 1 file, TFileMerger defaults to a special case
+        # of just copying the file. this screws up because of an issue
+        # in TUrl and leaves potentially big files in /tmp/ without cleaning
+        # them up later, so do it nonlocally, sigh :(
+        local = True
+        if len(inputs) == 1: local = False
+        fm = r.TFileMerger(local)
         fm.OutputFile(output.get_name())
         fm.SetFastMethod(True)
+        fm.SetMaxOpenedFiles(400)
+        fm.SetPrintLevel(0)
         ngood = 0
         for inp in inputs:
             ngood += fm.AddFile(inp.get_name(), False)
