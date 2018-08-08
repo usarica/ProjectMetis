@@ -30,7 +30,7 @@ class StatsParser(object):
             with locked_open(self.summary_fname,"r") as fhin:
                 self.data = json.load(fhin)
 
-    def do(self):
+    def do(self, custom_event_rate_parser=None):
 
         oldsummary = {}
         if os.path.isfile(self.summary_fname):
@@ -65,7 +65,12 @@ class StatsParser(object):
 
                 if is_done:
                     outnevents += job["output"][1]
-                    if "CMSSW" in task_type and len(condor_jobs) > 0:
+                    if custom_event_rate_parser:
+                        errlog = condor_jobs[-1]["logfile_err"]
+                        rate = custom_event_rate_parser(errlog)
+                        if rate > 0.:
+                            event_rates.append(rate)
+                    elif "CMSSW" in task_type and len(condor_jobs) > 0:
                         errlog = condor_jobs[-1]["logfile_err"]
                         rate = LogParser.get_event_rate(errlog)
                         if rate > 0.:
