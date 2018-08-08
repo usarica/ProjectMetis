@@ -457,7 +457,11 @@ function fillDOM(data) {
         $("#pbartextright_"+id).html(towrite);
         $("#pbartextleft_"+id).html(""); 
         if ("event_rate" in general && general["event_rate"] > 0) {
-            $("#pbartextleft_"+id).html("avg. event rate: "+general["event_rate"]+" Hz"); 
+            if (general["event_rate"] > 200) {
+                $("#pbartextleft_"+id).html("event rate: "+Math.round(general["event_rate"],3)/1000+" kHz"); 
+            } else {
+                $("#pbartextleft_"+id).html("event rate: "+general["event_rate"]+" Hz"); 
+            }
         }
 
         if(adminMode) {
