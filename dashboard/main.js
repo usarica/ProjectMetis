@@ -386,7 +386,8 @@ function setUpDOM(data) {
     for(var i = 0; i < data["tasks"].length; i++) {
         var general = data["tasks"][i]["general"];
         var toappend = "";
-        var tag = data["tasks"][i]["general"]["tag"].replace(/\ /g,"_");
+        var tag_raw = data["tasks"][i]["general"]["tag"];
+        var tag = tag_raw.replace(/\ /g,"_").replace(/\./g,"p");
         var id = general["dataset"].replace(/\//g,"_")+"_"+tag;
         // toappend += "<br>\n";
         toappend += "<div id='"+id+"' class='sample'>\n";
@@ -396,7 +397,7 @@ function setUpDOM(data) {
         } else if (general["type"] == "CMS4") {
             toappend += "<span style='color: purple'>[CMS4]</span> ";
         } else {
-            toappend += "<span style='color: blue'>["+general["type"]+", "+tag+"]</span> ";
+            toappend += "<span style='color: blue'>["+general["type"]+", "+tag_raw+"]</span> ";
         }
         toappend += general["dataset"]+"</a>";
         toappend += "<div class='pbar' id='pbar_"+id+"'>";
@@ -429,7 +430,8 @@ function fillDOM(data) {
         var sample = data["tasks"][i];
         var bad = data["tasks"][i]["bad"] || {};
         var general = data["tasks"][i]["general"];
-        var tag = data["tasks"][i]["general"]["tag"].replace(/\ /g,"_");
+        var tag_raw = data["tasks"][i]["general"]["tag"];
+        var tag = tag_raw.replace(/\ /g,"_").replace(/\./g,"p");
         var id = general["dataset"].replace(/\//g,"_")+"_"+tag;
 
         var progress = getProgress(general);
