@@ -170,13 +170,13 @@ class StatsParser(object):
             with locked_open(self.SUMMARY_NAME, 'r') as fhin:
                 try:
                     data_in = json.load(fhin)
-                    all_datasets = [t["general"]["dataset"] for t in tasks]
+                    all_datasets = [(t["general"]["dataset"],t["general"]["tag"]) for t in tasks]
                     for task in data_in.get("tasks",[]):
-                        if task["general"]["dataset"] not in all_datasets:
+                        if (task["general"]["dataset"],task["general"]["tag"]) not in all_datasets:
                             d_web_summary["tasks"].append(task)
                         else:
                             old_history = task.get("history",{})
-                            new_task = [t for t in tasks if t["general"]["dataset"] == task["general"]["dataset"]][0]
+                            new_task = [t for t in tasks if ((t["general"]["dataset"] == task["general"]["dataset"]) and (t["general"]["tag"] == task["general"]["tag"]))][0]
                             new_history = new_task.get("history", {})
                             if self.do_history:
                                 new_task["history"] = merge_histories(old_history, new_history)
