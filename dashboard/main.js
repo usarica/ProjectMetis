@@ -1,292 +1,22 @@
+var json_file = "web_summary.json";
 var alldata = {};
-var jsonFile = "web_summary.json";
-var baseDir = '/home/users/namin/2017/fourtop/babymaking/batch/NtupleTools/AutoTwopler/';
-var refreshSecs = 10*60;
 var detailsVisible = false;
-var sortedAZ = false;
-var duckMode = false;
-var adminMode = false;
 
 google.charts.load('current', {'packages':['corechart']});
 google.charts.setOnLoadCallback(function() {console.log("google loaded!");});
 
-// google.charts.setOnLoadCallback(drawChart);
-
-// google.charts.setOnLoadCallback(function() {
-//     $(function() { 
-//         console.log("loading chart!");
-//         drawChart(); 
-//     });
-// });
-
-// So you can do array.sum(keyname)
-Array.prototype.sum = function (prop) {
-    var total = 0;
-    for ( var i = 0, _len = this.length; i < _len; i++ ) {
-        total += this[i][prop]
-    }
-    return total;
+function getEscapedTaskID(dsname, tag) {
+    return dsname.replace(/\//g,"_")+"_"+tag.replace(/\ /g,"_").replace(/\./g,"p");
 }
-// So you can do array.sum(keyname)
+
 Array.prototype.sum2 = function (prop, prop2) {
+    // So you can do array.sum(keyname)
     var total = 0;
     for ( var i = 0, _len = this.length; i < _len; i++ ) {
         total += this[i][prop][prop2];
     }
     return total;
 }
-// console.log("Hello, {0}!".format("World"))
-String.prototype.format = function() {
-  a = this;
-  for (k in arguments) {
-    a = a.replace("{" + k + "}", arguments[k])
-  }
-  return a
-}
-
-$(function() {
-
-    // https://stackoverflow.com/questions/2419749/get-selected-elements-outer-html
-    // when selecting a div.html() with jquery, you lose the text for the div itself
-    // (you only get what's inside a div, so we need outerHTML to get everything)
-    (function($) {
-        $.fn.outerHTML = function() {
-            return $(this).clone().wrap('<div></div>').parent().html();
-        };
-    })(jQuery);
-
-    loadJSON();
-    setInterval(loadJSON, refreshSecs*1000);
-
-    handleDuckMode();
-    handleOtherTwiki();
-    handleSubmitButton();
-    handleAdminMode();
-
-
-});
-
-$.ajaxSetup({
-   type: 'POST',
-   timeout: 15000,
-});
-
-function faviconProgress(pct) {
-    // requires commenting out the link rel
-    // for the favicon in index.html
-    // call as: faviconProgress(1);
-    var canvas = document.createElement('canvas');
-    canvas.width = 700;canvas.height = 660;
-    var ctx = canvas.getContext('2d');
-    var img = new Image();
-    img.src = 'images/workflowtransparent.png';
-    img.onload = function() {
-        ctx.drawImage(img, 0, 0);
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 400px sans-serif';
-        ctx.fillText(pct+"%", 0, 500);
-        var link = document.createElement('link');
-        link.type = 'image/x-icon';
-        link.rel = 'shortcut icon';
-        link.href = canvas.toDataURL("image/x-icon");
-        document.getElementsByTagName('head')[0].appendChild(link);
-    }
-}
-
-function handleSubmitButton() {
-    $('.submitButton').click(function (e) {
-        if (e.target) {
-            if(e.target.value == "fetch" || e.target.value == "update") {
-                doTwiki(e.target.value);
-            } else if(e.target.value == "addinstructions") {
-                // console.log("adding to instructions");
-                addInstructions(e.target.value);
-            }
-        }
-    });
-}
-
-function handleOtherTwiki() {
-    $( "#selectPage" ).change(function() {
-        if($(this).find(":selected").text()=="Other") {
-            $("#otherPage").show();
-        } else {
-            $("#otherPage").hide();
-        }
-    });
-}
-
-function handleAdminMode() {
-    $( "#firstTitle" ).click(function() { 
-        $( "#admin" ).fadeToggle(150); 
-        if(adminMode) {
-            adminMode = false;
-            fillDOM(alldata);
-        } else {
-            adminMode = true;
-            fillDOM(alldata);
-        }
-    });
-}
-
-function handleDuckMode() {
-    $( ".mainlogo" ).on('contextmenu dblclick',function() { 
-        if(duckMode) {
-            duckMode = false;
-            $(".mainlogo").attr('src', 'images/workflowtransparent.png');
-            $("#container").css("background", "");
-            $("#firstTitle").text("Project");
-            $(".duckAudio").trigger('pause');
-        } else {
-            duckMode = true;
-            $(".mainlogo").attr('src', 'images/cena.jpeg');
-            $("#container").css("background", "url(images/cena.jpeg");
-            // $("#firstTitle").text("john");
-            $("#secondTitle").text("Cena");
-            $(".duckAudio").prop("currentTime",0);
-            $(".duckAudio").trigger('play');
-        }
-        fillDOM(alldata);
-    });
-}
-
-
-function loadJSON() {
-    // $.getJSON("http://uaf-6.t2.ucsd.edu/~namin/dump/test.json", function(data) { parseJson(data); });
-    // WOW CAN PUT EXTERNAL URLS HERE MAN!
-    $.getJSON(jsonFile, function(data) { 
-        if(!("tasks" in alldata) || (data["tasks"].length != alldata["tasks"].length)) {
-            setUpDOM(data);
-        }
-        fillDOM(data); 
-    });
-}
-
-function afterFillDOM() {
-    // console.log($('.forqtooltip_dis'));
-
-    // $('.fortooltip').each(function() {
-    //     $(this).tooltip({ 
-    //         track: true 
-    //     });
-    // });
-
-    console.log($('.forqtooltip'));
-    console.log($('.forqtooltip_dis'));
-    $('.forqtooltip_dis').each(function() {
-        $(this).qtip({
-
-            content: {
-                text: function(event, api) {
-                    var context = api.elements.target.context;
-                    var hostname = context.hostname;
-                    var pathname = context.pathname;
-                    var search = context.search;
-                    var protocol = context.protocol;
-                    var url = protocol+"//"+hostname+pathname+"handler.py"+search;
-                    // var url = "http://uaf-8.t2.ucsd.edu/~namin/makers/disMaker/handler.py?type=basic&short=short&query=/JetHT/Run2017C-PromptReco-v1/MINIAOD";
-                    $.ajax({
-                        // url: api.elements.target.attr('href') // Use href attribute as URL
-                        url: url
-                    })
-                    .then(function(content) {
-                        // Set the tooltip content upon successful retrieval
-                        var todisplay = content["response"]["payload"];
-                        todisplay = syntaxHighlight(JSON.stringify(todisplay, undefined, 4));
-                        console.log(todisplay);
-                        api.set('content.text', "<pre>"+todisplay+"</pre>");
-                    }, function(xhr, status, error) {
-                        // Upon failure... set the tooltip content to error
-                        api.set('content.text', status + ': ' + error);
-                    });
-        
-                    return 'Loading...'; // Set some initial text
-                }
-            },
-
-            position: {
-                target: 'mouse', // Track the mouse as the positioning target
-                adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
-            },
-        });
-    });
-
-    $('.forqtooltip').each(function() {
-        $(this).qtip({
-
-            content: {
-                text: $(this).attr("title")
-            },
-            position: {
-                target: 'mouse', // Track the mouse as the positioning target
-                adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
-            },
-        });
-    });
-
-}
-
-function doTwiki(type) {
-    $("#twikiTextarea").val("Loading...");
-    $("#message").html("");
-
-    var formObj = {};
-    formObj["action"] = type;
-    if(type == "update") {
-        var donesamples = [];
-        for(var i = 0; i < alldata["tasks"].length; i++) {
-            if(alldata["tasks"][i]["type"] == "BABY") continue;
-            
-            donesamples.push( alldata["tasks"][i] );
-        }
-        console.log(donesamples);
-        formObj["tasks"] = JSON.stringify(donesamples);
-    }
-    var inputs = $("#fetchTwikiForm").serializeArray();
-    $.each(inputs, function (i, input) {
-        formObj[input.name] = input.value;
-    });
-    console.log(formObj);
-    $.ajax({
-            url: "./handler.py",
-            type: "POST",
-            data: formObj,
-            success: function(data) {
-                    console.log(data);
-                    $("#twikiTextarea").val(data);
-                },
-            error: function(data) {
-                    $("#message").html("<span style='color:red'>Error:</span> "+data["responseText"]);
-                    console.log(data);
-                },
-       });
-}
-
-function displayMessage(html) {
-    $("#message").stop().fadeIn(0).html(html).delay(5000).fadeOut(2000);
-}
-
-function addInstructions(type) {
-    var formObj = {};
-    formObj["action"] = type;
-    formObj["data"] = $("#twikiTextarea").val();
-    formObj["basedir"] = baseDir;
-    console.log(formObj);
-    $.ajax({
-            url: "./handler.py",
-            type: "POST",
-            data: formObj,
-            success: function(data) {
-                    displayMessage("<span style='color:green'>"+data+"</span>")
-                    console.log(data);
-                },
-            error: function(data) {
-                    displayMessage("<span style='color:red'>Error:</span> "+data["responseText"])
-                    console.log(data);
-                },
-       });
-}
-
 
 function getProgress(general) {
     var type = general["type"];
@@ -301,61 +31,6 @@ function getProgress(general) {
         done: done,
         total: tot,
         };
-
-    // if (type == "CMS3") {
-    //     if (stat == "new") return 0.0;
-    //     else if (stat == "crab") {
-    //         if("breakdown" in sample["crab"]) {
-    //             done = sample["crab"]["breakdown"]["finished"];
-    //             tot = sample["crab"]["njobs"];
-    //             if(tot < 1) tot = 1;
-    //         }
-    //         return 0.0 + 65.0*(done/tot);
-    //     } else if (stat == "postprocessing") {
-    //         if("postprocessing" in sample) {
-    //             done = sample["postprocessing"]["done"];
-    //             tot = sample["postprocessing"]["total"];
-    //         }
-    //         return 68.0 + 30.0*(done/tot);
-    //     } else if (stat == "done") return 100;
-    //     else return -1.0;
-    // } else if(type == "BABY") {
-    //     done = sample["baby"]["sweepRooted"];
-    //     tot = sample["baby"]["total"];
-    //     var babypct = 99.0*done/tot;
-    //     if (stat == "done") babypct = 100.0;
-    //     return babypct;
-    // }
-
-}
-
-function doSendAction(type, dsescaped) {
-    var dataset = dsescaped.replace(/\_/g,"/");
-    console.log("action,dataset: " + type + " " + dataset);
-
-    // if (!confirm('Are you sure you want to do the action: ' + type)) return;
-
-    var obj = {};
-    obj["action"] = "action";
-    obj["action_type"] = type;
-    obj["dataset"] = dataset;
-    obj["basedir"] = baseDir;
-    console.log(obj);
-    $.ajax({
-            url: "./handler.py",
-            type: "POST",
-            data: obj,
-            success: function(data) {
-                    console.log("success");
-                    displayMessage("<span style='color:green'>"+data+"</span>")
-                    console.log(data);
-                },
-            error: function(data) {
-                    console.log("error");
-                    displayMessage("<span style='color:red'>Error:</span> "+data["responseText"])
-                    console.log(data);
-                },
-       });
 }
 
 function syntaxHighlight(json) {
@@ -378,40 +53,60 @@ function syntaxHighlight(json) {
     });
 }
 
+function loadJSON() {
+    $.getJSON(json_file, function(data) { 
+        if(!("tasks" in alldata) || (data["tasks"].length != alldata["tasks"].length)) {
+            console.log(data);
+            setUpDOM(data);
+        }
+        fillDOM(data); 
+    });
+}
+
 function setUpDOM(data) {
-    var container = $("#section_1");
+    var container = $("#tasks-container");
     container.empty(); // clear the section
 
-
     for(var i = 0; i < data["tasks"].length; i++) {
+        var sample = data["tasks"][i];
         var general = data["tasks"][i]["general"];
-        var toappend = "";
-        var tag_raw = data["tasks"][i]["general"]["tag"];
-        var tag = tag_raw.replace(/\ /g,"_").replace(/\./g,"p");
-        var id = general["dataset"].replace(/\//g,"_")+"_"+tag;
-        // toappend += "<br>\n";
-        toappend += "<div id='"+id+"' class='sample'>\n";
-        toappend += "<a href='#/' class='thick' onClick=\"$('#details_"+id+"').slideToggle(100)\">";
-        if(general["type"] == "BABY") {
-            toappend += "<span style='color: purple'>[&#128700; "+general["baby"]["analysis"]+" "+general["baby"]["baby_tag"]+"]</span> ";
-        } else if (general["type"] == "CMS4") {
-            toappend += "<span style='color: purple'>[CMS4]</span> ";
-        } else {
-            toappend += "<span style='color: blue'>["+general["type"]+", "+tag_raw+"]</span> ";
-        }
-        toappend += general["dataset"]+"</a>";
-        toappend += "<div class='pbar' id='pbar_"+id+"'>";
-        toappend +=      "<span id='pbartextleft_"+id+"' class='pbartextleft'></span>";
-        toappend +=      "<span id='pbartextright_"+id+"' class='pbartextright'></span>";
-        toappend += "</div>\n";
-        toappend += "<div id='details_"+id+"' style='display:none;' class='details'></div>\n";
-        toappend += "</div>\n";
+        var id = getEscapedTaskID(general["dataset"],general["tag"]);
+        // console.log(id);
 
-        container.append(toappend);
+        var sample_toshow = $.extend(true, {}, sample);
+        delete sample_toshow["history"];
+        var jsStr = syntaxHighlight(JSON.stringify(sample_toshow, undefined, 4));
 
-        $( "#pbar_"+id ).progressbar({max: 100});
-        $("#pbar_"+id).progressbar("option","value",0);
+        // turn dataset into a DIS link
+        var disbase = "http://uaf-4.t2.ucsd.edu/~namin/dis/";
+        var link = disbase+"?type=basic&short=short&query="+general["dataset"];
+        var link_handler = disbase+"/handler.py?type=basic&short=short&query="+general["dataset"];
+        jsStr = jsStr.replace("\"dataset\":", 
+            ` <a href="${link}" style="text-decoration: underline" title="<iframe src='${link_handler}' style='background-color: #fff; width:650px;'></iframe>" data-html="true" data-toggle="tooltip">dataset</a>: `
+        );
+
+        var content = `
+            <div id="${id}" class="task">
+                <div class="row task-text-row">
+                    <span class="badge task-badge badge-primary">${general["type"].replace("Task","")}</span>
+                    <span class="badge task-badge badge-secondary">${general["tag"]}</span>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                        </div>
+                        <span class="progress-type"></span>
+                        <span title="" data-toggle="tooltip" class="progress-completed">0%</span>
+                    </div>
+                    <a href="#" class="dataset-label badge badge-light">${general["dataset"]}</a>
+                </div>
+                <div class="row details" style="display:none;">${jsStr}</div>
+            </div>
+            `;
+        // console.log(content);
+        container.append(content);
+
     }
+
+
 }
 
 function fillDOM(data) {
@@ -425,174 +120,93 @@ function fillDOM(data) {
     var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     $("#last_updated").text("Last updated at " + date.toLocaleTimeString() + " on " + date.toLocaleDateString());
 
-
     for(var i = 0; i < data["tasks"].length; i++) {
+
         var sample = data["tasks"][i];
         var bad = data["tasks"][i]["bad"] || {};
         var general = data["tasks"][i]["general"];
-        var tag_raw = data["tasks"][i]["general"]["tag"];
-        var tag = tag_raw.replace(/\ /g,"_").replace(/\./g,"p");
-        var id = general["dataset"].replace(/\//g,"_")+"_"+tag;
+        var id = getEscapedTaskID(general["dataset"],general["tag"]);
 
         var progress = getProgress(general);
         var pct = Math.floor(progress.pct);
-        var color = 'hsl(' + pct*0.8 + ', 70%, 50%)';
-        if(duckMode) {
-            color = 'hsl(' + (pct*0.8+50) + ', 70%, 50%)';
-        }
-        if(pct == 100) {
-            // different color if completely done
-            color = 'hsl(' + pct*1.2 + ', 70%, 50%)';
-        }
+        var pdiv = $("#"+id+" > .task-text-row > .progress")
+        var pbar = pdiv.find(".progress-bar");
+        var pleft = pdiv.find(".progress-type");
+        var pright = pdiv.find(".progress-completed");
+        var h = Math.round(pct*1.35,2);
+        var s = Math.round(75-0.01*pct*10 + 15.0*Math.max(1.0-(pct-33)*(pct-33)/4500.0, 0.0),0);
+        var v = Math.round(58-0.01*pct*14,0);
+        var color = `hsl(${h},${s}%,${v}%)`;
+        // console.log(color);
 
+        // // BLUE
+        // if (pct > 6.0/7*100) color = "#039BE5";
+        // else if (pct > 5.0/7*100) color = "#03A9F4";
+        // else if (pct > 4.0/7*100) color = "#29B6F6";
+        // else if (pct > 3.0/7*100) color = "#4FC3F7";
+        // else if (pct > 2.0/7*100) color = "#81D4FA";
+        // else if (pct > 1.0/7*100) color = "#B3E5FC";
+        // else if (pct > 0.0/7*100) color = "#E1F5FE";
 
-        var towrite = general["status"] + " <span class='forqtooltip' title='"+progress.done+"/"+progress.total+"'>[" + pct + "%]</span>";
-        // if it's an open dataset, use a universal color and modify text
-        if (general["open_dataset"]) {
-            towrite = "open, "+towrite;
-            color = "#ffaa3b";
-        }
-        $("#pbar_"+id).progressbar("value", pct);
-        $("#pbar_"+id).find(".ui-progressbar-value").css({"background": color});
-        $("#pbartextright_"+id).html(towrite);
-        $("#pbartextleft_"+id).html(""); 
+        // // ORANGE
+        // if      (pct > 9.0/10*100) color = "#FF6F00";
+        // else if (pct > 8.0/10*100) color = "#FF8F00";
+        // else if (pct > 7.0/10*100) color = "#FFA000";
+        // else if (pct > 6.0/10*100) color = "#FFB300";
+        // else if (pct > 5.0/10*100) color = "#FFC107";
+        // else if (pct > 4.0/10*100) color = "#FFCA28";
+        // else if (pct > 3.0/10*100) color = "#FFD54F";
+        // else if (pct > 2.0/10*100) color = "#FFE082";
+        // else if (pct > 1.0/10*100) color = "#FFECB3";
+        // else if (pct > 0.0/10*100) color = "#FFF8E1";
+
+        // console.log(color);
+
+        pbar.attr("aria-valuenow",pct);
+        pbar.css({
+            "width":pct+"%",
+            "background-color":color,
+        });
         if ("event_rate" in general && general["event_rate"] > 0) {
             if (general["event_rate"] > 200) {
-                $("#pbartextleft_"+id).html("event rate: "+Math.round(general["event_rate"],3)/1000+" kHz"); 
+                pleft.text(Math.round(general["event_rate"],3)/1000+" kHz"); 
             } else {
-                $("#pbartextleft_"+id).html("event rate: "+general["event_rate"]+" Hz"); 
+                pleft.text(general["event_rate"]+" Hz"); 
             }
         }
-
-        if(adminMode) {
-            var buff = "";
-            buff += "<a href='#/' onClick='doSendAction(\"kill\",\""+id+"\")' title='kill job (not enabled)'> &#9762; </a>  ";
-            if(general["type"] == "CMS3") {
-                buff += "<a href='#/' onClick='doSendAction(\"skip_tail\",\""+id+"\")' title='skip tail CRAB jobs'> &#9986; </a> ";
-                buff += "<a href='#/' onClick='doSendAction(\"repostprocess\",\""+id+"\")' title='re-postprocess'> &#128296; </a> ";
-            } else {
-                buff += "<a href='#/' onClick='doSendAction(\"baby_skip_tail\",\""+id+"\")' title='skip rest of baby jobs'> &#9986; </a> ";
-                buff += "<a href='#/' onClick='doSendAction(\"baby_remerge\",\""+id+"\")' title='remerge'> &#128290; </a> ";
-            }
-            buff += "<a href='#/' onClick='doSendAction(\"email_done\",\""+id+"\")' title='send email when done'> &#9993; </a> ";
-
-            $("#pbartextleft_"+id).html(buff);
-        }
-
-        var beforedetails = "";
-        var afterdetails = "";
-
-        var show_plots = true;
-        if (show_plots && ("plots" in bad) && (bad["plots"].length > 0)) {
-            for (var iplot = 0; iplot < bad["plots"].length; iplot++) {
-                var plot = bad["plots"][iplot];
-                if (iplot > 0 && iplot%3==0) beforedetails += "<br>";
-                beforedetails += "<img src='"+plot+"' width='25%'/>";
-            }
-            beforedetails += "\n";
-        }
-
-        var sample_toshow = $.extend(true, {}, sample);
-        delete sample_toshow["history"];
-        var jsStr = syntaxHighlight(JSON.stringify(sample_toshow, undefined, 4));
-
-        // turn dataset into a DIS link
-        // var link = "http://uaf-7.t2.ucsd.edu/~namin/makers/disMaker/?type=basic&short=short&query="+general["dataset"];
-        var link = "http://uaf-10.t2.ucsd.edu/~namin/makers/disMaker/?type=basic&short=short&query="+general["dataset"];
-        jsStr = jsStr.replace("\"dataset\":", " <a href='"+link+"' class='forqtooltip_dis' style='text-decoration: underline'>dataset</a>: ");
-
-        var link = "http://uaf-10.t2.ucsd.edu/~namin/makers/disMaker/?type=config&short=short&query="+general["dataset"];
-        jsStr = jsStr.replace("\"global_tag\":", " <a href='"+link+"' class='forqtooltip_dis' style='text-decoration: underline'>global_tag</a>: ");
-
-        var link = "http://uaf-10.t2.ucsd.edu/~namin/makers/disMaker/?type=snt&short=short&query="+general["dataset"];
-        jsStr = jsStr.replace("\"output_dir\":", " <a href='"+link+"' class='forqtooltip_dis' style='text-decoration: underline'>output_dir</a>: ");
-        
-        $("#details_"+id).html(beforedetails+"<pre>" + jsStr + "</pre>"+afterdetails);
+        // pleft.css({
+        //     "color": "#fff",
+        // });
+        // pright.css({
+        //     "color": "#ffff",
+        // });
+        pright.text(pct+"%");
+        // console.log(pdiv);
+        pright.attr({"title":progress.done + "/" + progress.total});
+        // console.log(pright);
 
     }
 
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('.dataset-label').click(function() {
+        // $(this).parent().parent().find(".details").toggle();
+        $(this).parent().parent().find(".details").slideToggle(100);
+    });
 
     updateSummary(data);
     // doHistory(data);
     // drawChart();
-    //
+    // afterFillDOM();
 
-
-
-
-    afterFillDOM();
-}
-
-function sortSamples(alphabetical=false) {
-
-    // console.log(alldata);
-    alldata["tasks"].sort(function (a,b) {
-        var cmp = 0;
-        var ageneral = a["general"]; 
-        var bgeneral = b["general"]; 
-        if (alphabetical) {
-            cmp = ageneral["dataset"] > bgeneral["dataset"];
-        } else {
-            // console.log(ageneral);
-            var aprogress = getProgress(ageneral).pct;
-            var bprogress = getProgress(bgeneral).pct;
-            cmp = aprogress > bprogress;
-        }
-        if (cmp) return 1;
-        else return -1;
-    });
-    setUpDOM(alldata);
-    fillDOM(alldata);
-
-    // var divs = $(".sample");
-    // divs.sort(function(a, b){
-    //     var comp = 0;
-    //     if (alphabetical) comp = $(a).attr("id")>$(b).attr("id");
-    //     else {
-    //         // XXX NOTE
-    //         // after we sort once, we can't do it again
-    //         // because when we do $section1.html(blah), we kill all the 
-    //         // progress bar objects, so ("value") doesn't work anymore
-    //         // console.log($(a).find("div[id^='pbar']"));
-    //         // console.log($(b).find("div[id^='pbar']"));
-    //         // console.log($(a).find("div[id^='pbar']").progressbar("value"));
-    //         comp = $(a).find("div[id^='pbar']").progressbar("value") > $(b).find("div[id^='pbar']").progressbar("value");
-    //     }
-    //     if (comp) {
-    //         return 1;
-    //     } else {
-    //         return -1;
-    //     }
-    // });
-    // var buff = "";
-    // for (var i = 0; i < divs.length; i++) {
-    //     buff += divs.eq(i).outerHTML();
-    // }
-    // $("#section_1").html(buff);
-
-}
-
-function toggleSort() {
-    if(sortedAZ) {
-        $("#toggle_sort").text("sort %");
-    } else {
-        $("#toggle_sort").text("sort a-z")
-    }
-    sortedAZ = !sortedAZ;
-    console.log(sortedAZ);
-    sortSamples(!sortedAZ);
 }
 
 function updateSummary(data) {
-    // var total_dict = {};
     for(var i = 0; i < data["tasks"].length; i++) {
         var sample = data["tasks"][i];
         var bad = data["tasks"][i]["bad"] || {};
         var general = data["tasks"][i]["general"];
-        // console.log(bad);
-        // total_dict += general;
     }
-    // console.log(general);
 
     var nevents_total = data["tasks"].sum2("general","nevents_total");
     var nevents_done = data["tasks"].sum2("general","nevents_done");
@@ -601,23 +215,21 @@ function updateSummary(data) {
     var pct_events = Math.round(100.0*100.0*nevents_done/nevents_total)/100;
     var pct_jobs = Math.round(100.0*100.0*njobs_done/njobs_total)/100;
 
-    var buff = "";
-    buff += "<table>";
-    buff += "<tr><th align='left'>Nevents (total)</th> <td align='right'>{0}</td></tr>".format(nevents_total);
-    buff += "<tr><th align='left'>Nevents (done)</th> <td align='right'>{0}</td></tr>".format(nevents_done);
-    buff += "<tr><th align='left'>Nevents (missing)</th> <td align='right'>{0}</td></tr>".format(nevents_total-nevents_done);
-    buff += "<tr><th></th><td></td></tr>";
-    buff += "<tr><th align='left'>Njobs (total)</th> <td align='right'>{0}</td></tr>".format(njobs_total);
-    buff += "<tr><th align='left'>Njobs (done)</th> <td align='right'>{0}</td></tr>".format(njobs_done);
-    buff += "<tr><th align='left'>Njobs (running)</th> <td align='right'>{0}</td></tr>".format(njobs_total-njobs_done);
-    buff += "<tr><th></th><td></td></tr>";
-    buff += "<tr><th align='left'>Event completion</th> <td align='right'>{0}%</td></tr>".format(pct_events);
-    buff += "<tr><th align='left'>Job completion</th> <td align='right'>{0}%</td></tr>".format(pct_jobs);
-    buff += "</table>";
+    // var buff = `<table>
+    var buff = `<table class="table table-sm" style="width: 30%; font-size: 75%;">
+                    <tbody>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Nevents (total)  </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${nevents_total.toLocaleString()}             </td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Nevents (done)   </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${nevents_done.toLocaleString()}              </td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Nevents (missing)</th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${(nevents_total-nevents_done).toLocaleString()}</td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Njobs (total)    </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${njobs_total.toLocaleString()}               </td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Njobs (done)     </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${njobs_done.toLocaleString()}                </td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Njobs (running)  </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${(njobs_total-njobs_done).toLocaleString()}    </td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Event completion </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${pct_events}%               </td></tr>
+                <tr><th align='left' style="padding-top:0px; padding-bottom:0px;">Job completion   </th> <td align='right' style="padding-top:0px;padding-bottom:0px;">${pct_jobs}%                 </td></tr>
+        </tbody>
+    </table>`;
     $("#summary").html(buff);
-    document.title = "Metis Dashboard [{0}%]".format(Math.round(pct_jobs));
-
-
+    document.title = `Metis Dashboard [${Math.round(pct_jobs)}]`;
 }
 
 function doHistory() {
@@ -642,7 +254,6 @@ function doHistory() {
 }
 
 function drawChart(history) {
-
 
     var data_table = [ [
         'timestamp',
@@ -675,19 +286,65 @@ function drawChart(history) {
         vAxis: {minValue: 0},
         // vAxis: {logScale: true},
     };
-    var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+    var chart = new google.visualization.AreaChart(document.getElementById('chart'));
     // console.log(chart);
     chart.draw(data, options_stacked);
 }
 
-function expandAll() {
+
+function toggleSummary() {
+    // if ($('#summary').is(":hidden")) {
+    // }
+    $("#summary").slideToggle(150);
+    $("#nav-summary").toggleClass("active");
+}
+
+function toggleChart() {
+    if ($('#chart').is(":hidden")) {
+        doHistory(alldata);
+    }
+    $("#nav-chart").toggleClass("active");
+    $("#chart").slideToggle(150);
+}
+
+function toggleExpand() {
     // do it this way because one guy may be reversed
     if(detailsVisible) {
-        $("#toggle_all").text("expand all");
-        $("[id^=details_]").slideUp(100);
+        $("#nav-expand").text("Expand");
+        $(".details").slideUp(100);
+        $("#nav-expand").removeClass("active");
     } else {
-        $("#toggle_all").text("collapse all")
-        $("[id^=details_]").slideDown(100);
+        $("#nav-expand").text("Collapse");
+        $(".details").slideDown(100);
+        $("#nav-expand").addClass("active");
     }
     detailsVisible = !detailsVisible;
 }
+
+function sortSamples(alphabetical=false) {
+    alldata["tasks"].sort(function (a,b) {
+        var cmp = 0;
+        var ageneral = a["general"]; 
+        var bgeneral = b["general"]; 
+        if (alphabetical) {
+            cmp = ageneral["dataset"] > bgeneral["dataset"];
+        } else {
+            var aprogress = getProgress(ageneral).pct;
+            var bprogress = getProgress(bgeneral).pct;
+            cmp = aprogress > bprogress;
+        }
+        if (cmp) return 1;
+        else return -1;
+    });
+    setUpDOM(alldata);
+    fillDOM(alldata);
+}
+
+function toggleSort(which) {
+    sortSamples(which == "az");
+}
+
+
+$(function() {
+    loadJSON();
+});

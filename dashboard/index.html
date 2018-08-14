@@ -1,56 +1,64 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
     <head>
-        <title>Metis Dashboard</title>
-        <!-- <link rel="icon" type="image/png" sizes="96x96" href="images/favicon.png"> -->
-        <link rel="icon" type="image/png" sizes="96x96" href="images/workflowtransparent.png">
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-        <link rel="stylesheet" href="jquery.qtip.css">
-        <link rel="stylesheet" href="style.css">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="style.css" />
+
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-        <script src="jquery.qtip.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+        <!-- <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script> -->
         <script src="main.js"></script>
 
     </head>
-
     <body>
 
-        <audio class="duckAudio" controls preload="none" style='display:none;'>
-            <source src="images/johncena.mp3" type="audio/mpeg">
-        </audio>
 
-        <div id="topBar">
-            <!-- <img class="mainlogo" src="images/crab.png" /> -->
-            <!-- <img class="mainlogo" src="images/metislogo.png" /> -->
-            <!-- <img class="mainlogo" src="images/workflowlogo.png" /> -->
-            <img class="mainlogo" src="images/workflowtransparent.png" />
-            <!-- <span id="firstTitle" class="thin">auto</span>Tupler -->
-            <span id="firstTitle" class="thin">Project</span><span id="secondTitle">Metis</span>
-            <span class="thin">
-                &emsp;
-                <a href="#/" onClick="$('#summary').slideToggle(50)">summary</a>&ensp;|&ensp;
-                <a href="#/" id="toggle_sort" onClick="toggleSort()">sort %</a>&ensp;|&ensp;
-                <!-- <a href="#/" onClick="$('#twiki').slideToggle(50)">twiki</a>&ensp;|&ensp; -->
-                <a href="#/" onClick="doHistory(); $('#chart_div').slideToggle(50);">chart</a>&ensp;|&ensp;
-                <a href="#/" id="toggle_all" onClick="expandAll()">expand all</a>
-                <!-- <a href="#/" onClick="$('#log_div').slideToggle(50);">log</a> -->
-                <span id="admin" style="color:#FF3333; display:none;">&emsp;&emsp;<b>admin mode</b></span>
-            </span>
-        </div>
-        <div id="colorstrip"></div>
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+            <img class="d-inline-block align-top" height="30px" style="" src="http://uaf-8.t2.ucsd.edu/~namin/dump/metis/images/workflowtransparent.png"></img>
+            &nbsp;&nbsp;
+            <a class="navbar-brand" href="https://github.com/aminnj/ProjectMetis/">ProjectMetis</a>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-summary" href="#" onclick="toggleSummary();">Summary</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-chart" href="#" onclick="toggleChart();">Chart</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-expand" href="#" onclick="toggleExpand();">Expand</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-admin" href="#">Admin</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Sort
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" onclick="toggleSort('az');" href="#">a-z</a>
+                        <a class="dropdown-item" onclick="toggleSort('pct');" href="#">%</a>
+                    </div>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <small><a href="#" id="last_updated" class="nav-link"></a></small>
+                </li>
+            </ul>
+        </nav>
 
-        <div id="container">
+        <div id="chart" class="container-fluid" style="display:none;"> </div>
+        <div id="summary" class="container-fluid" style="display:none;"> </div>
 
-            <span id="last_updated" class="lastUpdated"></span>
-            <div id="summary" class="section" style='display:none;'> </div>
-            <div id="chart_div" style='display:none;'></div>
-            <!-- <div id="log_div" class="section" style='display:none;'> </div> -->
-            <div id="section_1" class="section"></div>
-            <div id="message_wrapper"><div id="message"></div></div>
-
+        <div id="tasks-container" class="container-fluid">
         </div>
 
     </body>
 </html>
+
