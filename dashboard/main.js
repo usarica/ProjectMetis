@@ -399,9 +399,7 @@ function toggleDarkMode() {
     $(".has-dark").toggleClass("dark");
     $(".has-dark.badge").toggleClass("badge-light").toggleClass("badge-dark")
     console.log($(".has-dark > .badge-light"));
-// body -> .dark
-// badge-light -> badge-dark
-//     syntaxhighlight function dark
+    $("#nav-dark").toggleClass("active");
 }
 
 
