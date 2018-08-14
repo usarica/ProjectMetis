@@ -84,12 +84,13 @@ function setUpDOM(data) {
         jsStr = jsStr.replace("\"dataset\":", 
             ` <a href="${link}" style="text-decoration: underline" title="<iframe src='${link_handler}' style='background-color: #fff; width:650px;'></iframe>" data-html="true" data-toggle="tooltip">dataset</a>: `
         );
+        var typenotask = general["type"].replace("Task","");
 
         var content = `
-            <div id="${id}" class="task">
+            <div id="${id}" data-type="${typenotask}" data-tag="${general['tag']}" class="task">
                 <div class="row task-text-row">
-                    <span class="badge task-badge has-dark badge-primary">${general["type"].replace("Task","")}</span>
-                    <span class="badge task-badge badge-secondary">${general["tag"]}</span>
+                    <a href="#" data-which="type" class="badge task-badge has-dark badge-primary">${typenotask}</a>
+                    <a href="#" data-which="tag" class="badge task-badge badge-secondary">${general["tag"]}</a>
                     <div class="progress has-dark">
                         <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
                         </div>
@@ -138,7 +139,7 @@ function fillDOM(data, theme=0) {
         var v = Math.round(58-0.01*pct*14,0);
         var color = `hsl(${h},${s}%,${v}%)`;
 
-        $("#"+id).attr("data-pct",progress.pct);
+        $("#"+id).attr("data-pct",Math.round(progress.pct,2));
 
         if (general["open_dataset"]) {
             color = "#ffaa3b";
@@ -206,10 +207,33 @@ function fillDOM(data, theme=0) {
 }
 
 function afterFillDOM() {
+
+    // enable tooltips
     $('[data-toggle="tooltip"]').tooltip();
+
+    // clicking on the dataset name toggles the corresponding details panel
     $('.dataset-label').click(function() {
         $(this).parent().parent().find(".details").slideToggle(100);
     });
+
+    // clicking on a task badge (right now, either the task type or task tag)
+    // will show only tasks with the same type or tag. click again to revert.
+    $(".task-badge").click(function() {
+        var which = $(this).data("which");
+        var val = $(this).text();
+        $(`.task[data-${which}!=${val}]`).toggle();
+        if ($(".task-badge:hidden").length != 0) {
+            $("#nav-taskbadgefilter").show();
+        } else {
+            $("#nav-taskbadgefilter").hide();
+        }
+    });
+
+}
+
+function showAllTasks() {
+    $(".task").show();
+    $("#nav-taskbadgefilter").hide();
 }
 
 function updateSummary(data) {

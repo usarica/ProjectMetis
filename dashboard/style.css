@@ -31,9 +31,9 @@ body.dark {
 .task-badge {
     margin-right: 3px;
     font-weight: normal;
-    max-width: 10%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    max-width: 12%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dataset-label {
