@@ -220,7 +220,7 @@ function afterFillDOM() {
     // will show only tasks with the same type or tag. click again to revert.
     $(".task-badge").click(function() {
         var which = $(this).data("which");
-        var val = $(this).text();
+        var val = $(this).text().replace(".","\\.");
         $(`.task[data-${which}!=${val}]`).toggle();
         if ($(".task-badge:hidden").length != 0) {
             $("#nav-taskbadgefilter").show();
