@@ -200,7 +200,7 @@ function fillDOM(data, theme=0) {
 
     }
 
-
+    showAllTasks();
     updateSummary(data);
     afterFillDOM();
 
@@ -222,11 +222,15 @@ function afterFillDOM() {
         var which = $(this).data("which");
         var val = $(this).text().replace(".","\\.");
         $(`.task[data-${which}!=${val}]`).toggle();
-        if ($(".task-badge:hidden").length != 0) {
+        var nvis = $.unique($(".task-badge:visible").parent()).length;
+        var ntasks = $(".task").length;
+        if (nvis != ntasks) {
+            $("#nav-taskbadgefilter").text(`${ntasks-nvis} tasks hidden`);
             $("#nav-taskbadgefilter").show();
         } else {
             $("#nav-taskbadgefilter").hide();
         }
+        $("#nav-summary-ntasks").text(` (${nvis})`);
     });
 
 }
@@ -234,19 +238,33 @@ function afterFillDOM() {
 function showAllTasks() {
     $(".task").show();
     $("#nav-taskbadgefilter").hide();
+    var nvis = $.unique($(".task-badge:visible").parent()).length;
+    $("#nav-summary-ntasks").text(` (${nvis})`);
 }
 
 function updateSummary(data) {
+    var nevents_total = 0;
+    var nevents_done = 0;
+    var njobs_done = 0;
+    var njobs_total = 0;
     for(var i = 0; i < data["tasks"].length; i++) {
         var sample = data["tasks"][i];
-        var bad = data["tasks"][i]["bad"] || {};
-        var general = data["tasks"][i]["general"];
+        var general = sample["general"];
+        var id = getEscapedTaskID(general["dataset"], general["tag"]);
+
+        if ($(`#${id}`).is(":hidden")) continue;
+        nevents_total += general["nevents_total"];
+        nevents_done += general["nevents_done"];
+        njobs_total += general["njobs_total"];
+        njobs_done += general["njobs_done"];
+
     }
 
-    var nevents_total = data["tasks"].sum2("general","nevents_total");
-    var nevents_done = data["tasks"].sum2("general","nevents_done");
-    var njobs_done = data["tasks"].sum2("general","njobs_done");
-    var njobs_total = data["tasks"].sum2("general","njobs_total");
+    // var nevents_total = data["tasks"].sum2("general","nevents_total");
+    // var nevents_done = data["tasks"].sum2("general","nevents_done");
+    // var njobs_done = data["tasks"].sum2("general","njobs_done");
+    // var njobs_total = data["tasks"].sum2("general","njobs_total");
+
     var pct_events = Math.round(100.0*100.0*nevents_done/nevents_total)/100;
     var pct_jobs = Math.round(100.0*100.0*njobs_done/njobs_total)/100;
 
@@ -328,8 +346,9 @@ function drawChart(history) {
 
 
 function toggleSummary() {
-    // if ($('#summary').is(":hidden")) {
-    // }
+    if ($('#summary').is(":hidden")) {
+        updateSummary(alldata);
+    }
     $("#summary").slideToggle(150);
     $("#nav-summary").toggleClass("active");
 }
