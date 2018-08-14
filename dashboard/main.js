@@ -49,7 +49,7 @@ function syntaxHighlight(json) {
         } else if (/null/.test(match)) {
             cls = 'null';
         }
-        return '<span class="' + cls + '">' + match + '</span>';
+        return '<span class="has-dark ' + cls + '">' + match + '</span>';
     });
 }
 
@@ -88,17 +88,17 @@ function setUpDOM(data) {
         var content = `
             <div id="${id}" class="task">
                 <div class="row task-text-row">
-                    <span class="badge task-badge badge-primary">${general["type"].replace("Task","")}</span>
+                    <span class="badge task-badge has-dark badge-primary">${general["type"].replace("Task","")}</span>
                     <span class="badge task-badge badge-secondary">${general["tag"]}</span>
-                    <div class="progress">
+                    <div class="progress has-dark">
                         <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
                         </div>
                         <span class="progress-type"></span>
                         <span title="" data-toggle="tooltip" class="progress-completed">0%</span>
                     </div>
-                    <a href="#" class="dataset-label badge badge-light">${general["dataset"]}</a>
+                    <a href="#" class="dataset-label badge badge-light has-dark">${general["dataset"]}</a>
                 </div>
-                <div class="row details" style="display:none;">${jsStr}</div>
+                <div class="row details has-dark" style="display:none;">${jsStr}</div>
             </div>
             `;
         // console.log(content);
@@ -109,7 +109,7 @@ function setUpDOM(data) {
 
 }
 
-function fillDOM(data) {
+function fillDOM(data, theme=0) {
     alldata = data;
     // console.log("here: "+alldata);
 
@@ -138,31 +138,37 @@ function fillDOM(data) {
         var v = Math.round(58-0.01*pct*14,0);
         var color = `hsl(${h},${s}%,${v}%)`;
 
+        $("#"+id).attr("data-pct",progress.pct);
+
         if (general["open_dataset"]) {
             color = "#ffaa3b";
         }
         // console.log(color);
 
-        // // BLUE
-        // if (pct > 6.0/7*100) color = "#039BE5";
-        // else if (pct > 5.0/7*100) color = "#03A9F4";
-        // else if (pct > 4.0/7*100) color = "#29B6F6";
-        // else if (pct > 3.0/7*100) color = "#4FC3F7";
-        // else if (pct > 2.0/7*100) color = "#81D4FA";
-        // else if (pct > 1.0/7*100) color = "#B3E5FC";
-        // else if (pct > 0.0/7*100) color = "#E1F5FE";
+        if (theme == 1) {
+            // BLUE
+            if (pct > 6.0/7*100) color = "#039BE5";
+            else if (pct > 5.0/7*100) color = "#03A9F4";
+            else if (pct > 4.0/7*100) color = "#29B6F6";
+            else if (pct > 3.0/7*100) color = "#4FC3F7";
+            else if (pct > 2.0/7*100) color = "#81D4FA";
+            else if (pct > 1.0/7*100) color = "#B3E5FC";
+            else if (pct > 0.0/7*100) color = "#E1F5FE";
+        }
 
-        // // ORANGE
-        // if      (pct > 9.0/10*100) color = "#FF6F00";
-        // else if (pct > 8.0/10*100) color = "#FF8F00";
-        // else if (pct > 7.0/10*100) color = "#FFA000";
-        // else if (pct > 6.0/10*100) color = "#FFB300";
-        // else if (pct > 5.0/10*100) color = "#FFC107";
-        // else if (pct > 4.0/10*100) color = "#FFCA28";
-        // else if (pct > 3.0/10*100) color = "#FFD54F";
-        // else if (pct > 2.0/10*100) color = "#FFE082";
-        // else if (pct > 1.0/10*100) color = "#FFECB3";
-        // else if (pct > 0.0/10*100) color = "#FFF8E1";
+        if (theme == 2) {
+            // ORANGE
+            if      (pct > 9.0/10*100) color = "#FF6F00";
+            else if (pct > 8.0/10*100) color = "#FF8F00";
+            else if (pct > 7.0/10*100) color = "#FFA000";
+            else if (pct > 6.0/10*100) color = "#FFB300";
+            else if (pct > 5.0/10*100) color = "#FFC107";
+            else if (pct > 4.0/10*100) color = "#FFCA28";
+            else if (pct > 3.0/10*100) color = "#FFD54F";
+            else if (pct > 2.0/10*100) color = "#FFE082";
+            else if (pct > 1.0/10*100) color = "#FFECB3";
+            else if (pct > 0.0/10*100) color = "#FFF8E1";
+        }
 
         // console.log(color);
 
@@ -193,18 +199,17 @@ function fillDOM(data) {
 
     }
 
-    $('[data-toggle="tooltip"]').tooltip();
-
-    $('.dataset-label').click(function() {
-        // $(this).parent().parent().find(".details").toggle();
-        $(this).parent().parent().find(".details").slideToggle(100);
-    });
 
     updateSummary(data);
-    // doHistory(data);
-    // drawChart();
-    // afterFillDOM();
+    afterFillDOM();
 
+}
+
+function afterFillDOM() {
+    $('[data-toggle="tooltip"]').tooltip();
+    $('.dataset-label').click(function() {
+        $(this).parent().parent().find(".details").slideToggle(100);
+    });
 }
 
 function updateSummary(data) {
@@ -317,37 +322,43 @@ function toggleExpand() {
     // do it this way because one guy may be reversed
     if(detailsVisible) {
         $("#nav-expand").text("Expand");
-        $(".details").slideUp(100);
         $("#nav-expand").removeClass("active");
     } else {
         $("#nav-expand").text("Collapse");
-        $(".details").slideDown(100);
         $("#nav-expand").addClass("active");
     }
+    $(".details").toggle();
     detailsVisible = !detailsVisible;
 }
 
 function sortSamples(alphabetical=false) {
-    alldata["tasks"].sort(function (a,b) {
-        var cmp = 0;
-        var ageneral = a["general"]; 
-        var bgeneral = b["general"]; 
-        if (alphabetical) {
-            cmp = ageneral["dataset"] > bgeneral["dataset"];
-        } else {
-            var aprogress = getProgress(ageneral).pct;
-            var bprogress = getProgress(bgeneral).pct;
-            cmp = aprogress > bprogress;
-        }
-        if (cmp) return 1;
-        else return -1;
-    });
-    setUpDOM(alldata);
-    fillDOM(alldata);
+    var divs = $(".task");
+    var ordered;
+    if (alphabetical) {
+        ordered = divs.sort(function (a, b) {
+            return $(a).attr('id') < $(b).attr('id') ? -1 : 1;
+        });
+        $("#tasks-container").html(ordered);
+    } else {
+        ordered = divs.sort(function (a, b) {
+            return $(a).data('pct') < $(b).data('pct') ? -1 : 1;
+        });
+        $("#tasks-container").html(ordered);
+    }
+    afterFillDOM();
 }
 
 function toggleSort(which) {
     sortSamples(which == "az");
+}
+
+function toggleDarkMode() {
+    $(".has-dark").toggleClass("dark");
+    $(".has-dark.badge").toggleClass("badge-light").toggleClass("badge-dark")
+    console.log($(".has-dark > .badge-light"));
+// body -> .dark
+// badge-light -> badge-dark
+//     syntaxhighlight function dark
 }
 
 

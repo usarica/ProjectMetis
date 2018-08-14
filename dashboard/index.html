@@ -16,7 +16,7 @@
         <script src="main.js"></script>
 
     </head>
-    <body>
+    <body class="has-dark">
 
 
         <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
@@ -36,13 +36,26 @@
                 <li class="nav-item">
                     <a class="nav-link" id="nav-admin" href="#">Admin</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-dark" href="#" onclick="toggleDarkMode();">Dark</a>
+                </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSortLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Sort
                     </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownSortLink">
                         <a class="dropdown-item" onclick="toggleSort('az');" href="#">a-z</a>
                         <a class="dropdown-item" onclick="toggleSort('pct');" href="#">%</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownColorLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Colors
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownColorLink">
+                        <a class="dropdown-item" onclick="fillDOM(alldata,0);" href="#">red-green</a>
+                        <a class="dropdown-item" onclick="fillDOM(alldata,1);" href="#">blue</a>
+                        <a class="dropdown-item" onclick="fillDOM(alldata,2);" href="#">orange</a>
                     </div>
                 </li>
             </ul>
