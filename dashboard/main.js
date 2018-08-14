@@ -137,6 +137,10 @@ function fillDOM(data) {
         var s = Math.round(75-0.01*pct*10 + 15.0*Math.max(1.0-(pct-33)*(pct-33)/4500.0, 0.0),0);
         var v = Math.round(58-0.01*pct*14,0);
         var color = `hsl(${h},${s}%,${v}%)`;
+
+        if (general["open_dataset"]) {
+            color = "#ffaa3b";
+        }
         // console.log(color);
 
         // // BLUE
@@ -180,10 +184,12 @@ function fillDOM(data) {
         // pright.css({
         //     "color": "#ffff",
         // });
-        pright.text(pct+"%");
-        // console.log(pdiv);
+        if (general["open_dataset"]) {
+            pright.html("<small>open</small> "+pct+"%");
+        } else {
+            pright.text(pct+"%");
+        }
         pright.attr({"title":progress.done + "/" + progress.total});
-        // console.log(pright);
 
     }
 

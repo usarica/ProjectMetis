@@ -14,29 +14,34 @@ body {
 }
 
 .container-fluid {
-    width: 98%;
-    /* margin-top: 10px; */
+    width: 99%;
+    /* margin: auto; */
+    margin-top: 8px;
     /* margin-left: 10px; */
     /* margin-right: 100px; */
-    margin: 5px;
-    /* margin: auto; */
+    /* margin: 10px; */
+    /* border: solid 2px black; */
 }
 
 .task-badge {
     margin-right: 3px;
     font-weight: normal;
+    max-width: 10%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dataset-label {
     font-size: 75%;
     padding-left: 3px;
     padding-right: 3px;
-    /* font-weight: normal; */
-    font-weight: bold;
+    font-weight: normal;
+    /* font-weight: bold; */
 
     white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* max-width: 65%; */
   max-width: 60%;
 }
 
