@@ -4,7 +4,7 @@ import os
 import argparse
 from metis.Utils import make_tarball
 
-def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_paths=[]):
+def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_paths=[], use_bz2_algo=False):
 
     extra = {}
     if cmssw_base:
@@ -17,6 +17,7 @@ def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_p
             "exclude_root_files": skip_root,
             "exclude_pattern": exclude_pattern,
             "extra_paths": extra_paths,
+            "use_bz2": use_bz2_algo,
             }
 
     print "[mtarfile] Making tarfile"
@@ -37,7 +38,8 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--norootfiles", help="don't tar up root files", action="store_true")
     parser.add_argument("-e", "--extrapaths", help="extra files/dirs to include in tarfile", nargs="+")
     parser.add_argument("-x", "--excludepattern", help="str to match to exclude in tarfile", default=None)
+    parser.add_argument("-b", "--bz2", help="use bz2 algorithm", action="store_true")
 
     args = parser.parse_args()
 
-    make(args.output, args.cmssw, args.norootfiles, args.excludepattern, args.extrapaths)
+    make(args.output, args.cmssw, args.norootfiles, args.excludepattern, args.extrapaths, args.bz2)
