@@ -11,10 +11,9 @@ import scripts.dis_client as dis
 def get_tasks():
 
     pds = [
-            "MuonEG",
-            # "SingleElectron","MET","SinglePhoton","SingleMuon","DoubleMuon","JetHT","DoubleEG","HTMHT"
+            "SingleElectron","MET","SinglePhoton","SingleMuon","DoubleMuon","JetHT","DoubleEG","HTMHT"
             ]
-    out = dis.query("/*/Run2016*-17Jul2018-*/MINIAOD") # this precludes 17Jul2018_ver1-v1 which is not in the golden JSON anyway
+    out = dis.query("/*/Run2016*-17Jul2018*/MINIAOD")
     dataset_names = out["response"]["payload"]
     dataset_names = sorted([ds for ds in dataset_names if any("/{}/".format(pd) in ds for pd in pds)])
 

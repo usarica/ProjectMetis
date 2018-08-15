@@ -100,6 +100,10 @@ def timedelta_to_human(td):
     else:
         return "{} hours".format(int(td.total_seconds()//3600))
 
+def num_to_ordinal_string(n):
+    # https://stackoverflow.com/questions/3644417/python-format-datetime-with-st-nd-rd-th-english-ordinal-suffix-like
+    return str(n)+("th" if 4<=n%100<=20 else {1:"st",2:"nd",3:"rd"}.get(n%10, "th"))
+
 def metis_base():
     return os.environ.get("METIS_BASE",".")+"/"
 

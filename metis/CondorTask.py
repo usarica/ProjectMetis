@@ -337,7 +337,11 @@ class CondorTask(Task):
                     if index not in self.job_submission_history:
                         self.job_submission_history[index] = []
                     self.job_submission_history[index].append(cid)
-                    self.logger.info("Job for ({0}) submitted to {1}".format(out, cid))
+                    ntimes = len(self.job_submission_history[index])
+                    if ntimes <= 1:
+                        self.logger.info("Job for ({0}) submitted to {1}".format(out, cid))
+                    else:
+                        self.logger.info("Job for ({0}) submitted to {1} (for the {2} time)".format(out, cid, Utils.num_to_ordinal_string(ntimes)))
 
     def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=48.0, remove_held_x_hours=5.0):
         """
