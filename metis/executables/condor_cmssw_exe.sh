@@ -40,17 +40,37 @@ source /cvmfs/cms.cern.ch/cmsset_default.sh
 
 export SCRAM_ARCH=${SCRAMARCH}
 
-eval `scramv1 project CMSSW $CMSSWVERSION`
-cd $CMSSWVERSION
-eval `scramv1 runtime -sh`
-mv ../$PSET pset.py
-[ -e ../package.tar.gz ] && { 
-    mv ../package.tar.gz package.tar.gz;
-    tar xzf package.tar.gz;
-}
-cp $CMSSW_BASE/src/NNKit/data/*.{json,params} .
-scram b
-[ -e package.tar.gz ] && tar xzf package.tar.gz
+# holy crap this is a mess. :( why does PAT code have to do such insane
+# things with paths?
+# if the first file in the tarball filelist starts with CMSSW, then it is
+# a tarball made outside of the full CMSSW directory, and must be handled
+# differently
+tarfile=package.tar.gz
+if [ ! -z $(tar -tf ${tarfile} | head -n 1 | grep "^CMSSW") ]; then
+    echo "this is a full cmssw tar file"
+    tar xf ${tarfile}
+    cd $CMSSWVERSION
+    echo $PWD
+    echo "Running ProjectRename"
+    scramv1 b ProjectRename
+    echo "Running `scramv1 runtime -sh`"
+    eval `scramv1 runtime -sh`
+    mv ../$PSET pset.py
+    mv ../${tarfile} .
+else
+    echo "this is a selective cmssw tar file"
+    eval `scramv1 project CMSSW $CMSSWVERSION`
+    cd $CMSSWVERSION
+    eval `scramv1 runtime -sh`
+    mv ../$PSET pset.py
+    if [ -e ../${tarfile} ]; then
+        mv ../${tarfile} ${tarfile};
+        tar xf ${tarfile};
+    fi
+    cp $CMSSW_BASE/src/NNKit/data/*.{json,params} .
+    scram b
+    [ -e package.tar.gz ] && tar xf package.tar.gz
+fi
 
 
 # logging every 45 seconds gives ~100kb log file/3 hours
