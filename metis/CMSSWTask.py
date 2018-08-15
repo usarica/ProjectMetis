@@ -65,8 +65,6 @@ class CMSSWTask(CondorTask):
 
 
     def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False):
-        # TODO this is blatant code duplication. fix it later (i.e., never)
-
         outdir = self.output_dir
         outname_noext = self.output_name.rsplit(".", 1)[0]
         v_inputs_commasep = [",".join(map(lambda x: x.get_name(), ins)) for ins in v_ins]
@@ -77,17 +75,17 @@ class CMSSWTask(CondorTask):
         scramarch = self.scram_arch
         max_nevents_per_job = self.kwargs.get("max_nevents_per_job", -1)
         nevts = max_nevents_per_job
-        firstevt = -1
-        expectedevents = -1
+        v_firstevt = [-1 for out in v_out]
+        v_expectedevents = [-1 for out in v_out]
         if self.check_expectedevents:
-            expectedevents = out.get_nevents()
+            v_expectedevents = [out.get_nevents() for out in v_out]
             if max_nevents_per_job > 0:
-                expectedevents = max_nevents_per_job
+                v_expectedevents = [max_nevents_per_job for out in v_out]
 
         if self.split_within_files:
             nevts = self.events_per_output
-            firstevt = 1 + (index - 1) * self.events_per_output
-            expectedevents = -1
+            v_firstevt = [1 + (out.get_index() - 1) * self.events_per_output for out in v_out]
+            v_expectedevents = [-1 for out in v_out]
             inputs_commasep = "dummyfile"
         pset_args = self.pset_args
         executable = self.executable_path
@@ -97,7 +95,7 @@ class CMSSWTask(CondorTask):
         v_arguments = [[outdir, outname_noext, inputs_commasep,
                      index, pset_basename, cmssw_ver, scramarch,
                      nevts, firstevt, expectedevents, other_outputs, pset_args]
-                     for (index,inputs_commasep) in zip(v_index,v_inputs_commasep)]
+                     for (index,inputs_commasep,firstevt,expectedevents) in zip(v_index,v_inputs_commasep,v_firstevt,v_expectedevents)]
         v_selection_pairs = [
                 [["taskname", self.unique_name], ["jobnum", index]] 
                 for index in v_index
