@@ -212,13 +212,13 @@ function afterFillDOM() {
     $('[data-toggle="tooltip"]').tooltip();
 
     // clicking on the dataset name toggles the corresponding details panel
-    $('.dataset-label').click(function() {
+    $('.dataset-label').unbind().click(function() {
         $(this).parent().parent().find(".details").slideToggle(100);
     });
 
     // clicking on a task badge (right now, either the task type or task tag)
     // will show only tasks with the same type or tag. click again to revert.
-    $(".task-badge").click(function() {
+    $(".task-badge").unbind().click(function() {
         var which = $(this).data("which");
         var val = $(this).text().replace(".","\\.");
         $(`.task[data-${which}!=${val}]`).toggle();
@@ -282,7 +282,7 @@ function updateSummary(data) {
         </tbody>
     </table>`;
     $("#summary").html(buff);
-    document.title = `Metis Dashboard [${Math.round(pct_jobs)}]`;
+    document.title = `[${Math.round(pct_jobs)}] Metis Dashboard`;
 }
 
 function doHistory() {
