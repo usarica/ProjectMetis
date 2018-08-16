@@ -40,8 +40,8 @@ body.dark {
     font-size: 75%;
     padding-left: 3px;
     padding-right: 3px;
-    /* font-weight: normal; */
-    font-weight: bold;
+    font-weight: normal;
+    /* font-weight: bold; */
 
     white-space: nowrap;
   overflow: hidden;
