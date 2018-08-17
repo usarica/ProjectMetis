@@ -18,6 +18,10 @@ body.dark {
     padding-bottom: 2px;
 }
 
+#nav-admin.active {
+    color: #ffc107;
+}
+
 .container-fluid {
     width: 99%;
     /* margin: auto; */

@@ -140,6 +140,7 @@ function fillDOM(data, theme=0) {
         var color = `hsl(${h},${s}%,${v}%)`;
 
         $("#"+id).attr("data-pct",Math.round(progress.pct,2));
+        $("#"+id).attr("data-tag",general["tag"]);
 
         if (general["open_dataset"]) {
             color = "#ffaa3b";
@@ -174,6 +175,12 @@ function fillDOM(data, theme=0) {
         // console.log(color);
 
         pbar.attr("aria-valuenow",pct);
+        if (general["open_dataset"]) {
+            pbar.addClass("progress-bar-striped");
+            // pbar.addClass("progress-bar-animated");
+        }
+        // https://stackoverflow.com/questions/7069167/css-transition-not-firing
+        pbar.css('width');
         pbar.css({
             "width":pct+"%",
             "background-color":color,
@@ -194,6 +201,7 @@ function fillDOM(data, theme=0) {
         if (general["open_dataset"]) {
             pright.html("<small>open</small> "+pct+"%");
         } else {
+            // pright.text(pct+"%");
             pright.text(pct+"%");
         }
         pright.attr({"title":progress.done + "/" + progress.total});
@@ -374,25 +382,36 @@ function toggleExpand() {
     detailsVisible = !detailsVisible;
 }
 
-function sortSamples(alphabetical=false) {
+function sortSamples(which) {
     var divs = $(".task");
-    var ordered;
-    if (alphabetical) {
-        ordered = divs.sort(function (a, b) {
+    if (which == "az") {
+        var ordered = divs.sort(function (a, b) {
             return $(a).attr('id') < $(b).attr('id') ? -1 : 1;
         });
         $("#tasks-container").html(ordered);
-    } else {
-        ordered = divs.sort(function (a, b) {
+    } else if (which == "pct") {
+        var ordered = divs.sort(function (a, b) {
             return $(a).data('pct') < $(b).data('pct') ? -1 : 1;
         });
         $("#tasks-container").html(ordered);
+    } else if (which == "tag") {
+        var ordered = divs.sort(function (a, b) {
+            return $(a).data('tag') < $(b).data('tag') ? -1 : 1;
+        });
+        $("#tasks-container").html(ordered);
+    } else if (which == "rev") {
+        $("#tasks-container").html(divs.get().reverse());
     }
     afterFillDOM();
 }
 
 function toggleSort(which) {
-    sortSamples(which == "az");
+    sortSamples(which);
+}
+
+function toggleAdmin() {
+    $("#nav-admin").toggleClass("active");
+    $(".progress-type").text("🛑✉️✂️");
 }
 
 function toggleDarkMode() {
