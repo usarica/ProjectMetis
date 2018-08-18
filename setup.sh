@@ -4,11 +4,11 @@
     [ -e /cvmfs/ ] && {
         source /code/osgcode/cmssoft/cms/cmsset_default.sh
         cd /cvmfs/cms.cern.ch/slc6_amd64_gcc530/cms/cmssw/CMSSW_9_2_8/ && eval `scramv1 runtime -sh` && cd -
-        source /cvmfs/cms.cern.ch/crab3/crab.sh
+        # source /cvmfs/cms.cern.ch/crab3/crab.sh
     }
 }
 
-export METIS_BASE=`pwd`
+export METIS_BASE="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
 
 # CRAB screws up our PYTHONPATH. Go figure.
 export PYTHONPATH=${METIS_BASE}:$PYTHONPATH
