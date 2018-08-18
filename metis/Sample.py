@@ -5,6 +5,7 @@ import glob
 import time
 import datetime
 import os
+import json
 
 import scripts.dis_client as dis
 
@@ -321,7 +322,18 @@ class SNTSample(DirectorySample):
         filepaths = glob.glob(self.get_location() + "/" + self.globber)
         if self.use_xrootd:
             filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
+
         self.info["files"] = list(map(EventsFile, filepaths))
+        fname_metadata = self.get_location() + "/metadata.json"
+        if os.path.exists(fname_metadata):
+            with open(fname_metadata,"r") as fh:
+                metadata = json.load(fh)
+                ijob_to_nevents = metadata["ijob_to_nevents"]
+            for f in self.info["files"]:
+                nevents, nevents_eff = ijob_to_nevents.get(str(f.get_index()),(0,0))
+                nevents_neg = (nevents-nevents_eff) // 2
+                f.set_nevents(nevents)
+                f.set_nevents_negative(nevents_neg)
 
         return self.info["files"]
 
@@ -391,17 +403,21 @@ class DummySample(DirectorySample):
 
 
 if __name__ == '__main__':
-
-    s1 = DBSSample(dataset="/DoubleMuon/Run2017A-PromptReco-v3/MINIAOD")
-    s1.set_selection_function(lambda x: "296/980/" in x)
-    print(len(s1.get_files()))
-    print(s1.get_nevents())
-
-    s1 = DBSSample(dataset="/MET/Run2017A-PromptReco-v3/MINIAOD")
+    
+    s1 = SNTSample(dataset="/MET/Run2016B-17Jul2018_ver1-v1/MINIAOD")
+    print(s1.get_files())
     print(len(s1.get_files()))
 
-    s1 = DBSSample(dataset="/JetHT/Run2017A-PromptReco-v3/MINIAOD")
-    print(len(s1.get_globaltag()))
+    # s1 = DBSSample(dataset="/DoubleMuon/Run2017A-PromptReco-v3/MINIAOD")
+    # s1.set_selection_function(lambda x: "296/980/" in x)
+    # print(len(s1.get_files()))
+    # print(s1.get_nevents())
+
+    # s1 = DBSSample(dataset="/MET/Run2017A-PromptReco-v3/MINIAOD")
+    # print(len(s1.get_files()))
+
+    # s1 = DBSSample(dataset="/JetHT/Run2017A-PromptReco-v3/MINIAOD")
+    # print(len(s1.get_globaltag()))
 
     # ds = DirectorySample(
     #         dataset="/blah/blah/MINE",
