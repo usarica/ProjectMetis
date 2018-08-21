@@ -298,6 +298,12 @@ function doHistory() {
     console.log(alldata);
     for(var i = 0; i < alldata["tasks"].length; i++) {
         var history = alldata["tasks"][i]["history"] || {};
+        // Don't consider things in the chart if they are hidden
+        var general = alldata["tasks"][i]["general"];
+        var id = getEscapedTaskID(general["dataset"],general["tag"]);
+        if ($('#'+id).is(":hidden")) {
+            continue;
+        }
         if (!("timestamps" in history)) continue;
         for(var j = 0; j < history["timestamps"].length; j++) {
             var ts = history["timestamps"][j];
