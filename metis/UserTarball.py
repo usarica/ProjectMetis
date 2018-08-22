@@ -41,8 +41,14 @@ class UserTarball(object):
         if "cvmfs" in self.CMSSW_BASE:
             raise Exception("You need a local CMSSW environment, not cvmfs")
 
-        directories = ['lib', 'biglib', 'module', 'python', 'cfipython']
+        directories = ['lib', 'biglib', 'module', 'cfipython']
         directories += ["config", "external"]
+        # the following line causes issues when tarring up a CMSSW environment
+        # that has add-pkg'd something which uses ConfigToolBase (e.g., PatUtils)
+        # essentially, there's a conflict between CMSSW_BASE/python/blah/blah.py
+        # and CMSSW_BASE/src/blah/python/blah.py when doing string handling
+        # for the base filename
+        # directories += ["python"] # NOTE
 
         # Note that dataDirs are only looked-for and added under the src/ folder.
         # /data/ subdirs contain data files needed by the code
