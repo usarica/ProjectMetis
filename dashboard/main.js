@@ -189,7 +189,8 @@ function fillDOM(data, theme=0) {
             if (general["event_rate"] > 200) {
                 pleft.text(Math.round(general["event_rate"],3)/1000+" kHz"); 
             } else {
-                pleft.text(general["event_rate"]+" Hz"); 
+                // pleft.text(general["event_rate"]+" Hz"); 
+                pleft.html("<small>"+Math.round(general["nevents_done"]/1.0e5)/10 + "M @ " + general["event_rate"]+" Hz"+"</small>"); 
             }
         }
         // pleft.css({
@@ -228,7 +229,7 @@ function afterFillDOM() {
     // will show only tasks with the same type or tag. click again to revert.
     $(".task-badge").unbind().click(function() {
         var which = $(this).data("which");
-        var val = $(this).text().replace(".","\\.");
+        var val = $(this).text().replace(/\./g,"\\.");
         $(`.task[data-${which}!=${val}]`).toggle();
         var nvis = $.unique($(".task-badge:visible").parent()).length;
         var ntasks = $(".task").length;
