@@ -347,7 +347,9 @@ class SNTSample(DirectorySample):
 
 class FilelistSample(DirectorySample):
     """
-    Sample object made from a filelist (text file, or python list)
+    Sample object made from a filelist (text file, or python list) If elements
+    of the "filelist" are pairs, then first slot is assumed to be the filepath
+    and the second is the number of events in the file
     """
 
     def __init__(self, **kwargs):
@@ -370,11 +372,27 @@ class FilelistSample(DirectorySample):
             imf = ImmutableFile(self.filelist)
             if not imf.exists(): raise Exception("Filelist {} does not exist!".format(imf.get_name()))
             filepaths = map(lambda x: x.strip(), imf.cat().splitlines())
+        filepaths, nevents = self.separate_paths_events(filepaths)
 
         if self.use_xrootd:
             filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
-        self.info["files"] = list(map(EventsFile, filepaths))
+
+        if nevents:
+            self.info["files"] = list(map(lambda x: EventsFile(x[0], nevents=x[1]), zip(filepaths,nevents)))
+        else:
+            self.info["files"] = list(map(EventsFile, filepaths))
+
         return self.info["files"]
+
+    def separate_paths_events(self, thelist):
+        if len(thelist) > 0:
+            if len(thelist[0]) == 2:
+                filepaths, nevents = zip(*thelist)
+                nevents = map(int, nevents)
+                return filepaths, nevents
+        return thelist, []
+
+
 
 class DummySample(DirectorySample):
     """

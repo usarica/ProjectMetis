@@ -138,7 +138,7 @@ class SNTSampleTest(unittest.TestCase):
 
 class FilelistSampleTest(unittest.TestCase):
 
-    def test_all(self):
+    def test_textfile(self):
         dsname = "/blah/blah/BLAH/"
         fname = "tfsampletest.tmp"
 
@@ -153,6 +153,23 @@ class FilelistSampleTest(unittest.TestCase):
 
         # clean up
         mf.rm()
+
+    def test_list(self):
+        fnames = [ "{0}.root".format(i) for i in range(10) ]
+        samp = FilelistSample(dataset="/blah/blah/BLAH", filelist=fnames)
+        self.assertEqual(len(samp.get_files()), len(fnames))
+
+    def test_list_with_nevents(self):
+        fnames = [
+                ("a.root", 30),
+                ("b.root", 20),
+                ("c.root", 10),
+                ("d.root", 40),
+                ]
+        samp = FilelistSample(dataset="/blah/blah/BLAH", filelist=fnames)
+        self.assertEqual(len(samp.get_files()), len(fnames))
+        self.assertEqual(sum(x[1] for x in fnames), sum(x.get_nevents() for x in samp.get_files()))
+
 
 class DummySampleTest(unittest.TestCase):
 
