@@ -270,9 +270,11 @@ def condor_submit(**kwargs): # pragma: no cover
     # if the sites only includes UAF, do not even bother giving a proxy
     params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"]) if not(params["sites"] == "UAF") else ""
 
-    singularity_line = "Requirements = HAS_SINGULARITY=?=True"
-    if params["universe"].lower() == "local":
-        singularity_line = ""
+    # requirements_line = "Requirements = HAS_SINGULARITY=?=True"
+    requirements_line = "Requirements = (HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)"
+    # requirements_line = "Requirements = (HAS_CVMFS_cms_cern_ch =?= true)"
+    if kwargs.get("requirements_line","").strip():
+        requirements_line = kwargs["requirements_line"]
 
     template = """
 universe={universe}
@@ -291,7 +293,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 """
     template += "{0}\n".format(params["proxyline"])
-    template += "{0}\n".format(singularity_line)
+    template += "{0}\n".format(requirements_line)
     do_extra = len(params["extra"]) == len(params["arguments"])
     if queue_multiple:
         template += "\n"
