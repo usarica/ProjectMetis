@@ -8,6 +8,8 @@ from __future__ import print_function
 import os
 import glob
 import tarfile
+import tempfile
+import commands
 
 class UserTarball(object):
     """
@@ -20,10 +22,16 @@ class UserTarball(object):
             Also adds user specified files in the right place.
     """
 
-    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, exclude_pattern=None, extra_paths=[],use_bz2=False):
-        if use_bz2: mode = "w:bz2"
+    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, exclude_pattern=None, extra_paths=[],use_bz2=False,use_xz=False,xz_level=None):
         # XXX NOTE: if using bz2, need to uncompress with `tar xf blah`, note no z to have tar auto-detect
+        if use_bz2: mode = "w:bz2"
         # self.logger = logger
+        # When using xz, open uncompressed output for writing "w|", and then we will
+        # hijack list from tarfile object to overwrite with an xz file
+        if use_xz: mode = "w:"
+        self.use_xz = use_xz
+        self.xz_level = xz_level or 3
+        self.name = name
         self.CMSSW_BASE = override_cmssw_base if override_cmssw_base else os.getenv("CMSSW_BASE", "")
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
@@ -95,7 +103,28 @@ class UserTarball(object):
 
     def writeContent(self):
         """Save the content of the tarball"""
-        self.content = [(int(x.size), x.name) for x in self.tarfile.getmembers()]
+        members = self.tarfile.getmembers()
+        self.content = [(int(x.size), x.name) for x in members]
+
+        if self.use_xz:
+            # flush the original (uncompressed) tarfile
+            self.tarfile.close()
+            f = tempfile.NamedTemporaryFile(delete=False)
+            for obj in members:
+                f.write(obj.name+"\n")
+            # flush buffer since file hasn't closed
+            f.flush()
+            if self.xz_level >= 0:
+                level_str = "XZ_OPT=-{level}".format(level=self.xz_level)
+            else:
+                level_str = ""
+            # --no-recursion because tarfile will report a folder and the files inside (which would result in duplicates)
+            # -C to switch to cmssw base before tarring (paths are relative to that)
+            # -h to follow symlinks
+            cmd = "{level_str} tar cJf {name} -C $CMSSW_BASE -h --no-recursion --files-from={filelist}".format(level_str=level_str,name=self.name,filelist=f.name)
+            print("Running:",cmd)
+            stat, out = commands.getstatusoutput(cmd)
+            f.close()
 
 
     def close(self):
@@ -103,7 +132,8 @@ class UserTarball(object):
         Calculate the checkum and close
         """
         self.writeContent()
-        return self.tarfile.close()
+        if not self.use_xz:
+            return self.tarfile.close()
 
     def checkdirectory(self, dir_): # pragma: no cover
         # checking for infinite symbolic link loop
@@ -139,15 +169,10 @@ class UserTarball(object):
             return False
 
 if __name__ == "__main__":
-    import logging
-    # Set up a dummy logger
-    logger = logging.getLogger('UNITTEST')
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    logger.addHandler(ch)
 
-    ut = UserTarball(name="blah.tar.gz", logger=logger)
+    # xz_level is -6 by default (in tar executable), but -3 is a good working point
+    # so that is the default in this script
+    ut = UserTarball(name="blah.tar.xz", use_xz=True)
     ut.addFiles()
     ut.close()
     print(ut)

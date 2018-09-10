@@ -4,7 +4,7 @@ import os
 import argparse
 from metis.Utils import make_tarball
 
-def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_paths=[], use_bz2_algo=False):
+def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_paths=[], use_bz2_algo=False,use_xz_algo=False,xz_level=None):
 
     extra = {}
     if cmssw_base:
@@ -18,9 +18,16 @@ def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_p
             "exclude_pattern": exclude_pattern,
             "extra_paths": extra_paths,
             "use_bz2": use_bz2_algo,
+            "use_xz": use_xz_algo,
+            "xz_level": xz_level,
             }
 
     print "[mtarfile] Making tarfile"
+    print "[mtarfile] Hey, uh, so I saw you're not using the --xz flag. I " \
+            "recommend using it to switch to the xz algorithm when tarring. By default, " \
+            "it can shrink the file size by ~20-30% for no extra cost in time. If you " \
+            "plan to submit many jobs, please additionally use --xz_level 9 and wait a " \
+            "couple of minutes for another ~5-10%."
     if skip_root:
         print "[mtarfile] Skipping root files"
     if exclude_pattern:
@@ -39,7 +46,9 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--extrapaths", help="extra files/dirs to include in tarfile", nargs="+")
     parser.add_argument("-x", "--excludepattern", help="str to match to exclude in tarfile", default=None)
     parser.add_argument("-b", "--bz2", help="use bz2 algorithm", action="store_true")
+    parser.add_argument("-X", "--xz", help="use xz algorithm", action="store_true")
+    parser.add_argument("-l", "--xz_level", help="xz compression level (0 to 9)", default=None)
 
     args = parser.parse_args()
 
-    make(args.output, args.cmssw, args.norootfiles, args.excludepattern, args.extrapaths, args.bz2)
+    make(args.output, args.cmssw, args.norootfiles, args.excludepattern, args.extrapaths, args.bz2, args.xz, args.xz_level)
