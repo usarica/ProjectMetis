@@ -29,6 +29,7 @@ echo "EXPECTEDNEVTS: $EXPECTEDNEVTS"
 echo "OTHEROUTPUTS: $OTHEROUTPUTS"
 echo "PSETARGS: $PSETARGS"
 
+echo "GLIDEIN_CMSSite: $GLIDEIN_CMSSite"
 echo "hostname: $(hostname)"
 echo "uname -a: $(uname -a)"
 echo "time: $(date +%s)"
@@ -67,14 +68,13 @@ else
         mv ../${tarfile} ${tarfile};
         tar xf ${tarfile};
     fi
-    cp $CMSSW_BASE/src/NNKit/data/*.{json,params} .
     scram b
     [ -e package.tar.gz ] && tar xf package.tar.gz
 fi
 
 
-# logging every 45 seconds gives ~100kb log file/3 hours
-dstat -cdngytlmrs --float --nocolor -T --output dsout.csv 180 >& /dev/null &
+# # logging every 45 seconds gives ~100kb log file/3 hours
+# dstat -cdngytlmrs --float --nocolor -T --output dsout.csv 180 >& /dev/null &
 
 echo "process.maxEvents.input = cms.untracked.int32(${NEVTS})" >> pset.py
 echo "set_output_name(\"${OUTPUTNAME}.root\")" >> pset.py
@@ -182,9 +182,9 @@ done
 echo -e "\n--- end copying output ---\n" #                      <----- section division
 
 echo -e "\n--- begin dstat output ---\n" #                      <----- section division
-cat dsout.csv
+# cat dsout.csv
 echo -e "\n--- end dstat output ---\n" #                        <----- section division
-kill %1 # kill dstat
+# kill %1 # kill dstat
 
 # cd ../
 # echo "cleaning up"
