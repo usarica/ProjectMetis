@@ -26,7 +26,7 @@ with no ability to see trends in the past few days.
 
 You can do
 $ mclean nomatch -d 15
-which will prompt you to delete *no* tasks (unless something matchines nomatch),
+which will prompt you to delete *no* tasks (unless something matches nomatch),
 but that's ok. We want to keep everything, but only retain the last 15
 days of timestamps (-d 15) for current tasks. Then similarly add `--rm`
 if you're sure you want to modify the jsons.
