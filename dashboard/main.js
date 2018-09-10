@@ -187,7 +187,7 @@ function fillDOM(data, theme=0) {
         });
         if ("event_rate" in general && general["event_rate"] > 0) {
             if (general["event_rate"] > 200) {
-                pleft.text(Math.round(general["event_rate"],3)/1000+" kHz"); 
+                pleft.html("<small>"+Math.round(general["nevents_done"]/1.0e5)/10 + "M @ " + Math.round(general["event_rate"]/10,2)/100+" kHz"+"</small>");
             } else {
                 // pleft.text(general["event_rate"]+" Hz"); 
                 pleft.html("<small>"+Math.round(general["nevents_done"]/1.0e5)/10 + "M @ " + general["event_rate"]+" Hz"+"</small>"); 
