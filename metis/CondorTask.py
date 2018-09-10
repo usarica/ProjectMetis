@@ -303,7 +303,10 @@ class CondorTask(Task):
         to_submit = []
 
         # main loop over input-output map
-        for ins, out in self.io_mapping:
+        for iout, (ins, out) in enumerate(self.io_mapping):
+            if self.max_jobs > 0 and iout >= self.max_jobs:
+                break
+
             index = out.get_index()  # "merged_ntuple_42.root" --> 42
             on_condor = index in condor_job_indices
             done = (out.exists() and not on_condor)
