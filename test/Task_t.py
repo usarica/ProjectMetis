@@ -75,8 +75,8 @@ class TaskTest(unittest.TestCase):
         t3 = Task(a=3,requirements=[t1,t2])
         self.assertEqual(t3.get_requirements(), [t1,t2])
 
-        f1 = File("blah1.txt")
-        f2 = File("blah2.txt")
+        f1 = File("outputblah1.txt")
+        f2 = File("outputblah2.txt")
         t1.get_outputs = lambda: [f1]
         t2.get_outputs = lambda: [f2]
 
