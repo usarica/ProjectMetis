@@ -271,8 +271,10 @@ def condor_submit(**kwargs): # pragma: no cover
     params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"]) if not(params["sites"] == "UAF") else ""
 
     # requirements_line = "Requirements = HAS_SINGULARITY=?=True"
-    requirements_line = "Requirements = (HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)"
     # requirements_line = "Requirements = (HAS_CVMFS_cms_cern_ch =?= true)"
+    requirements_line = "Requirements = (HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)"
+    if kwargs.get("universe","").strip().lower() in ["local","uaf"]:
+        kwargs["requirements_line"] = "Requirements = "
     if kwargs.get("requirements_line","").strip():
         requirements_line = kwargs["requirements_line"]
 
@@ -310,7 +312,6 @@ when_to_transfer_output = ON_EXIT
 
     if kwargs.get("return_template",False):
         return template.format(**params)
-
 
     with open("{0}/submit.cmd".format(exe_dir),"w") as fhout:
         fhout.write(template.format(**params))
