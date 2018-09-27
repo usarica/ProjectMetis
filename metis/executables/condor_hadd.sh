@@ -34,7 +34,7 @@ cd $CMSSWVERSION
 eval `scramv1 runtime -sh`
 [ -e ../package.tar.gz ] && { 
     mv ../package.tar.gz package.tar.gz;
-    tar xzf package.tar.gz;
+    tar xf package.tar.gz;
 }
 
 # logging every 60 seconds gives ~100kb log file/3 hours

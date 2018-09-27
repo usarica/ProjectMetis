@@ -33,7 +33,7 @@ eval `scramv1 project CMSSW $CMSSWVERSION`
 cd $CMSSWVERSION
 eval `scramv1 runtime -sh`
 mv ../package.tar.gz package.tar.gz
-tar xzf package.tar.gz
+tar xf package.tar.gz
 
 # logging every 60 seconds gives ~100kb log file/3 hours
 dstat -cdngytlmrs --float --nocolor -T --output dsout.csv 60 >& /dev/null &

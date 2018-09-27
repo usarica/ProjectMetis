@@ -41,6 +41,12 @@ source /cvmfs/cms.cern.ch/cmsset_default.sh
 
 export SCRAM_ARCH=${SCRAMARCH}
 
+# see T2 email thread "hanging xrootd"
+export XRD_REDIRECTLIMIT=4
+export XRD_CONNECTIONWINDOW=60
+export XRD_CONNECTIONRETRY=4
+export XRD_REQUESTTIMEOUT=60
+
 # holy crap this is a mess. :( why does PAT code have to do such insane
 # things with paths?
 # if the first file in the tarball filelist starts with CMSSW, then it is

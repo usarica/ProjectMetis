@@ -46,7 +46,7 @@ eval `scramv1 runtime -sh`
 mv ../$PSET pset.py
 [ -e ../package.tar.gz ] && { 
     mv ../package.tar.gz package.tar.gz;
-    tar xzf package.tar.gz;
+    tar xf package.tar.gz;
 }
 scram b
 
