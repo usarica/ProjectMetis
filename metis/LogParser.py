@@ -75,6 +75,43 @@ def infer_error(fname):
         to_return = "[{0}] {1}".format(exception_name, unicode(last_lines[:500], errors="ignore"))
     return to_return
 
+def get_timestamp(fname):
+    fname = fname.replace(".err", ".out") # NOTE err -> out
+    to_return = ""
+    if not os.path.exists(fname):
+        return to_return
+    ts = None
+    with open(fname, "r") as fhin:
+        iline = 0
+        for line in fhin:
+            iline += 1
+            if iline > 25: break
+            if line.startswith("time"):
+                tsstr = line.split(":")[-1].strip()
+                ts = int(tsstr)
+                break
+    return ts
+
+def get_site(fname):
+    fname = fname.replace(".err", ".out") # NOTE err -> out
+    to_return = ""
+    if not os.path.exists(fname):
+        return to_return
+    site = None
+    with open(fname, "r") as fhin:
+        iline = 0
+        for line in fhin:
+            iline += 1
+            if iline > 25: break
+            if "GLIDEIN_CMSSite" in line:
+                site = line.split(":")[-1].strip()
+            elif line.startswith("hostname"):
+                hostname = line.split(":")[-1].strip()
+                if site: site += " ({})".format(hostname)
+                break
+    return site
+
+
 def get_event_rate(fname): # pragma: no cover
     fname = fname.replace(".out", ".err")
     avg_rate = -1

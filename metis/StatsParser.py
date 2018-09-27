@@ -7,7 +7,6 @@ from pprint import pprint
 
 import metis.LogParser as LogParser
 import metis.Utils as Utils
-from Utils import locked_open
 
 def merge_histories(hold, hnew):
     if not hold: return hnew
@@ -27,16 +26,16 @@ class StatsParser(object):
         self.make_plots = make_plots
 
         if not self.data:
-            with locked_open(self.summary_fname,"r") as fhin:
+            with Utils.locked_open(self.summary_fname,"r") as fhin:
                 self.data = json.load(fhin)
 
     def do(self, custom_event_rate_parser=None):
 
         oldsummary = {}
         if os.path.isfile(self.summary_fname):
-            with locked_open(self.summary_fname,"r") as fhin:
+            with Utils.locked_open(self.summary_fname,"r") as fhin:
                 oldsummary = json.load(fhin)
-        with locked_open(self.summary_fname,"w") as fhdump:
+        with Utils.locked_open(self.summary_fname,"w") as fhdump:
             oldsummary.update(self.data)
             json.dump(oldsummary, fhdump)
 
@@ -85,11 +84,14 @@ class StatsParser(object):
 
                 last_error = ""
                 last_log = ""
+                last_sites = []
                 if retries >= 1:
                     for ijob in range(len(condor_jobs)-1):
                         outlog = condor_jobs[ijob]["logfile_out"]
                         errlog = condor_jobs[ijob]["logfile_err"]
                         logs_to_plot.append(outlog)
+                        site = LogParser.get_site(outlog)
+                        last_sites.append(site if site else "")
                     last_error = LogParser.infer_error(errlog)
                     last_log = outlog
 
@@ -100,6 +102,7 @@ class StatsParser(object):
                         "events":nevents,
                         "last_error": last_error,
                         "last_log": last_log,
+                        "last_sites": last_sites,
                         }
 
             event_rate = -1
@@ -167,7 +170,7 @@ class StatsParser(object):
         # the summaries for multiple instances of metis running on different
         # datasets)
         if os.path.exists(self.SUMMARY_NAME):
-            with locked_open(self.SUMMARY_NAME, 'r') as fhin:
+            with Utils.locked_open(self.SUMMARY_NAME, 'r') as fhin:
                 try:
                     data_in = json.load(fhin)
                     all_datasets = [(t["general"]["dataset"],t["general"]["tag"]) for t in tasks]
@@ -193,7 +196,7 @@ class StatsParser(object):
                     
     def make_dashboard(self, d_web_summary):
 
-        with locked_open(self.SUMMARY_NAME, 'w') as fhout:
+        with Utils.locked_open(self.SUMMARY_NAME, 'w') as fhout:
             json.dump(d_web_summary, fhout, sort_keys = True, indent = 4, separators=(',',': '))
             # fhout.write(json.dumps(d_web_summary, sort_keys = True, indent = 4, separators=(',',': '), cls=CustomEncoder))
 
