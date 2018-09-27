@@ -346,13 +346,13 @@ class CondorTask(Task):
                     else:
                         self.logger.info("Job for ({0}) submitted to {1} (for the {2} time)".format(out, cid, Utils.num_to_ordinal_string(ntimes)))
 
-    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=48.0, remove_held_x_hours=5.0):
+    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=32.0, remove_held_x_hours=5.0):
         """
         takes `out` (File object) and dictionary of condor
         job information returns action_type specifying the type of action taken
         given the info
         """
-        cluster_id = this_job_dict["ClusterId"]
+        cluster_id = "{}.{}".format(this_job_dict["ClusterId"],this_job_dict["ProcId"])
         running = this_job_dict.get("JobStatus", "I") == "R"
         idle = this_job_dict.get("JobStatus", "I") == "I"
         held = this_job_dict.get("JobStatus", "I") == "H"
@@ -441,7 +441,7 @@ class CondorTask(Task):
                      index, cmssw_ver, scramarch, self.arguments]
                      for (index,inputs_commasep) in zip(v_index,v_inputs_commasep)]
         v_selection_pairs = [
-                [["taskname", self.unique_name], ["jobnum", index]] 
+                [["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]] 
                 for index in v_index
                 ]
 
@@ -478,7 +478,7 @@ class CondorTask(Task):
         return Utils.condor_submit(
                     executable=executable, arguments=arguments,
                     inputfiles=input_files, logdir=logdir_full,
-                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index]],
+                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]],
                     fake=fake, **extra
                )
 

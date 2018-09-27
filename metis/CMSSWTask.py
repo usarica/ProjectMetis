@@ -97,7 +97,7 @@ class CMSSWTask(CondorTask):
                      nevts, firstevt, expectedevents, other_outputs, pset_args]
                      for (index,inputs_commasep,firstevt,expectedevents) in zip(v_index,v_inputs_commasep,v_firstevt,v_expectedevents)]
         v_selection_pairs = [
-                [["taskname", self.unique_name], ["jobnum", index]] 
+                [["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]] 
                 for index in v_index
                 ]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
@@ -151,7 +151,7 @@ class CMSSWTask(CondorTask):
         return Utils.condor_submit(
                     executable=executable, arguments=arguments,
                     inputfiles=input_files, logdir=logdir_full,
-                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index]],
+                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]],
                     fake=fake, **extra
                )
 
