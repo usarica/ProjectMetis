@@ -165,22 +165,22 @@ class CondorTaskTest(unittest.TestCase):
                 "remove_held_x_hours": remove_held_x_hours,
                 }
 
-        job_dict = {"ClusterId": 123, "JobStatus": "R", "EnteredCurrentStatus": time.time()}
+        job_dict = {"ClusterId": 123, "ProcId": 0, "JobStatus": "R", "EnteredCurrentStatus": time.time()}
         self.assertEqual(self.dummy.handle_condor_job(this_job_dict=job_dict, **params), "RUNNING")
 
-        job_dict = {"ClusterId": 123, "JobStatus": "R", "EnteredCurrentStatus": time.time()-(remove_running_x_hours-epsilon_hours)*3600}
+        job_dict = {"ClusterId": 123, "ProcId": 0, "JobStatus": "R", "EnteredCurrentStatus": time.time()-(remove_running_x_hours-epsilon_hours)*3600}
         self.assertEqual(self.dummy.handle_condor_job(this_job_dict=job_dict, **params), "RUNNING")
 
-        job_dict = {"ClusterId": 123, "JobStatus": "R", "EnteredCurrentStatus": time.time()-(remove_running_x_hours+epsilon_hours)*3600}
+        job_dict = {"ClusterId": 123, "ProcId": 0, "JobStatus": "R", "EnteredCurrentStatus": time.time()-(remove_running_x_hours+epsilon_hours)*3600}
         self.assertEqual(self.dummy.handle_condor_job(this_job_dict=job_dict, **params), "LONG_RUNNING_REMOVED")
 
-        job_dict = {"ClusterId": 123, "JobStatus": "I", "EnteredCurrentStatus": time.time()}
+        job_dict = {"ClusterId": 123, "ProcId": 0, "JobStatus": "I", "EnteredCurrentStatus": time.time()}
         self.assertEqual(self.dummy.handle_condor_job(this_job_dict=job_dict, **params), "IDLE")
 
-        job_dict = {"ClusterId": 123, "JobStatus": "H", "EnteredCurrentStatus": time.time()-(remove_held_x_hours-epsilon_hours)*3600}
+        job_dict = {"ClusterId": 123, "ProcId": 0, "JobStatus": "H", "EnteredCurrentStatus": time.time()-(remove_held_x_hours-epsilon_hours)*3600}
         self.assertEqual(self.dummy.handle_condor_job(this_job_dict=job_dict, **params), "HELD")
 
-        job_dict = {"ClusterId": 123, "JobStatus": "H", "EnteredCurrentStatus": time.time()-(remove_held_x_hours+epsilon_hours)*3600}
+        job_dict = {"ClusterId": 123, "ProcId": 0, "JobStatus": "H", "EnteredCurrentStatus": time.time()-(remove_held_x_hours+epsilon_hours)*3600}
         self.assertEqual(self.dummy.handle_condor_job(this_job_dict=job_dict, **params), "HELD_AND_REMOVED")
 
         
