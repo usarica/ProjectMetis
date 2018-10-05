@@ -236,8 +236,8 @@ def condor_submit(**kwargs): # pragma: no cover
     if "/" not in os.path.normpath(params["executable"]):
         exe_dir = "."
 
-    # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech")
-    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Caltech")
+    # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech,T2_US_MIT,T2_US_Purdue")
+    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Caltech,T2_US_Wisconsin,T2_US_MIT")
     else: params["sites"] = kwargs.get("sites","T2_US_UCSD")
     # if os.getenv("USER") in ["namin"] and "T2_US_UCSD" in params["sites"]:
     #     params["sites"] += ",UAF,UCSB"
@@ -419,7 +419,7 @@ def get_hist(vals, do_unicode=True, width=50): # pragma: no cover
     fillchar = "*"
     verticalbar = "|"
     if do_unicode:
-        fillchar = unichr(0x2589).encode('utf-8')
+        fillchar = unichr(0x2588).encode('utf-8')
         verticalbar = "\x1b(0x\x1b(B"
     buff = ""
     for w in sorted(d, key=d.get, reverse=True):

@@ -29,7 +29,7 @@ def progress_bar(fraction, width=40, do_color=True, do_unicode=True,override_col
     filled = "#"*nfilled
     unfilled = "-"*(width-nfilled)
     if do_unicode:
-        filled = unichr(0x2589).encode('utf-8') * nfilled
+        filled = unichr(0x2588).encode('utf-8') * nfilled
         unfilled = unichr(0x2594+24).encode('utf-8')*(width-nfilled)
         # unfilled = unichr(0x2594).encode('utf-8')*(width-nfilled)
         # nleftover_eighths = int((fraction*width-nfilled)*8)
