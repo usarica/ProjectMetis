@@ -346,7 +346,7 @@ class CondorTask(Task):
                     else:
                         self.logger.info("Job for ({0}) submitted to {1} (for the {2} time)".format(out, cid, Utils.num_to_ordinal_string(ntimes)))
 
-    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=32.0, remove_held_x_hours=5.0):
+    def handle_condor_job(self, this_job_dict, out, fake=False, remove_running_x_hours=48.0, remove_held_x_hours=5.0):
         """
         takes `out` (File object) and dictionary of condor
         job information returns action_type specifying the type of action taken
