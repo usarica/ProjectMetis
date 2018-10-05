@@ -97,7 +97,7 @@ function setUpDOM(data) {
                         <span class="progress-type"></span>
                         <span title="" data-toggle="tooltip" class="progress-completed">0%</span>
                     </div>
-                    <a href="#" class="dataset-label badge badge-light has-dark">${general["dataset"]}</a>
+                    <a href="#!" class="dataset-label badge badge-light has-dark">${general["dataset"]}</a>
                 </div>
                 <div class="row details has-dark" style="display:none;">${jsStr}</div>
             </div>
