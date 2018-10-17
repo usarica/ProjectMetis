@@ -14,6 +14,7 @@ import sys
 import argparse
 import socket
 import time
+import glob
 
 """
 examples:
@@ -97,7 +98,7 @@ def listofdicts_to_table(lod): # pragma: no cover
         return buff
 
         
-def get_output_string(q, typ="basic", detail=False, show_json=False, pretty_table=False): # pragma: no cover
+def get_output_string(q, typ="basic", detail=False, show_json=False, pretty_table=False, one=False): # pragma: no cover
     buff = ""
     data = query(q, typ, detail)
 
@@ -134,6 +135,11 @@ def get_output_string(q, typ="basic", detail=False, show_json=False, pretty_tabl
         for ikey,key in enumerate(data):
             buff += "%s: %s\n\n" % (key, data[key])
 
+    if typ=="snt" and len(data) and one:
+        onefile = glob.glob("{}/*.root".format(data[0]["location"]))[0]
+        # onefile = "{}/*.root".format(data[0])
+        return onefile
+        # print(data)
 
     # ignore whitespace at end
     buff = buff.rstrip()
@@ -165,6 +171,7 @@ if __name__ == '__main__':
     parser.add_argument("-j", "--json", help="show output as full json", action="store_true")
     parser.add_argument("-p", "--table", help="show output as pretty table", action="store_true")
     parser.add_argument("-v", "--dev", help="use developer instance", action="store_true")
+    parser.add_argument("-o", "--one", help="get one file from SNT sample", action="store_true")
     args = parser.parse_args()
 
     
@@ -174,5 +181,5 @@ if __name__ == '__main__':
 
     if not args.type: args.type = "basic"
 
-    print(get_output_string(args.query, typ=args.type, detail=args.detail, show_json=args.json, pretty_table=args.table))
+    print(get_output_string(args.query, typ=args.type, detail=args.detail, show_json=args.json, pretty_table=args.table, one=args.one))
 
