@@ -139,7 +139,7 @@ function fillDOM(data, theme=0) {
         var v = Math.round(58-0.01*pct*14,0);
         var color = `hsl(${h},${s}%,${v}%)`;
 
-        $("#"+id).attr("data-pct",Math.round(progress.pct,2));
+        $("#"+id).attr("data-pct",progress.pct);
         $("#"+id).attr("data-tag",general["tag"]);
 
         if (general["open_dataset"]) {
