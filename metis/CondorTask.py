@@ -31,6 +31,7 @@ class CondorTask(Task):
         :kwarg snt_dir: use /hadoop/cms/store/group/snt/ as the base output directory
         :kwarg outdir_name: use custom directory in user's hadoop
         :kwarg output_dir: override output directory
+        :kwarg recopy_inputs: force re-copy/prepare inputs (executable, tarfile, ...) every class instantiation
         """
         self.sample = kwargs.get("sample", None)
         self.min_completion_fraction = kwargs.get("min_completion_fraction", 1.0)
@@ -54,6 +55,7 @@ class CondorTask(Task):
         self.total_nevents = kwargs.get("total_nevents", -1)
         self.max_jobs = kwargs.get("max_jobs",0)
         self.snt_dir = kwargs.get("snt_dir",False)
+        self.recopy_inputs = kwargs.get("recopy_inputs",False)
 
         # If we have this attribute, then we must have gotten it from
         # a subclass (so use that executable instead of just bland condor exe)
@@ -352,7 +354,7 @@ class CondorTask(Task):
         job information returns action_type specifying the type of action taken
         given the info
         """
-        cluster_id = "{}.{}".format(this_job_dict["ClusterId"],this_job_dict["ProcId"])
+        cluster_id = "{}".format(this_job_dict["ClusterId"])
         running = this_job_dict.get("JobStatus", "I") == "R"
         idle = this_job_dict.get("JobStatus", "I") == "I"
         held = this_job_dict.get("JobStatus", "I") == "H"
@@ -396,8 +398,9 @@ class CondorTask(Task):
         """
         self.logger.info("Began processing {0}".format(self.sample.get_datasetname()))
         # set up condor input if it's the first time submitting
-        if not self.prepared_inputs:
+        if (not self.prepared_inputs) or self.recopy_inputs:
             self.prepare_inputs()
+
 
         self.run(fake=fake)
 
