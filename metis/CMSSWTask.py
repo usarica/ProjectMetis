@@ -84,9 +84,9 @@ class CMSSWTask(CondorTask):
 
         if self.split_within_files:
             nevts = self.events_per_output
-            v_firstevt = [1 + (out.get_index() - 1) * self.events_per_output for out in v_out]
+            v_firstevt = [1 + (out.get_index() - 1) * (self.events_per_output+1) for out in v_out]
             v_expectedevents = [-1 for out in v_out]
-            inputs_commasep = "dummyfile"
+            v_inputs_commasep = ["dummyfile" for ins in v_ins]
         pset_args = self.pset_args
         executable = self.executable_path
         other_outputs = ",".join(self.other_outputs) or "None"
@@ -133,7 +133,7 @@ class CMSSWTask(CondorTask):
 
         if self.split_within_files:
             nevts = self.events_per_output
-            firstevt = 1 + (index - 1) * self.events_per_output
+            firstevt = 1 + (index - 1) * (self.events_per_output+1)
             expectedevents = -1
             inputs_commasep = "dummyfile"
         pset_args = self.pset_args
@@ -194,8 +194,8 @@ def set_output_name(outputname):
         if not hasattr(process,attr): continue
         if type(getattr(process,attr)) != cms.OutputModule: continue
         to_change.append([process,attr])
-    if len(to_change) == 1:
-        getattr(to_change[0][0],to_change[0][1]).fileName = outputname
+    for i in range(len(to_change)):
+        getattr(to_change[i][0],to_change[i][1]).fileName = outputname
 \n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag)
             )
 
@@ -212,7 +212,8 @@ def set_output_name(outputname):
             with open(pset_location_out, "a") as fhin:
                 # hard limit at 255 input files since that's the max CMSSW allows in process.source
                 fhin.write("\nif hasattr(process.source,\"fileNames\"): process.source.fileNames = cms.untracked.vstring([\n{0}\n][:255])\n\n".format(",\n".join(fnames)))
-                fhin.write("\nif hasattr(process,\"RandomNumberGeneratorService\"): process.RandomNumberGeneratorService.generator.initialSeed = int(__import__('random').getrandbits(28))\n\n".format(",\n".join(fnames))) # max accepted by CMSSW is 29 bits or so. Try higher and you'll see.
+                fhin.write("\nif hasattr(process,\"RandomNumberGeneratorService\"): process.RandomNumberGeneratorService.generator.initialSeed = cms.untracked.uint32(int(__import__('random').getrandbits(28)))\n\n") # max accepted by CMSSW is 29 bits or so. Try higher and you'll see.
+                fhin.write("\nif hasattr(process,\"RandomNumberGeneratorService\"): process.RandomNumberGeneratorService.externalLHEProducer.initialSeed = cms.untracked.uint32(int(__import__('random').getrandbits(17)))\n\n") # cmssw IOMC/RandomEngine/python/IOMC_cff.py
 
         # take care of package tar file. easy.
         Utils.do_cmd("cp {0} {1}".format(self.tarfile, self.package_path))
