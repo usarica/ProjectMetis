@@ -61,6 +61,7 @@ class StatsParser(object):
 
                 is_done  = job["output_exists"] and not job["is_on_condor"]
                 condor_jobs = job["condor_jobs"]
+                if not len(condor_jobs): continue
 
                 if is_done:
                     outnevents += job["output"][1]
