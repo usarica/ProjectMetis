@@ -296,6 +296,8 @@ when_to_transfer_output = ON_EXIT
 """
     template += "{0}\n".format(params["proxyline"])
     template += "{0}\n".format(requirements_line)
+    if kwargs.get("stream_logs",False):
+        template += "StreamOut=True\nstream_error=True\nTransferOut=True\nTransferErr=True\n"
     do_extra = len(params["extra"]) == len(params["arguments"])
     if queue_multiple:
         template += "\n"
