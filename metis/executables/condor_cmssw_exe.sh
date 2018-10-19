@@ -13,6 +13,10 @@ EXPECTEDNEVTS=${10}
 OTHEROUTPUTS=${11}
 PSETARGS="${@:12}" # since args can have spaces, we take 10th-->last argument as one
 
+function getjobad {
+    grep -i "^$1" "$_CONDOR_JOB_AD" | cut -d= -f2- | xargs echo
+}
+
 # Make sure OUTPUTNAME doesn't have .root since we add it manually
 OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
 
@@ -28,25 +32,30 @@ echo "NEVTS: $NEVTS"
 echo "EXPECTEDNEVTS: $EXPECTEDNEVTS"
 echo "OTHEROUTPUTS: $OTHEROUTPUTS"
 echo "PSETARGS: $PSETARGS"
-# echo "CLASSAD: $(cat $_CONDOR_JOB_AD)"
+# echo  CLASSAD: $(cat "$_CONDOR_JOB_AD")
 
 echo "GLIDEIN_CMSSite: $GLIDEIN_CMSSite"
 echo "hostname: $(hostname)"
 echo "uname -a: $(uname -a)"
 echo "time: $(date +%s)"
 echo "args: $@"
+echo "tag: $(getjobad tag)"
+echo "taskname: $(getjobad taskname)"
 
 echo -e "\n--- end header output ---\n" #                       <----- section division
 
-if [ -f "$OSG_APP"/cmssoft/cms/cmsset_default.sh ]; then
+if [ -r "$OSGVO_CMSSW_Path"/cmsset_default.sh ]; then
+    echo "sourcing environment: source $OSGVO_CMSSW_Path/cmsset_default.sh"
+    source "$OSGVO_CMSSW_Path"/cmsset_default.sh
+elif [ -r "$OSG_APP"/cmssoft/cms/cmsset_default.sh ]; then
     echo "sourcing environment: source $OSG_APP/cmssoft/cms/cmsset_default.sh"
     source "$OSG_APP"/cmssoft/cms/cmsset_default.sh
-elif [ -f /cvmfs/cms.cern.ch/cmsset_default.sh ]; then
+elif [ -r /cvmfs/cms.cern.ch/cmsset_default.sh ]; then
     echo "sourcing environment: source /cvmfs/cms.cern.ch/cmsset_default.sh"
     source /cvmfs/cms.cern.ch/cmsset_default.sh
 else
-    echo "ERROR! Couldn't find either /cvmfs/cms.cern.ch/cmsset_default.sh or $OSG_APP/cmssoft/cms/cmsset_default.sh"
-    exit 0
+    echo "ERROR! Couldn't find $OSGVO_CMSSW_Path/cmsset_default.sh or /cvmfs/cms.cern.ch/cmsset_default.sh or $OSG_APP/cmssoft/cms/cmsset_default.sh"
+    exit 1
 fi
 
 export SCRAM_ARCH=${SCRAMARCH}
@@ -120,11 +129,14 @@ cmsRun pset.py ${PSETARGS}
 if [ "$?" != "0" ]; then
     echo "Removing output file because cmsRun crashed with exit code $?"
     rm ${OUTPUTNAME}.root
+    exit 1
 fi
 
-# Add some metadata
-# Right now, total/negative event counts, but obviously extensible
-python << EOL
+if [ -z "$(getjobad metis_dontchecktree)" ]; then
+
+    # Add some metadata
+    # Right now, total/negative event counts, but obviously extensible
+    python << EOL
 import ROOT as r
 fin = r.TFile("${OUTPUTNAME}.root","update")
 t = fin.Get("Events")
@@ -140,10 +152,10 @@ t.Write("",r.TObject.kOverwrite)
 t.GetUserInfo().Print()
 EOL
 
-# Rigorous sweeproot which checks ALL branches for ALL events.
-# If GetEntry() returns -1, then there was an I/O problem, so we will delete it
-# Special consideration to ignore stupid CMSSW errors and old root versions
-python << EOL
+    # Rigorous sweeproot which checks ALL branches for ALL events.
+    # If GetEntry() returns -1, then there was an I/O problem, so we will delete it
+    # Special consideration to ignore stupid CMSSW errors and old root versions
+    python << EOL
 import ROOT as r
 import os
 import traceback
@@ -173,6 +185,10 @@ if foundBad:
 else: print "[RSR] passed the rigorous sweeproot"
 EOL
 
+else
+    echo "Not checking tree or adding metadata";
+fi
+
 echo -e "\n--- end running ---\n" #                             <----- section division
 
 echo "after running: ls -lrth"
@@ -183,6 +199,11 @@ ls -lrth
 echo -e "\n--- begin copying output ---\n" #                    <----- section division
 
 echo "Sending output file $OUTPUTNAME.root"
+
+if [ ! -e "$OUTPUTNAME.root" ]; then
+    echo "ERROR! Output $OUTPUTNAME.root doesn't exist"
+    exit 1
+fi
 
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
 COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
@@ -195,6 +216,7 @@ if [[ $COPY_STATUS != 0 ]]; then
     REMOVE_STATUS=$?
     if [[ $REMOVE_STATUS != 0 ]]; then
         echo "Uhh, gfal-copy crashed and then the gfal-rm also crashed with code $REMOVE_STATUS"
+        exit 1
     fi
 fi
 
