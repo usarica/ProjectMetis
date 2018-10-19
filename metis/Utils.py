@@ -298,6 +298,10 @@ when_to_transfer_output = ON_EXIT
     template += "{0}\n".format(requirements_line)
     if kwargs.get("stream_logs",False):
         template += "StreamOut=True\nstream_error=True\nTransferOut=True\nTransferErr=True\n"
+    for ad in kwargs.get("classads",[]):
+        if len(ad) != 2:
+            raise RuntimeError("This classad pair is not a 2-tuple: {0}".format(str(ad)))
+        template += '+{0}="{1}"\n'.format(*ad)
     do_extra = len(params["extra"]) == len(params["arguments"])
     if queue_multiple:
         template += "\n"

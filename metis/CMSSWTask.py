@@ -22,6 +22,7 @@ class CMSSWTask(CondorTask):
         self.input_executable = kwargs.get("executable", self.get_metis_base() + "metis/executables/condor_cmssw_exe.sh")
         self.other_outputs = kwargs.get("other_outputs", [])
         self.output_is_tree = kwargs.get("is_tree_output", True)
+        self.dont_check_tree = kwargs.get("dont_check_tree", False)
         self.publish_to_dis = kwargs.get("publish_to_dis", False)
         # Pass all of the kwargs to the parent class
         super(CMSSWTask, self).__init__(**kwargs)
@@ -104,6 +105,8 @@ class CMSSWTask(CondorTask):
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full, pset_full] if self.tarfile else [pset_full]
         extra = self.kwargs.get("condor_submit_params", {})
+        if self.dont_check_tree:
+            extra["classads"] = extra.get("classads",[]) + [["metis_dontchecktree",1]]
         return Utils.condor_submit(
                     executable=executable, arguments=v_arguments,
                     inputfiles=input_files, logdir=logdir_full,
@@ -185,7 +188,9 @@ if hasattr(process,"eventMaker"):
     process.eventMaker.CMS3tag = cms.string('{tag}')
     process.eventMaker.datasetName = cms.string('{dsname}')
     process.out.dropMetaData = cms.untracked.string("NONE")
+if hasattr(process,"GlobalTag"):
     process.GlobalTag.globaltag = "{gtag}"
+if hasattr(process,"MessageLogger"):
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 def set_output_name(outputname):
