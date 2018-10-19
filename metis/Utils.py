@@ -268,12 +268,15 @@ def condor_submit(**kwargs): # pragma: no cover
                 params["extra"] += '+{0}="{1}"\n'.format(*sel_pair)
 
     # if the sites only includes UAF, do not even bother giving a proxy
-    params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"]) if not(params["sites"] == "UAF") else ""
+    # params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"]) if not(params["sites"] == "UAF") else ""
+    params["proxyline"] = "x509userproxy={proxy}".format(proxy=params["proxy"])
 
     # requirements_line = "Requirements = HAS_SINGULARITY=?=True"
     # requirements_line = "Requirements = (HAS_CVMFS_cms_cern_ch =?= true)"
     requirements_line = "Requirements = (HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)"
     if kwargs.get("universe","").strip().lower() in ["local","uaf"]:
+        kwargs["requirements_line"] = "Requirements = "
+    if params["sites"].strip().lower() in ["ucsb","uaf","uaf,ucsb","ucsb,uaf"]:
         kwargs["requirements_line"] = "Requirements = "
     if kwargs.get("requirements_line","").strip():
         requirements_line = kwargs["requirements_line"]
