@@ -80,6 +80,11 @@ class File(object):
         else:
             raise Exception("Can't extract index from {0}".format(self.get_name()))
 
+    def get_filesizeMB(self):
+        if self.exists():
+            return os.stat(self.name).st_size / (1024.0**2)
+        else:
+            return -1
 
     def exists(self):
         """
@@ -241,6 +246,7 @@ class MutableFile(ImmutableFile):
                 os.system("chmod {0} {1}".format(tomod, self.name))
         else:
             return int(oct(os.stat(self.name).st_mode)[-3:])
+
 
 
 if __name__ == '__main__':
