@@ -5,6 +5,7 @@ from metis.File import File, MutableFile
 import metis.Utils as Utils
 
 import ROOT as r
+import time
 
 class LocalMergeTask(Task):
     def __init__(self, **kwargs):
@@ -16,6 +17,7 @@ class LocalMergeTask(Task):
         self.output_filename = kwargs.get("output_filename", [])
         self.io_mapping = kwargs.get("io_mapping", [])
         self.ignore_bad = kwargs.get("ignore_bad", False)
+        self.show_progress = kwargs.get("show_progress", True)
         self.update_mapping()
         super(self.__class__, self).__init__(**kwargs)
 
@@ -39,7 +41,6 @@ class LocalMergeTask(Task):
         self.logger.info("Begin processing")
         if not done:
             self.merge_function(self.get_inputs(), self.get_outputs()[0])
-            pass
         self.logger.info("End processing")
 
     def merge_function(self, inputs, output):
@@ -53,22 +54,42 @@ class LocalMergeTask(Task):
         # them up later, so do it nonlocally, sigh :(
         local = True
         if len(inputs) == 1: local = False
+        if len(inputs) < 5: self.show_progress = False
         fm = r.TFileMerger(local)
         fm.OutputFile(output.get_name())
         fm.SetFastMethod(True)
         fm.SetMaxOpenedFiles(400)
         fm.SetPrintLevel(0)
         ngood = 0
+        ntotal = len(inputs)
+        self.logger.info("Adding {0} files to be merged".format(ntotal))
+
+        if self.show_progress:
+            try:
+                from tqdm import tqdm
+                inputs = tqdm(inputs)
+            except: pass
+
+        t0 = time.time()
+
         for inp in inputs:
             if self.ignore_bad:
                 if not inp.exists(): continue
             ngood += fm.AddFile(inp.get_name(), False)
-        if not self.ignore_bad and (ngood != len(inputs)):
+            if self.show_progress:
+                fm.PartialMerge(r.TFileMerger.kIncremental | r.TFileMerger.kAll)
+
+        if not self.ignore_bad and (ngood != ntotal):
             MutableFile(output).rm()
-            raise RuntimeError("Trying to merge {0} files into {1}, but only {2} of them got included properly".format(len(inputs), output.get_name(), ngood))
-        self.logger.info("Added {0} files to be merged".format(len(inputs)))
-        fm.Merge()
-        self.logger.info("Done merging files into {0}".format(output.get_name()))
+            raise RuntimeError("Tried to merge {0} files into {1}, but only {2} of them got included properly".format(len(inputs), output.get_name(), ngood))
+
+        if not self.show_progress:
+            fm.Merge()
+
+        t1 = time.time()
+        sizemb = output.get_filesizeMB()
+
+        self.logger.info("Done merging files into {} ({:.1f}MB). Took {:.2f} secs @ {:.1f}MB/s".format(output.get_name(), sizemb, t1-t0, sizemb/(t1-t0)))
 
         # ch = r.TChain("t")
         # for inp in inputs:
