@@ -65,7 +65,6 @@ class UtilsTest(unittest.TestCase):
             )
         self.assertEqual("executable=blah.sh" in template, True)
         self.assertEqual("UAF" in template, True)
-        self.assertEqual("x509userproxy=" not in template, True)
 
     def test_condor_submit_template_multiple(self):
         template = Utils.condor_submit(
