@@ -5,6 +5,7 @@ import glob
 import time
 import datetime
 import os
+import fnmatch
 import json
 
 import scripts.dis_client as dis
@@ -84,6 +85,13 @@ class Sample(object):
             if len(response) > 1:
                 response = self.sort_query_by_timestamp(response)
 
+            if hasattr(self,"exclude_tag_pattern") and self.exclude_tag_pattern:
+                new_response = []
+                for samp in response:
+                    tag = samp.get("tag", samp.get("cms3tag", ""))
+                    if fnmatch.fnmatch(tag,self.exclude_tag_pattern): continue
+                    new_response.append(samp)
+                response = new_response
 
             self.info["gtag"] = response[0]["gtag"]
             self.info["kfact"] = response[0]["kfactor"]
@@ -289,12 +297,14 @@ class SNTSample(DirectorySample):
     """
     Sample object which queries DIS for SNT samples
     :kwarg read_only: if `False`, prevent DIS updating
+    :kwarg exclude_tag_pattern: skips samples from DIS with cms3tag matching pattern (must use globs, so `V08` won't work, but `*V08*` will)
     """
 
     def __init__(self, **kwargs):
 
         self.typ = kwargs.get("typ", "CMS3")
         self.read_only = kwargs.get("read_only", True)
+        self.exclude_tag_pattern = kwargs.get("exclude_tag_pattern", "")
 
         # Pass all of the kwargs to the parent class
         super(SNTSample, self).__init__(**kwargs)
