@@ -83,7 +83,8 @@ class Sample(object):
                 return False
 
             if len(response) > 1:
-                response = self.sort_query_by_timestamp(response)
+                # response = self.sort_query_by_key(response,"timestamp")
+                response = self.sort_query_by_key(response,"cms3tag")
 
             if hasattr(self,"exclude_tag_pattern") and self.exclude_tag_pattern:
                 new_response = []
@@ -151,9 +152,9 @@ class Sample(object):
             return (False, "analysis")
         return (True, None)
 
-    def sort_query_by_timestamp(self, response, descending=True):
+    def sort_query_by_key(self, response, key, descending=True):
         if type(response) is list:
-            return sorted(response, key=lambda k: k.get('timestamp', -1), reverse=descending)
+            return sorted(response, key=lambda k: k.get(key, -1), reverse=descending)
         else:
             return response
 
