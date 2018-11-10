@@ -34,6 +34,7 @@ SCRAMARCH: slc6_amd64_gcc530
 NEVTS: -1
 EXPECTEDNEVTS: 417325
 PSETARGS: data=True prompt=True
+GLIDEIN_CMSSite: T2_US_UCSD
 hostname: sdsc-7.t2.ucsd.edu
 uname -a: Linux sdsc-7.t2.ucsd.edu 2.6.32-642.15.1.el6.x86_64 #1 SMP Fri Feb 24 14:31:22 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
 time: 1500438186
@@ -112,20 +113,33 @@ Original exception info is above; fallback exception info is below.
 root://cmsxrootd.fnal.gov//store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/178/00000/B4EA24B5-D76B-E711-B724-02163E01A5D4.root failed to read the file type data.
 ----- End Fatal Exception -------------------------------------------------
 TimeReport> Time report complete in 10366.8 seconds
+ Time Summary: 
+ - Min event:   0.0573769
+ - Max event:   179.85
+ - Avg event:   0.494459
+ - Total loop:  901.289
+ - Total init:  44.3786
+ - Total job:   954.791
+ Event Throughput: 1.99825 ev/s
 """)
 
-    def test_log_parser(self):
-        correct = {'args': {'OUTPUTNAME': 'merged_ntuple', 'EXPECTEDNEVTS': '417325', 'IFILE': '15', 'hostname': 'sdsc-7.t2.ucsd.edu', 'args': '/hadoop/cms/store/user/namin/ProjectMetis/DoubleEG_Run2017B-PromptReco-v2_MINIAOD_CMS4_V00-00-03/ merged_ntuple /store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/149/00000/E04771E1-8A6B-E711-B3F9-02163E019E36.root 15 pset.py CMSSW_9_2_1 slc6_amd64_gcc530 -1 -1 417325 data=True prompt=True', 'PSETARGS': 'data=True prompt=True', 'uname -a': 'Linux sdsc-7.t2.ucsd.edu 2.6.32-642.15.1.el6.x86_64 #1 SMP Fri Feb 24 14:31:22 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux', 'SCRAMARCH': 'slc6_amd64_gcc530', 'PSET': 'pset.py', 'time': '1500438186', 'NEVTS': '-1', 'INPUTFILENAMES': '/store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/149/00000/E04771E1-8A6B-E711-B3F9-02163E019E36.root', 'OUTPUTDIR': '/hadoop/cms/store/user/namin/ProjectMetis/DoubleEG_Run2017B-PromptReco-v2_MINIAOD_CMS4_V00-00-03/', 'CMSSWVERSION': 'CMSSW_9_2_1'}, 'dstat': {'int': [18756.843, 40642.156, 47942.022], 'in': [468.259, 0.0, 0.0], 'out': [1465.344, 0.0, 0.0], 'siq': [0.11, 0.197, 0.257], 'wai': [3.143, 8.983, 8.553], 'recv': [0.0, 40076463.222, 37687526.667], 'send': [0.0, 32931954.2, 40025887.644], '5m': [27.66, 27.3, 27.34], 'epoch': [1500438213.025, 1500438258.069, 1500438303.069], 'usr': [60.427, 37.813, 39.496], 'csw': [30978.805, 33170.8, 45290.889], '1m': [29.07, 26.81, 27.6], 'buff': [917209088.0, 918683648.0, 919498752.0], 'hiq': [0.0, 0.0, 0.0], 'used': [44377088000.0, 43380412416.0, 44173221888.0], 'read': [21210735.889, 53032004.267, 47440054.044], 'free': [6249951232.0, 1608736768.0, 11979673600.0], 'sys': [2.728, 1.786, 3.016], '15m': [27.28, 27.18, 27.19], 'cach': [66722054144.0, 72358469632.0, 61193908224.0], 'date/time': ['18-07 21:23:33', '18-07 21:24:18', '18-07 21:25:03'], 'idl': [33.592, 51.222, 48.678], 'writ': [10072418.39, 13118941.867, 28163185.778]}}
-        self.assertEqual(LogParser.log_parser(self.outlog), correct)
-        self.assertEqual(LogParser.log_parser(self.errlog), correct)
+        cls.parsed = LogParser.log_parser(cls.errlog)
 
-    def test_infer_error(self):
-        self.assertEqual(LogParser.infer_error(self.errlog),"[FallbackFileOpenError] Fallback Input file root://cmsxrootd.fnal.gov//store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/178/00000/B4EA24B5-D76B-E711-B724-02163E01A5D4.root also could not be opened., Original exception info is above; fallback exception info is below., [c] Fatal Root Error: @SUB=TStorageFactoryFile::Init, root://cmsxrootd.fnal.gov//store/data/Run2017B/DoubleEG/MINIAOD/PromptReco-v2/000/299/178/00000/B4EA24B5-D76B-E711-B724-02163E01A5D4.root failed to read the file type data.")
+    def test_log_parser_header(self):
+        self.assertEqual(self.parsed["args"]["CMSSWVERSION"], "CMSSW_9_2_1")
+        self.assertEqual(self.parsed["args"]["OUTPUTNAME"], "merged_ntuple")
+        self.assertEqual(self.parsed["args"]["IFILE"], "15")
+        self.assertEqual(self.parsed["args"]["hostname"], "sdsc-7.t2.ucsd.edu")
+        self.assertEqual(self.parsed["args"]["time"], "1500438186")
 
-        self.assertEqual(LogParser.infer_error("does_not_exist.txt"),"")
+    def test_log_parser_site(self):
+        self.assertEqual(self.parsed["site"], "T2_US_UCSD")
 
-    def test_event_rate(self):
-        self.assertEqual(abs(LogParser.get_event_rate(self.errlog)-8.7965)<0.1, True)
+    def test_log_parser_error(self):
+        self.assertEqual("Fatal Root Error" in self.parsed["inferred_error"], True)
+
+    def test_log_parser_rate(self):
+        self.assertEqual(abs(self.parsed["event_rate"]-1.99825) < 1e-6, True)
 
 
 if __name__ == "__main__":

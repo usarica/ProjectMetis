@@ -29,50 +29,64 @@ class StatsParser(object):
             with Utils.locked_open(self.summary_fname,"r") as fhin:
                 self.data = json.load(fhin)
 
-    def do(self, custom_event_rate_parser=None):
+    def do(self, custom_event_rate_parser=None, no_write=False, show_progress_bar=True):
+
+        self.logger.info("Making summary for dashboard")
+
+        if show_progress_bar:
+            from tqdm import tqdm
 
         oldsummary = {}
         if os.path.isfile(self.summary_fname):
             with Utils.locked_open(self.summary_fname,"r") as fhin:
                 oldsummary = json.load(fhin)
-        with Utils.locked_open(self.summary_fname,"w") as fhdump:
-            oldsummary.update(self.data)
-            json.dump(oldsummary, fhdump)
+        if not no_write:
+            with Utils.locked_open(self.summary_fname,"w") as fhdump:
+                oldsummary.update(self.data)
+                json.dump(oldsummary, fhdump)
 
         summaries = self.data.copy()
 
         tasks = []
         # 5 minute quantization
         timestamp = int(time.time()/300)*300
-        for dsname in summaries.keys():
+        # dsnames = summaries.keys() if not show_progress_bar else tqdm(summaries.keys(), position=0)
+        dsnames = summaries.keys() if not show_progress_bar else tqdm(summaries.keys())
+        for dsname in dsnames:
 
             tasksummary = summaries[dsname]
             sample = summaries[dsname]["jobs"]
             outnevents = 0
             queriednevents = summaries[dsname]["queried_nevents"]
             task_type = summaries[dsname].get("task_type", "Task")
+            is_cmssw = "CMSSW" in task_type
             logs_to_plot = []
             bad_jobs = {}
             njobs = len(sample.keys())
             njobsdone = 0
             event_rates = []
-            for iout in sample.keys():
+            # iouts = sample.keys() if not show_progress_bar else tqdm(sample.keys(), position=1)
+            iouts = sample.keys()
+            for iout in iouts:
                 job = sample[iout]
 
-                is_done  = job["output_exists"] and not job["is_on_condor"]
                 condor_jobs = job["condor_jobs"]
                 if not len(condor_jobs): continue
 
+                is_done  = job["output_exists"] and not job["is_on_condor"]
+
                 if is_done:
                     outnevents += job["output"][1]
+                    parsed = {}
                     if custom_event_rate_parser:
                         errlog = condor_jobs[-1]["logfile_err"]
                         rate = custom_event_rate_parser(errlog)
                         if rate > 0.:
                             event_rates.append(rate)
-                    elif "CMSSW" in task_type and len(condor_jobs) > 0:
+                    elif is_cmssw and len(condor_jobs) > 0:
                         errlog = condor_jobs[-1]["logfile_err"]
-                        rate = LogParser.get_event_rate(errlog)
+                        parsed = LogParser.log_parser(errlog,do_header=False,do_error=False,do_rate=True)
+                        rate = parsed["event_rate"]
                         if rate > 0.:
                             event_rates.append(rate)
                     njobsdone += 1
@@ -86,17 +100,18 @@ class StatsParser(object):
                 last_error = ""
                 last_log = ""
                 last_sites = []
-                if retries >= 1:
-                    for ijob in range(len(condor_jobs)-1):
-                        outlog = condor_jobs[ijob]["logfile_out"]
-                        errlog = condor_jobs[ijob]["logfile_err"]
-                        logs_to_plot.append(outlog)
-                        site = LogParser.get_site(outlog)
-                        last_sites.append(site if site else "")
-                    last_error = LogParser.infer_error(errlog)
-                    last_log = outlog
-
                 if retries < 1: continue
+
+                parsed = {}
+                for ijob in range(len(condor_jobs)-1):
+                    outlog = condor_jobs[ijob]["logfile_out"]
+                    errlog = condor_jobs[ijob]["logfile_err"]
+                    logs_to_plot.append(outlog)
+                    parsed = LogParser.log_parser(errlog,do_header=True,do_error=True,do_rate=False)
+                    site = parsed["site"]
+                    last_sites.append(site if site else "")
+                last_error = parsed.get("inferred_error","")
+                last_log = outlog
                 bad_jobs[iout] = {
                         "retries":retries,
                         "inputs":len(inputs),
@@ -189,11 +204,12 @@ class StatsParser(object):
                     # could be because the summary file is just empty
                     pass
 
-        self.make_dashboard(d_web_summary)
+        if not no_write:
+            self.make_dashboard(d_web_summary)
 
-        relpath = self.webdir.split("public_html/")[1]
-        url = "http://{0}/~{1}/{2}".format(os.uname()[1],os.getenv("USER"),relpath)
-        self.logger.info("Updated dashboard at {0}".format(url))
+            relpath = self.webdir.split("public_html/")[1]
+            url = "http://{0}/~{1}/{2}".format(os.uname()[1],os.getenv("USER"),relpath)
+            self.logger.info("Updated dashboard at {0}".format(url))
                     
     def make_dashboard(self, d_web_summary):
 
