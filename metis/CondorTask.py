@@ -444,7 +444,12 @@ class CondorTask(Task):
                      index, cmssw_ver, scramarch, self.arguments]
                      for (index,inputs_commasep) in zip(v_index,v_inputs_commasep)]
         v_selection_pairs = [
-                [["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]] 
+                [
+                    ["taskname", self.unique_name],
+                    ["jobnum", index],
+                    ["tag", self.tag],
+                    ["metis_retries", len(self.job_submission_history.get(index,[]))],
+                    ] 
                 for index in v_index
                 ]
 
@@ -462,28 +467,28 @@ class CondorTask(Task):
                )
 
 
-    def submit_condor_job(self, ins, out, fake=False):
+    # def submit_condor_job(self, ins, out, fake=False):
 
-        outdir = self.output_dir
-        outname_noext = self.output_name.rsplit(".", 1)[0]
-        inputs_commasep = ",".join(map(lambda x: x.get_name(), ins))
-        index = out.get_index()
-        cmssw_ver = self.cmssw_version
-        scramarch = self.scram_arch
-        executable = self.executable_path
-        arguments = [outdir, outname_noext, inputs_commasep,
-                     index, cmssw_ver, scramarch, self.arguments]
-        logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
-        package_full = os.path.abspath(self.package_path)
-        input_files = [package_full] if self.tarfile else []
-        input_files += self.additional_input_files
-        extra = self.kwargs.get("condor_submit_params", {})
-        return Utils.condor_submit(
-                    executable=executable, arguments=arguments,
-                    inputfiles=input_files, logdir=logdir_full,
-                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]],
-                    fake=fake, **extra
-               )
+    #     outdir = self.output_dir
+    #     outname_noext = self.output_name.rsplit(".", 1)[0]
+    #     inputs_commasep = ",".join(map(lambda x: x.get_name(), ins))
+    #     index = out.get_index()
+    #     cmssw_ver = self.cmssw_version
+    #     scramarch = self.scram_arch
+    #     executable = self.executable_path
+    #     arguments = [outdir, outname_noext, inputs_commasep,
+    #                  index, cmssw_ver, scramarch, self.arguments]
+    #     logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
+    #     package_full = os.path.abspath(self.package_path)
+    #     input_files = [package_full] if self.tarfile else []
+    #     input_files += self.additional_input_files
+    #     extra = self.kwargs.get("condor_submit_params", {})
+    #     return Utils.condor_submit(
+    #                 executable=executable, arguments=arguments,
+    #                 inputfiles=input_files, logdir=logdir_full,
+    #                 selection_pairs=[["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]],
+    #                 fake=fake, **extra
+    #            )
 
 
     def prepare_inputs(self):

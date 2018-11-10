@@ -98,7 +98,12 @@ class CMSSWTask(CondorTask):
                      nevts, firstevt, expectedevents, other_outputs, pset_args]
                      for (index,inputs_commasep,firstevt,expectedevents) in zip(v_index,v_inputs_commasep,v_firstevt,v_expectedevents)]
         v_selection_pairs = [
-                [["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]] 
+                [
+                    ["taskname", self.unique_name],
+                    ["jobnum", index],
+                    ["tag", self.tag],
+                    ["metis_retries", len(self.job_submission_history.get(index,[]))],
+                    ] 
                 for index in v_index
                 ]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
@@ -115,48 +120,48 @@ class CMSSWTask(CondorTask):
                     fake=fake, **extra
                )
 
-    def submit_condor_job(self, ins, out, fake=False):
+    # def submit_condor_job(self, ins, out, fake=False):
 
-        outdir = self.output_dir
-        outname_noext = self.output_name.rsplit(".", 1)[0]
-        inputs_commasep = ",".join(map(lambda x: x.get_name(), ins))
-        index = out.get_index()
-        pset_full = os.path.abspath(self.pset_path)
-        pset_basename = os.path.basename(self.pset_path)
-        cmssw_ver = self.cmssw_version
-        scramarch = self.scram_arch
-        max_nevents_per_job = self.kwargs.get("max_nevents_per_job", -1)
-        nevts = max_nevents_per_job
-        firstevt = -1
-        expectedevents = -1
-        if self.check_expectedevents:
-            expectedevents = out.get_nevents()
-            if max_nevents_per_job > 0:
-                expectedevents = max_nevents_per_job
+    #     outdir = self.output_dir
+    #     outname_noext = self.output_name.rsplit(".", 1)[0]
+    #     inputs_commasep = ",".join(map(lambda x: x.get_name(), ins))
+    #     index = out.get_index()
+    #     pset_full = os.path.abspath(self.pset_path)
+    #     pset_basename = os.path.basename(self.pset_path)
+    #     cmssw_ver = self.cmssw_version
+    #     scramarch = self.scram_arch
+    #     max_nevents_per_job = self.kwargs.get("max_nevents_per_job", -1)
+    #     nevts = max_nevents_per_job
+    #     firstevt = -1
+    #     expectedevents = -1
+    #     if self.check_expectedevents:
+    #         expectedevents = out.get_nevents()
+    #         if max_nevents_per_job > 0:
+    #             expectedevents = max_nevents_per_job
 
-        if self.split_within_files:
-            nevts = self.events_per_output
-            firstevt = 1 + (index - 1) * (self.events_per_output+1)
-            expectedevents = -1
-            inputs_commasep = "dummyfile"
-        pset_args = self.pset_args
-        executable = self.executable_path
-        other_outputs = ",".join(self.other_outputs) or "None"
-        # note that pset_args must be the last argument since it can have spaces
-        # check executables/condor_cmssw_exe.sh to see why
-        arguments = [outdir, outname_noext, inputs_commasep,
-                     index, pset_basename, cmssw_ver, scramarch,
-                     nevts, firstevt, expectedevents, other_outputs, pset_args]
-        logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
-        package_full = os.path.abspath(self.package_path)
-        input_files = [package_full, pset_full] if self.tarfile else [pset_full]
-        extra = self.kwargs.get("condor_submit_params", {})
-        return Utils.condor_submit(
-                    executable=executable, arguments=arguments,
-                    inputfiles=input_files, logdir=logdir_full,
-                    selection_pairs=[["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]],
-                    fake=fake, **extra
-               )
+    #     if self.split_within_files:
+    #         nevts = self.events_per_output
+    #         firstevt = 1 + (index - 1) * (self.events_per_output+1)
+    #         expectedevents = -1
+    #         inputs_commasep = "dummyfile"
+    #     pset_args = self.pset_args
+    #     executable = self.executable_path
+    #     other_outputs = ",".join(self.other_outputs) or "None"
+    #     # note that pset_args must be the last argument since it can have spaces
+    #     # check executables/condor_cmssw_exe.sh to see why
+    #     arguments = [outdir, outname_noext, inputs_commasep,
+    #                  index, pset_basename, cmssw_ver, scramarch,
+    #                  nevts, firstevt, expectedevents, other_outputs, pset_args]
+    #     logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
+    #     package_full = os.path.abspath(self.package_path)
+    #     input_files = [package_full, pset_full] if self.tarfile else [pset_full]
+    #     extra = self.kwargs.get("condor_submit_params", {})
+    #     return Utils.condor_submit(
+    #                 executable=executable, arguments=arguments,
+    #                 inputfiles=input_files, logdir=logdir_full,
+    #                 selection_pairs=[["taskname", self.unique_name], ["jobnum", index], ["tag", self.tag]],
+    #                 fake=fake, **extra
+    #            )
 
 
     def prepare_inputs(self):
