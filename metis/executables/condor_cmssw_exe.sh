@@ -205,6 +205,8 @@ if [ ! -e "$OUTPUTNAME.root" ]; then
     exit 1
 fi
 
+echo "time before copy: $(date +%s)"
+
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
 COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
 echo "Running: env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 4200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
@@ -232,6 +234,8 @@ echo -e "\n--- end copying output ---\n" #                      <----- section d
 echo -e "\n--- begin dstat output ---\n" #                      <----- section division
 # cat dsout.csv
 echo -e "\n--- end dstat output ---\n" #                        <----- section division
+
+echo "time at end: $(date +%s)"
 # kill %1 # kill dstat
 
 # cd ../
