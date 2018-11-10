@@ -13,6 +13,7 @@ from metis.File import File
 class CondorWorkflowTest(unittest.TestCase):
 
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
     def test_full(self):
         """

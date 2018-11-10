@@ -58,7 +58,7 @@ class DummyMoveWorkflowTest(unittest.TestCase):
         while not p1.complete():
             p1.process()
 
-            time.sleep(0.1)
+            time.sleep(0.02)
 
         self.assertEqual(p1.complete(), True)
 

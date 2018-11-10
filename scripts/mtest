@@ -4,6 +4,7 @@ import argparse
 import unittest
 import metis.Utils as Utils
 import time
+import os
 
 class TimingTextTestResult(unittest.TextTestResult):
     t0 = 0.
@@ -67,8 +68,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbosity", help="verbosity level (1 or 2)", default=2)
-    parser.add_argument("-p", "--pattern", help="test file pattern enclosed in quotes", default="*.py")
+    parser.add_argument("-p", "--pattern", help="test file globber enclosed in quotes (e.g., *Log*py)", default="*.py")
+    parser.add_argument("-f", "--fast", help="skip longer unittests (condor, gfalcopy, etc)", action="store_true")
 
     args = parser.parse_args()
 
+    if args.fast:
+        os.environ["FAST"] = "1"
     main(args)

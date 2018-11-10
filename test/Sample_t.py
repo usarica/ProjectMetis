@@ -35,20 +35,22 @@ class SampleTest(unittest.TestCase):
 
     def test_sort_responses(self):
         responses = [
-                {"timestamp": 2},
-                {"timestamp": 1},
-                {"timestamp": 3},
+                {"index": 1, "timestamp": 2, "cms3tag": "CMS4_V08-01-03"},
+                {"index": 2, "timestamp": 1, "cms3tag": "CMS4_V08-01-02"},
+                {"index": 3, "timestamp": 3, "cms3tag": "CMS4_V08-01-01"},
                 ]
-        def get_values(listofdicts):
-            return list(map(lambda x: list(x.values())[0], listofdicts))
+        def get_indices(listofdicts):
+            return list(map(lambda x: x["index"], listofdicts))
         samp = Sample(dataset="/blah/blah/BLAH/")
-        self.assertEqual(get_values(samp.sort_query_by_timestamp(responses, descending=True)), [3,2,1])
-        self.assertEqual(get_values(samp.sort_query_by_timestamp(responses, descending=False)), [1,2,3])
-        self.assertEqual(samp.sort_query_by_timestamp({}), {})
+        self.assertEqual(get_indices(samp.sort_query_by_key(responses, "timestamp", descending=True)), [3,1,2])
+        self.assertEqual(get_indices(samp.sort_query_by_key(responses, "cms3tag", descending=True)), [1,2,3])
+        self.assertEqual(get_indices(samp.sort_query_by_key(responses, "cms3tag", descending=False)), [3,2,1])
+        self.assertEqual(samp.sort_query_by_key({},""), {})
 
 
 class DBSSampleTest(unittest.TestCase):
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
     def test_queries(self):
         dsname = "/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"
@@ -93,6 +95,7 @@ class DirectorySampleTest(unittest.TestCase):
 
 class SNTSampleTest(unittest.TestCase):
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
     def test_everything(self):
         nfiles = 5

@@ -83,7 +83,7 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(template.count("arguments"),3)
         self.assertEqual(template.count("queue"),3)
 
-    # @unittest.skip("skipped due to sleep")
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
     def test_condor_submission_output_local(self):
         """
@@ -111,7 +111,7 @@ class UtilsTest(unittest.TestCase):
                 break
         self.assertEqual(found_it, True)
 
-    # @unittest.skip("skipped due to sleep")
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
     def test_condor_submission_output_local_multiple(self):
         """
@@ -140,6 +140,7 @@ class UtilsTest(unittest.TestCase):
                 break
         self.assertEqual(found_it, True)
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf("uaf-" not in os.uname()[1], "Condor only testable on UAF")
     def test_condor_submission_and_status(self):
         basedir = "/tmp/{0}/metis/condor_test/".format(os.getenv("USER"))
@@ -188,6 +189,7 @@ ls -l
     def test_metis_base(self):
         self.assertEqual(Utils.metis_base(),os.environ.get("METIS_BASE",".")+"/")
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf("uaf-" not in os.uname()[1], "gfal-copy only testable on UAF")
     def test_gfal_copy(self):
 

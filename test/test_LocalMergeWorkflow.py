@@ -13,6 +13,7 @@ from pprint import pprint
 
 class LocalMergeWorkflowTest(unittest.TestCase):
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf("uaf-" not in os.uname()[1], "ROOT only on UAF")
     def test_workflow(self):
 
