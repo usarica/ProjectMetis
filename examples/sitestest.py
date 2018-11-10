@@ -1,7 +1,10 @@
 import time
 import os
+import glob
+import pickle
 
 import datetime
+import re
 
 from metis.File import MutableFile
 from metis.Sample import FilelistSample
@@ -16,7 +19,20 @@ between a dummy pset and a cms4 pset.
 * Run it again. Some red should be green now.
 """
 
+"""
+#!/usr/bin/env bash
+source /code/osgcode/cmssoft/cms/cmsset_default.sh
+cd /cvmfs/cms.cern.ch/slc6_amd64_gcc630/cms/cmssw/CMSSW_9_4_9; cmsenv; cd -
+cd /home/users/namin/2017/ProjectMetis/
+export METIS_BASE=`pwd`
+export PYTHONPATH=`pwd`:$PYTHONPATH
+export PATH=`pwd`/scripts:$PATH
+cd dailychecker
+python sitestest.py >> log_sitestest.txt
+"""
+
 def print_summary_string(statuses):
+    print "Summary: ",
     for site,done in sorted(statuses.items()):
         col = "\033[00;32m"
         if not done:
@@ -33,7 +49,7 @@ def get_task_fast(daystr,site):
                 filelist=[["/store/user/namin/test/68753E9C-6D5E-E811-BC40-24BE05C4D821.root", 3334]],
                 ),
             output_name = "output.root",
-            tag = "v0",
+            tag = "v1_{}".format(daystr),
             pset = "pset_dummy.py",
             cmssw_version = "CMSSW_9_4_9",
             special_dir = "metis_site_tests/{}/".format(daystr),
@@ -47,10 +63,11 @@ def get_task_cms4(daystr,site):
             sample = FilelistSample(
                 dataset="/SiteTest/{}/CMS4".format(site),
                 # copied a single miniaod file to hadoop and put the proper event count here
-                filelist=[["/store/user/namin/test/68753E9C-6D5E-E811-BC40-24BE05C4D821.root", 3334]],
+                # filelist=[["/store/user/namin/test/68753E9C-6D5E-E811-BC40-24BE05C4D821.root", 3334]],
+                filelist=[["/store/mc/RunIIFall17MiniAODv2/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v3/10000/0E0FEA9A-DDA4-E811-98CE-008CFAF554D2.root", 1122]],
                 ),
             output_name = "output.root",
-            tag = "v0_{}".format(daystr),
+            tag = "v1_{}".format(daystr),
             pset = "psets_cms4/main_pset_V09-04-17_fast.py",
             pset_args = "data=False",
             cmssw_version = "CMSSW_9_4_9",
@@ -62,16 +79,131 @@ def get_task_cms4(daystr,site):
                 "sites":site,
                 # "requirements_line":"Requirements =",
                 },
-            recopy_inputs = True,
+            # recopy_inputs = True,
     )
+
+def get_parsed_info(globber="tasks/CMSSWTask*v1*/*.pkl"):
+
+    def get_dtobj(pf):
+        return datetime.datetime.strptime(re.findall(r"[0-9]{4}-[0-9]{2}-[0-9]{2}",pf)[0],"%Y-%m-%d")
+
+    def get_sitename(pf):
+        return pf.split("SiteTest_",1)[1].split("_CMS4",1)[0]
+
+    def parse(pf):
+        with open(pf,"r") as fh:
+            data = pickle.load(fh)
+        dirpath = pf.rsplit("/",1)[0]
+        _, ver, datestr = dirpath.rsplit("_",2)
+        sitename = get_sitename(pf)
+        jobs = data["job_submission_history"].values()[0]
+        output = data["io_mapping"][0][1]
+        ret = dict(
+                sitename=sitename,
+                pf=pf,
+                dirpath=dirpath,
+                version=ver,
+                datestr=datestr,
+                dt=get_dtobj(pf),
+                output=output.get_name(),
+                output_exists=output.exists(),
+                nretries=max(len(jobs)-1,0),
+                jobs=jobs,
+                )
+        return ret
+
+    already_parsed = []
+    try:
+        with open("parsed.pkl","r") as fhin:
+            already_parsed = pickle.load(fhin)
+    except: pass
+    print "Already parsed {} tasks".format(len(already_parsed))
+    already_parsed_pairs = map(lambda x:(x["sitename"], x["dt"]), already_parsed)
+    pfs = glob.glob(globber)
+    now = datetime.datetime.now()
+    toparse = [pf for pf in pfs if 
+            ((get_sitename(pf),get_dtobj(pf)) not in already_parsed_pairs) or ((get_dtobj(pf)-now).days<=1)
+            ]
+    print "Parsing {} new tasks".format(len(toparse))
+    with open("parsed.pkl","w") as fhout:
+        already_parsed += map(parse,toparse)
+        pickle.dump(already_parsed, fhout)
+    return already_parsed
+
+def write_html_table(fname="badsites.html"):
+    info = get_parsed_info()
+    slimmed = {}
+    for d in info:
+        slimmed[(d["sitename"],d["dt"])] = {
+                "dt": d["dt"],
+                "site": d["sitename"],
+                "good": d["output_exists"],
+                "nretries": d["nretries"],
+                }
+    all_sites = sorted(set([x["site"] for x in slimmed.values()]))
+    all_dtobjs = sorted(set([x["dt"] for x in slimmed.values()]))[::-1]
+
+    buff = "<html>\n"
+    buff += """
+    <head>
+    <style>
+    table {
+    }
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        text-align: center;
+        font-size: 90%;
+    }
+    .good {
+        background-color: #a1d2a7;
+    }
+    .bad {
+        background-color: #ffb2b5;
+    }
+    .meh {
+        background-color: #FFD981;
+    }
+    </style>
+    </head>
+    """
+    buff += "<span class='good'>success</span>\n"
+    buff += "<span class='meh'>success (with >0 retries)</span>\n"
+    buff += "<span class='bad'>failed</span>\n"
+    buff += "<table>\n"
+    buff += "  <tr>\n"
+    for site in [""]+all_sites:
+        buff += "    <th>{}</th>\n".format(site)
+    buff += "  </tr>\n"
+    for dtobj in all_dtobjs:
+        buff += " <tr>\n"
+        buff += "    <th>{}</th>\n".format(dtobj.strftime("%Y-%m-%d"))
+        for site in all_sites:
+            pair = (site,dtobj)
+            cell = ""
+            cls = ""
+            if pair in slimmed:
+                d = slimmed[pair]
+                if not d["good"]:
+                    cell = "{} retries".format(d["nretries"])
+                    cls = "bad"
+                else:
+                    cell = "{} retries".format(d["nretries"]) if (d["nretries"] or not d["good"]) else ""
+                    cls = "good" if d["nretries"] == 0 else "meh"
+            buff += "    <td class=\"{}\">{}</td>\n".format(cls,cell)
+        buff += "  </tr>\n"
+    buff += "</table>\n"
+    buff += "</html>\n"
+    with open(fname,"w") as fh:
+        fh.write(buff)
+    print "Wrote {}".format(fname)
+
 
 if __name__ == "__main__":
 
     # daystr = (datetime.datetime.now()-datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     daystr = datetime.datetime.now().strftime("%Y-%m-%d")
-
     sites = [
-
             "T2_US_UCSD",
             "T2_US_Caltech",
             "T2_US_Wisconsin",
@@ -87,9 +219,7 @@ if __name__ == "__main__":
             "T3_US_Colorado",
             "T3_US_NotreDame",
             "T3_US_UCR",
-
             ]
-
     # time.sleep(60)
     statuses = {}
     for site in sites:
@@ -100,3 +230,6 @@ if __name__ == "__main__":
             task.process()
         statuses[site] = isdone
     print_summary_string(statuses)
+
+    write_html_table("badsites.html")
+    os.system("cp badsites.html ~/public_html/dump/")
