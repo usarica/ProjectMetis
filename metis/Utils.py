@@ -52,7 +52,7 @@ def time_it(method): # pragma: no cover
 
         # print '%r (%r, %r) %2.2f sec' % \
         #       (method.__name__, args, kw, te-ts)
-        print('%r %2.2f sec' % \
+        print('%r %2.4f sec' % \
               (method.__name__, te-ts))
         return result
 
@@ -156,13 +156,14 @@ def setup_logger(logger_name="logger_metis"): # pragma: no cover
     logger.addHandler(ch)
     return logger_name
 
-def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]):
+def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None):
     """
     Return list of dicts with items for each of the columns
     - Selection pair is a list of pairs of [variable_name, variable_value]
     to identify certain condor jobs (no selection by default)
     - Empty string for user can be passed to show all jobs
     - If cluster_id is specified, only that job will be matched
+    - If schedd specified (e.g., "uaf-4.t2.ucsd.edu", condor_q will query that machine instead of the current one (`hostname`))
     """
 
     # These are the condor_q -l row names
@@ -181,7 +182,10 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
             selection_str += " -const '{0}==\"{1}\"'".format(*sel_pair)
 
     # Constraint ignores removed jobs ("X")
-    cmd = "condor_q {0} {1} -constraint 'JobStatus != 3' -autoformat:t {2} {3}".format(user, cluster_id, columns_str,selection_str)
+    extra_cli = ""
+    if schedd:
+        extra_cli += " -name {} ".format(schedd)
+    cmd = "condor_q {0} {1} {2} -constraint 'JobStatus != 3' -autoformat:t {3} {4}".format(user, cluster_id, extra_cli, columns_str,selection_str)
     output = do_cmd(cmd)
 
     jobs = []
@@ -236,8 +240,29 @@ def condor_submit(**kwargs): # pragma: no cover
     if "/" not in os.path.normpath(params["executable"]):
         exe_dir = "."
 
+    # http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
+    good_sites = [
+                "T2_US_Caltech",
+                "T2_US_UCSD",
+                "T3_US_UCR",
+                "UCSB",
+                "T3_US_OSG",
+
+                "T2_US_Florida",
+                "T2_US_MIT",
+                "T2_US_Nebraska",
+                "T2_US_Purdue",
+                "T2_US_Vanderbilt",
+                "T2_US_Wisconsin",
+                "T3_US_Baylor",
+                "T3_US_Colorado",
+                "T3_US_NotreDame",
+                # "UAF", # bad (don't spam uafs!!)
+            ]
+
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech,T2_US_MIT,T2_US_Purdue")
-    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Caltech,T2_US_Wisconsin,T2_US_MIT")
+    # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Caltech,T2_US_Wisconsin,T2_US_MIT")
+    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites",",".join(good_sites))
     else: params["sites"] = kwargs.get("sites","T2_US_UCSD")
     # if os.getenv("USER") in ["namin"] and "T2_US_UCSD" in params["sites"]:
     #     params["sites"] += ",UAF,UCSB"
@@ -321,7 +346,11 @@ when_to_transfer_output = ON_EXIT
     with open("{0}/submit.cmd".format(exe_dir),"w") as fhout:
         fhout.write(template.format(**params))
 
-    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/submit.cmd ".format(params["logdir"],exe_dir))
+    extra_cli = ""
+    schedd = kwargs.get("schedd","") # see note in condor_q about `schedd`
+    if schedd:
+        extra_cli += " -name {} ".format(schedd)
+    out = do_cmd("mkdir -p {0}/std_logs/  ; condor_submit {1}/submit.cmd {2}".format(params["logdir"],exe_dir,extra_cli))
 
     succeeded = False
     cluster_id = -1
