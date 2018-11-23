@@ -236,6 +236,7 @@ class CondorTask(Task):
         Return bool for completion, or fraction if
         return_fraction specified as True
         """
+        self.recache_outputs()
         bools = list(map(lambda output: output.get_status() == Constants.DONE, self.get_outputs()))
         if len(bools) == 0:
             frac = 0.
@@ -275,18 +276,12 @@ class CondorTask(Task):
             self.logger.info("Tail root file {} removed".format(fname))
         self.io_mapping = new_mapping
 
-    def run(self, fake=False):
+    def recache_outputs(self):
         """
-        Main logic for looping through (inputs,output) pairs. In this
-        case, this is where we submit, resubmit, etc. to condor
-        If fake is True, then we mark the outputs as done and never submit
+        Reset file existence cache value for files that used to exist (maybe we
+        deleted and want to regenerate them). This saves time so we don't `ls`
+        every file every iteration of the submission loop
         """
-        condor_job_dicts = self.get_running_condor_jobs()
-        condor_job_indices = set([int(rj["jobnum"]) for rj in condor_job_dicts])
-
-        # reset file existence cache value for files that used to exist (maybe we
-        # deleted and want to regenerate them)
-        # this saves time so we don't `ls` every file every iteration
         nfiles_reset = 0
         if self.io_mapping:
             # get first output
@@ -299,6 +294,18 @@ class CondorTask(Task):
                     # file apparently exists (according to cache), but not actually there, so reset cache
                     out.recheck()
                     nfiles_reset += 1
+        return nfiles_reset
+
+    def run(self, fake=False):
+        """
+        Main logic for looping through (inputs,output) pairs. In this
+        case, this is where we submit, resubmit, etc. to condor
+        If fake is True, then we mark the outputs as done and never submit
+        """
+        condor_job_dicts = self.get_running_condor_jobs()
+        condor_job_indices = set([int(rj["jobnum"]) for rj in condor_job_dicts])
+
+        nfiles_reset = self.recache_outputs()
         if nfiles_reset > 0:
             self.logger.info("{0} files may have been deleted".format(nfiles_reset))
 
