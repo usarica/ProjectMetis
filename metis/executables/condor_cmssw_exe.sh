@@ -16,6 +16,26 @@ PSETARGS="${@:12}" # since args can have spaces, we take 10th-->last argument as
 function getjobad {
     grep -i "^$1" "$_CONDOR_JOB_AD" | cut -d= -f2- | xargs echo
 }
+function setup_chirp {
+    if [ -e /usr/libexec/condor/condor_chirp ]; then
+        export PATH="$PATH:/usr/libexec/condor"
+        echo "[chirp] Found condor_chirp in /usr/libexec/condor"
+    # elif [ -e ../chirpstuff.tar.xz ]; then
+    #     mv ../chirpstuff.tar.xz .
+    #     tar xf chirpstuff.tar.xz
+    #     export PATH="$PATH:$(pwd)/chirpstuff"
+    #     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/chirpstuff"
+    #     echo "[chirp] Put condor_chirp in chirpstuff/"
+    else
+        echo "[chirp] No condor_chirp :("
+    fi
+}
+function chirp {
+    # Note, $1 (the classad name) must start with Chirp
+    condor_chirp set_job_attr_delayed $1 $2
+    ret=$?
+    echo "[chirp] Chirped $1 => $2 with exit code $ret"
+}
 
 # Make sure OUTPUTNAME doesn't have .root since we add it manually
 OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
@@ -92,6 +112,7 @@ else
     [ -e package.tar.gz ] && tar xf package.tar.gz
 fi
 
+setup_chirp
 
 # # logging every 45 seconds gives ~100kb log file/3 hours
 # dstat -cdngytlmrs --float --nocolor -T --output dsout.csv 180 >& /dev/null &
@@ -124,13 +145,22 @@ ls -lrth
 
 echo -e "\n--- begin running ---\n" #                           <----- section division
 
+chirp ChirpMetisExpectedNevents $EXPECTEDNEVTS
+
+chirp ChirpMetisStatus "before_cmsRun"
+chirp ChirpMetisLastChirped $(date +%s)
+
 cmsRun pset.py ${PSETARGS}
+
+chirp ChirpMetisStatus "after_cmsRun"
+chirp ChirpMetisLastChirped $(date +%s)
 
 if [ "$?" != "0" ]; then
     echo "Removing output file because cmsRun crashed with exit code $?"
     rm ${OUTPUTNAME}.root
     exit 1
 fi
+
 
 if [ -z "$(getjobad metis_dontchecktree)" ]; then
 
@@ -206,6 +236,8 @@ if [ ! -e "$OUTPUTNAME.root" ]; then
 fi
 
 echo "time before copy: $(date +%s)"
+chirp ChirpMetisStatus "before_copy"
+chirp ChirpMetisLastChirped $(date +%s)
 
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
 COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
@@ -236,9 +268,7 @@ echo -e "\n--- begin dstat output ---\n" #                      <----- section d
 echo -e "\n--- end dstat output ---\n" #                        <----- section division
 
 echo "time at end: $(date +%s)"
-# kill %1 # kill dstat
 
-# cd ../
-# echo "cleaning up"
-# rm -rf CMSSW*
+chirp ChirpMetisStatus "done"
+chirp ChirpMetisLastChirped $(date +%s)
 
