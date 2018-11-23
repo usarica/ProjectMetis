@@ -3,6 +3,7 @@ from __future__ import print_function
 import math
 import time                                                
 import os
+import json
 try:
     import commands
 except:
@@ -156,7 +157,7 @@ def setup_logger(logger_name="logger_metis"): # pragma: no cover
     logger.addHandler(ch)
     return logger_name
 
-def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None):
+def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None,do_long=False):
     """
     Return list of dicts with items for each of the columns
     - Selection pair is a list of pairs of [variable_name, variable_value]
@@ -164,6 +165,7 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
     - Empty string for user can be passed to show all jobs
     - If cluster_id is specified, only that job will be matched
     - If schedd specified (e.g., "uaf-4.t2.ucsd.edu", condor_q will query that machine instead of the current one (`hostname`))
+    - If `do_long`, basically do condor_q -l (and use -json for slight speedup)
     """
 
     # These are the condor_q -l row names
@@ -185,17 +187,27 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
     extra_cli = ""
     if schedd:
         extra_cli += " -name {} ".format(schedd)
-    cmd = "condor_q {0} {1} {2} -constraint 'JobStatus != 3' -autoformat:t {3} {4}".format(user, cluster_id, extra_cli, columns_str,selection_str)
-    output = do_cmd(cmd)
 
     jobs = []
-    for line in output.splitlines():
-        parts = line.split("\t")
-        if len(parts) == len(columns):
-            tmp = dict(zip(columns, parts))
-            tmp["JobStatus"] = status_LUT.get( int(tmp.get("JobStatus",0)),"U" ) if tmp.get("JobStatus",0).isdigit() else "U"
-            tmp["ClusterId"] += "." + tmp["ProcId"]
+
+    if not do_long:
+        cmd = "condor_q {0} {1} {2} -constraint 'JobStatus != 3' -autoformat:t {3} {4}".format(user, cluster_id, extra_cli, columns_str,selection_str)
+        output = do_cmd(cmd)
+        for line in output.splitlines():
+            parts = line.split("\t")
+            if len(parts) == len(columns):
+                tmp = dict(zip(columns, parts))
+                tmp["JobStatus"] = status_LUT.get( int(tmp.get("JobStatus",0)),"U" ) if tmp.get("JobStatus",0).isdigit() else "U"
+                tmp["ClusterId"] += "." + tmp["ProcId"]
+                jobs.append(tmp)
+    else:
+        cmd = "condor_q {} {} {} -constraint 'JobStatus != 3' --long --json {}".format(user, cluster_id, extra_cli, selection_str)
+        output = do_cmd(cmd)
+        for tmp in json.loads(output):
+            tmp["JobStatus"] = status_LUT.get(tmp.get("JobStatus",0),"U")
+            tmp["ClusterId"] = "{}.{}".format(tmp["ClusterId"],tmp["ProcId"])
             jobs.append(tmp)
+
     return jobs
 
 def condor_rm(cluster_ids=[]): # pragma: no cover
@@ -242,12 +254,12 @@ def condor_submit(**kwargs): # pragma: no cover
 
     # http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
     good_sites = [
+
                 "T2_US_Caltech",
                 "T2_US_UCSD",
                 "T3_US_UCR",
                 "UCSB",
-                "T3_US_OSG",
-
+                # "T3_US_OSG",
                 "T2_US_Florida",
                 "T2_US_MIT",
                 "T2_US_Nebraska",
@@ -258,6 +270,7 @@ def condor_submit(**kwargs): # pragma: no cover
                 "T3_US_Colorado",
                 "T3_US_NotreDame",
                 # "UAF", # bad (don't spam uafs!!)
+
             ]
 
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech,T2_US_MIT,T2_US_Purdue")
