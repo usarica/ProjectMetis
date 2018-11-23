@@ -86,7 +86,7 @@ class StatsParser(object):
                     elif is_cmssw and len(condor_jobs) > 0:
                         errlog = condor_jobs[-1]["logfile_err"]
                         parsed = LogParser.log_parser(errlog,do_header=False,do_error=False,do_rate=True)
-                        rate = parsed["event_rate"]
+                        rate = parsed.get("event_rate",-1)
                         if rate > 0.:
                             event_rates.append(rate)
                     njobsdone += 1
@@ -108,7 +108,7 @@ class StatsParser(object):
                     errlog = condor_jobs[ijob]["logfile_err"]
                     logs_to_plot.append(outlog)
                     parsed = LogParser.log_parser(errlog,do_header=True,do_error=True,do_rate=False)
-                    site = parsed["site"]
+                    site = parsed.get("site","")
                     last_sites.append(site if site else "")
                 last_error = parsed.get("inferred_error","")
                 last_log = outlog
