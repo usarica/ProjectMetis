@@ -10,6 +10,7 @@ import glob
 import tarfile
 import tempfile
 import commands
+from fnmatch import fnmatch
 
 class UserTarball(object):
     """
@@ -22,7 +23,7 @@ class UserTarball(object):
             Also adds user specified files in the right place.
     """
 
-    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, exclude_pattern=None, extra_paths=[],use_bz2=False,use_xz=False,xz_level=None):
+    def __init__(self, name=None, mode='w:gz', logger=None, override_cmssw_base=None, exclude_root_files=False, exclude_patterns=[], extra_paths=[],use_bz2=False,use_xz=False,xz_level=None):
         # XXX NOTE: if using bz2, need to uncompress with `tar xf blah`, note no z to have tar auto-detect
         if use_bz2: mode = "w:bz2"
         # self.logger = logger
@@ -36,7 +37,7 @@ class UserTarball(object):
         # self.logger.debug("Making tarball in %s" % name)
         self.tarfile = tarfile.open(name=name, mode=mode, dereference=True)
         self.exclude_root_files = exclude_root_files
-        self.exclude_pattern = exclude_pattern
+        self.exclude_patterns = exclude_patterns
         self.extra_paths = extra_paths
 
     def addFiles(self, userFiles=[]): # pragma: no cover
@@ -66,7 +67,11 @@ class UserTarball(object):
 
         def exclude_function(filename):
             if self.exclude_root_files and filename.endswith('.root'): return True
-            if self.exclude_pattern and self.exclude_pattern in filename: return True
+            for ep in self.exclude_patterns:
+                if "*" in ep:
+                    if fnmatch(filename,ep): return True
+                else:
+                    if ep in filename: return True
             return False
 
         if self.extra_paths:

@@ -4,7 +4,7 @@ import os
 import argparse
 from metis.Utils import make_tarball
 
-def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_paths=[], use_bz2_algo=False,use_xz_algo=False,xz_level=None):
+def make(output, cmssw_base=None, skip_root=False, exclude_patterns=None, extra_paths=[], use_bz2_algo=False,use_xz_algo=False,xz_level=None):
 
     extra = {}
     if cmssw_base:
@@ -15,7 +15,7 @@ def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_p
     extra = {
             "override_cmssw_base": cmssw_base,
             "exclude_root_files": skip_root,
-            "exclude_pattern": exclude_pattern,
+            "exclude_patterns": exclude_patterns,
             "extra_paths": extra_paths,
             "use_bz2": use_bz2_algo,
             "use_xz": use_xz_algo,
@@ -31,8 +31,8 @@ def make(output, cmssw_base=None, skip_root=False, exclude_pattern=None, extra_p
                 "couple of minutes for another ~5-10%."
     if skip_root:
         print "[mtarfile] Skipping root files"
-    if exclude_pattern:
-        print "[mtarfile] Skipping paths/files containing \"{}\"".format(exclude_pattern)
+    if exclude_patterns:
+        print "[mtarfile] Skipping paths/files matching any of {}".format(exclude_patterns)
     make_tarball(output, **extra)
     print "[mtarfile] Made {0:.1f}MB tarfile: {1}".format(1.e-6*os.path.getsize(output), output)
 
@@ -45,11 +45,11 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--cmssw", help="CMSSW_BASE directory, default is $CMSSW_BASE", default=None)
     parser.add_argument("-n", "--norootfiles", help="don't tar up root files", action="store_true")
     parser.add_argument("-e", "--extrapaths", help="extra files/dirs to include in tarfile", nargs="+")
-    parser.add_argument("-x", "--excludepattern", help="str to match to exclude in tarfile", default=None)
+    parser.add_argument("-x", "--excludepatterns", help="str to match to exclude in tarfile (can have multiple, if the pattern has a *, it is matched, otherwise we check for string containment)", default=[], nargs="*")
     parser.add_argument("-b", "--bz2", help="use bz2 algorithm", action="store_true")
     parser.add_argument("-X", "--xz", help="use xz algorithm", action="store_true")
     parser.add_argument("-l", "--xz_level", help="xz compression level (0 to 9)", default=None)
 
     args = parser.parse_args()
 
-    make(args.output, args.cmssw, args.norootfiles, args.excludepattern, args.extrapaths, args.bz2, args.xz, args.xz_level)
+    make(args.output, args.cmssw, args.norootfiles, args.excludepatterns, args.extrapaths, args.bz2, args.xz, args.xz_level)
