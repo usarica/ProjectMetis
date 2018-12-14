@@ -277,7 +277,7 @@ class DirectorySample(Sample):
             return self.info["files"]
         filepaths = glob.glob(self.info["location"] + "/" + self.globber)
         if self.use_xrootd:
-            filepaths = [fp.replace("/hadoop/cms", "") for fp in filepaths]
+            filepaths = ["/store/"+fp.split("/store/",1)[-1] for fp in filepaths]
         filepaths = sorted(filepaths)
         self.info["files"] = list(map(EventsFile, filepaths))
 
@@ -291,7 +291,7 @@ class DirectorySample(Sample):
 
     def set_files(self, fnames):
         if self.use_xrootd:
-            fnames = [fp.replace("/hadoop/cms", "") for fp in fnames]
+            fnames = ["/store/"+fp.split("/store/",1)[-1] for fp in fnames]
         self.info["files"] = list(map(EventsFile, fnames))
 
 class SNTSample(DirectorySample):
