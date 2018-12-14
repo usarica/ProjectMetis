@@ -109,6 +109,7 @@ class CMSSWTask(CondorTask):
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full, pset_full] if self.tarfile else [pset_full]
+        input_files += self.additional_input_files
         extra = self.kwargs.get("condor_submit_params", {})
         if self.dont_check_tree:
             extra["classads"] = extra.get("classads",[]) + [["metis_dontchecktree",1]]
@@ -197,6 +198,7 @@ if hasattr(process,"GlobalTag"):
     process.GlobalTag.globaltag = "{gtag}"
 if hasattr(process,"MessageLogger"):
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+    process.add_(cms.Service("CondorStatusService", updateIntervalSeconds=cms.untracked.uint32(900)))
 
 def set_output_name(outputname):
     to_change = []

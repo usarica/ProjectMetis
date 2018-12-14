@@ -13,19 +13,24 @@ EXPECTEDNEVTS=${10}
 OTHEROUTPUTS=${11}
 PSETARGS="${@:12}" # since args can have spaces, we take 10th-->last argument as one
 
+# Make sure OUTPUTNAME doesn't have .root since we add it manually
+OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
+
+export SCRAM_ARCH=${SCRAMARCH}
+
 function getjobad {
     grep -i "^$1" "$_CONDOR_JOB_AD" | cut -d= -f2- | xargs echo
 }
 function setup_chirp {
-    if [ -e /usr/libexec/condor/condor_chirp ]; then
+    if [ -e ./condor_chirp ]; then
+    # Note, in the home directory
+        mkdir chirpdir
+        mv condor_chirp chirpdir/
+        export PATH="$PATH:$(pwd)/chirpdir"
+        echo "[chirp] Found and put condor_chirp into $(pwd)/chirpdir"
+    elif [ -e /usr/libexec/condor/condor_chirp ]; then
         export PATH="$PATH:/usr/libexec/condor"
         echo "[chirp] Found condor_chirp in /usr/libexec/condor"
-    # elif [ -e ../chirpstuff.tar.xz ]; then
-    #     mv ../chirpstuff.tar.xz .
-    #     tar xf chirpstuff.tar.xz
-    #     export PATH="$PATH:$(pwd)/chirpstuff"
-    #     export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(pwd)/chirpstuff"
-    #     echo "[chirp] Put condor_chirp in chirpstuff/"
     else
         echo "[chirp] No condor_chirp :("
     fi
@@ -36,9 +41,33 @@ function chirp {
     ret=$?
     echo "[chirp] Chirped $1 => $2 with exit code $ret"
 }
+function edit_pset {
+    echo "process.maxEvents.input = cms.untracked.int32(${NEVTS})" >> pset.py
+    echo "if hasattr(process,'externalLHEProducer'):" >> pset.py
+    echo "    process.externalLHEProducer.nEvents = cms.untracked.uint32(${NEVTS})" >> pset.py
+    echo "set_output_name(\"${OUTPUTNAME}.root\")" >> pset.py
+    if [ "$INPUTFILENAMES" != "dummyfile" ]; then 
+        echo "process.source.fileNames = cms.untracked.vstring([" >> pset.py
+        for INPUTFILENAME in $(echo "$INPUTFILENAMES" | sed -n 1'p' | tr ',' '\n'); do
+            INPUTFILENAME=$(echo $INPUTFILENAME | sed 's|^/hadoop/cms||')
+            # INPUTFILENAME="root://xrootd.unl.edu/${INPUTFILENAME}"
+            echo "\"${INPUTFILENAME}\"," >> pset.py
+        done
+        echo "])" >> pset.py
+    fi
+    if [ "$FIRSTEVT" -ge 0 ]; then
+        # events to skip, event number to assign to first event
+        echo "try:" >> pset.py
+        echo "    if not 'Empty' in str(process.source): process.source.skipEvents = cms.untracked.uint32(max(${FIRSTEVT}-1,0))" >> pset.py
+        echo "except: pass" >> pset.py
+        echo "try:" >> pset.py
+        echo "    process.source.firstEvent = cms.untracked.uint32(${FIRSTEVT})" >> pset.py
+        echo "except: pass" >> pset.py
+    fi
+}
 
-# Make sure OUTPUTNAME doesn't have .root since we add it manually
-OUTPUTNAME=$(echo $OUTPUTNAME | sed 's/\.root//')
+
+setup_chirp
 
 echo -e "\n--- begin header output ---\n" #                     <----- section division
 echo "OUTPUTDIR: $OUTPUTDIR"
@@ -78,9 +107,6 @@ else
     exit 1
 fi
 
-export SCRAM_ARCH=${SCRAMARCH}
-
-
 # holy crap this is a mess. :( why does PAT code have to do such insane
 # things with paths?
 # if the first file in the tarball filelist starts with CMSSW, then it is
@@ -110,35 +136,17 @@ else
     fi
     scram b
     [ -e package.tar.gz ] && tar xf package.tar.gz
+    # Needed or else cmssw can't find libmcfm_705.so
+    # export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}
+    # This is nicer than above. both work, and both have scary but benign warnings/printouts
+    cp ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
+    # "Needed" to get rid of benign warnings/printouts
+    export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/interface
 fi
-
-setup_chirp
 
 # # logging every 45 seconds gives ~100kb log file/3 hours
 # dstat -cdngytlmrs --float --nocolor -T --output dsout.csv 180 >& /dev/null &
 
-echo "process.maxEvents.input = cms.untracked.int32(${NEVTS})" >> pset.py
-echo "if hasattr(process,'externalLHEProducer'):" >> pset.py
-echo "    process.externalLHEProducer.nEvents = cms.untracked.uint32(${NEVTS})" >> pset.py
-echo "set_output_name(\"${OUTPUTNAME}.root\")" >> pset.py
-if [ "$INPUTFILENAMES" != "dummyfile" ]; then 
-    echo "process.source.fileNames = cms.untracked.vstring([" >> pset.py
-    for INPUTFILENAME in $(echo "$INPUTFILENAMES" | sed -n 1'p' | tr ',' '\n'); do
-        INPUTFILENAME=$(echo $INPUTFILENAME | sed 's|^/hadoop/cms||')
-        # INPUTFILENAME="root://xrootd.unl.edu/${INPUTFILENAME}"
-        echo "\"${INPUTFILENAME}\"," >> pset.py
-    done
-    echo "])" >> pset.py
-fi
-if [ "$FIRSTEVT" -ge 0 ]; then
-    # events to skip, event number to assign to first event
-    echo "try:" >> pset.py
-    echo "    if not 'Empty' in str(process.source): process.source.skipEvents = cms.untracked.uint32(max(${FIRSTEVT}-1,0))" >> pset.py
-    echo "except: pass" >> pset.py
-    echo "try:" >> pset.py
-    echo "    process.source.firstEvent = cms.untracked.uint32(${FIRSTEVT})" >> pset.py
-    echo "except: pass" >> pset.py
-fi
 
 echo "before running: ls -lrth"
 ls -lrth 
@@ -148,12 +156,15 @@ echo -e "\n--- begin running ---\n" #                           <----- section d
 chirp ChirpMetisExpectedNevents $EXPECTEDNEVTS
 
 chirp ChirpMetisStatus "before_cmsRun"
-chirp ChirpMetisLastChirped $(date +%s)
+
+edit_pset
 
 cmsRun pset.py ${PSETARGS}
 
 chirp ChirpMetisStatus "after_cmsRun"
-chirp ChirpMetisLastChirped $(date +%s)
+
+echo "after running: ls -lrth"
+ls -lrth
 
 if [ "$?" != "0" ]; then
     echo "Removing output file because cmsRun crashed with exit code $?"
@@ -215,16 +226,17 @@ if foundBad:
 else: print "[RSR] passed the rigorous sweeproot"
 EOL
 
+    if [ "$?" != "0" ]; then
+        echo "Removing output file because sweeproot crashed with exit code $?"
+        rm ${OUTPUTNAME}.root
+        exit 1
+    fi
+
 else
     echo "Not checking tree or adding metadata";
 fi
 
 echo -e "\n--- end running ---\n" #                             <----- section division
-
-echo "after running: ls -lrth"
-ls -lrth
-
-
 
 echo -e "\n--- begin copying output ---\n" #                    <----- section division
 
@@ -237,7 +249,6 @@ fi
 
 echo "time before copy: $(date +%s)"
 chirp ChirpMetisStatus "before_copy"
-chirp ChirpMetisLastChirped $(date +%s)
 
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
 COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
@@ -270,5 +281,4 @@ echo -e "\n--- end dstat output ---\n" #                        <----- section d
 echo "time at end: $(date +%s)"
 
 chirp ChirpMetisStatus "done"
-chirp ChirpMetisLastChirped $(date +%s)
 
