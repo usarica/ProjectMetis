@@ -290,9 +290,10 @@ class CondorTask(Task):
             if os.path.exists(path_to_check):
                 fnames = [os.path.normpath("{}/{}".format(path_to_check,x)) for x in os.listdir(path_to_check)]
             for _, out in self.io_mapping:
-                if out.exists() and (os.path.normpath(out.get_name()) not in fnames):
+                if not out.is_fake() and out.exists() and (os.path.normpath(out.get_name()) not in fnames):
                     # file apparently exists (according to cache), but not actually there, so reset cache
                     out.recheck()
+                    out.set_status(Constants.INVALID)
                     nfiles_reset += 1
         return nfiles_reset
 
