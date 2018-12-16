@@ -108,6 +108,27 @@ def num_to_ordinal_string(n):
 def metis_base():
     return os.environ.get("METIS_BASE",".")+"/"
 
+def interruptible_sleep(n,reload_modules=[]):
+    """
+    Sleep for n seconds allowing a <C-c> to interrupt (then user 
+    can hit enter to end the sleep without an exception, or <C-c> again
+    to throw an exception as usual
+    If `reload_modules` is not empty, reload all modules in the list.
+    """
+    try:
+        print("Sleeping for {}s.".format(n))
+        time.sleep(n)
+    except KeyboardInterrupt:
+        raw_input("Press Enter to force update, or Ctrl-C to quit.")
+        print("Force updating...")
+        if reload_modules:
+            print("Reloading {} modules: {}".format(
+                        len(reload_modules),
+                        ", ".join(map(lambda x: x.__name__, reload_modules))
+                        ))
+            for mod in reload_modules:
+                reload(mod)
+
 class CustomFormatter(logging.Formatter): # pragma: no cover
     # stolen from
     # https://stackoverflow.com/questions/1343227/can-pythons-logging-format-be-modified-depending-on-the-message-log-level
@@ -258,7 +279,6 @@ def condor_submit(**kwargs): # pragma: no cover
                 "T2_US_Caltech",
                 "T2_US_UCSD",
                 "T3_US_UCR",
-                "UCSB",
                 # "T3_US_OSG",
                 "T2_US_Florida",
                 "T2_US_MIT",
@@ -269,14 +289,17 @@ def condor_submit(**kwargs): # pragma: no cover
                 "T3_US_Baylor",
                 "T3_US_Colorado",
                 "T3_US_NotreDame",
+                # "UCSB",
+
                 # "UAF", # bad (don't spam uafs!!)
 
             ]
 
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech,T2_US_MIT,T2_US_Purdue")
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Caltech,T2_US_Wisconsin,T2_US_MIT")
-    if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites",",".join(good_sites))
-    else: params["sites"] = kwargs.get("sites","T2_US_UCSD")
+    params["sites"] = kwargs.get("sites",",".join(good_sites))
+    # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites",",".join(good_sites))
+    # else: params["sites"] = kwargs.get("sites","T2_US_UCSD")
     # if os.getenv("USER") in ["namin"] and "T2_US_UCSD" in params["sites"]:
     #     params["sites"] += ",UAF,UCSB"
 
