@@ -86,10 +86,14 @@ function setUpDOM(data) {
         );
         var typenotask = general["type"].replace("Task","");
 
+        var typebadge = "badge-primary";
+        if (Math.floor(getProgress(general).pct) < 100) {
+            typebadge = "badge-danger";
+        }
         var content = `
             <div id="${id}" data-type="${typenotask}" data-tag="${general['tag']}" class="task">
                 <div class="row task-text-row">
-                    <a href="#" data-which="type" class="badge task-badge has-dark badge-primary">${typenotask}</a>
+                    <a href="#" data-which="type" class="badge task-badge has-dark ${typebadge}">${typenotask}</a>
                     <a href="#" data-which="tag" class="badge task-badge badge-secondary">${general["tag"]}</a>
                     <div class="progress has-dark">
                         <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
@@ -326,6 +330,7 @@ function drawChart(history) {
     var data_table = [ [
         'timestamp',
         'jobs completed ',
+        'jobs left',
         'jobs total',
         // 'events completed ',
         // 'events total',
@@ -338,6 +343,7 @@ function drawChart(history) {
         data_table.push( [
             new Date(ts*1000), // to ms
             td["njobs_done"] ,
+            td["njobs_total"]-td["njobs_done"],
             td["njobs_total"],
             // td["nevents_done"] ,
             // td["nevents_total"],
@@ -347,14 +353,28 @@ function drawChart(history) {
     console.log(data_table);
     var data = google.visualization.arrayToDataTable(data_table);
     var options_stacked = {
-        isStacked: false,
-        height: 350,
+        height: 450,
         width: 850,
         legend: {position: 'right'},
-        vAxis: {minValue: 0},
+        // vAxis: {minValue: 0, title: "jobs"},
+        vAxis: {title: "jobs"},
+        hAxis: {slantedText:true, gridlines:{count:-1}},
         // vAxis: {logScale: true},
     };
     var chart = new google.visualization.AreaChart(document.getElementById('chart'));
+    // The select handler. Call the chart's getSelection() method
+    function selectHandler() {
+        var selectedItem = chart.getSelection()[0];
+        if (selectedItem == null) {
+            console.log("you probably clicked on the legend, so making y-axis logscale");
+        }
+        console.log(selectedItem);
+        options_stacked.vAxis.logScale ^= true;
+        chart.draw(data, options_stacked);
+    }
+    // Listen for the 'select' event, and call my function selectHandler() when
+    // the user selects something on the chart.
+    google.visualization.events.addListener(chart, 'select', selectHandler);
     // console.log(chart);
     chart.draw(data, options_stacked);
 }
@@ -408,6 +428,11 @@ function sortSamples(which) {
         $("#tasks-container").html(ordered);
     } else if (which == "rev") {
         $("#tasks-container").html(divs.get().reverse());
+    } else if (which == "era") {
+        var ordered = divs.sort(function (a, b) {
+            return $(a).attr('id').split("_Run")[1] < $(b).attr('id').split("_Run")[1] ? -1 : 1;
+        });
+        $("#tasks-container").html(ordered);
     }
     afterFillDOM();
 }
