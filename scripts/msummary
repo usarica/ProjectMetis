@@ -76,6 +76,7 @@ def main(args):
     do_color = not args.nocolor
     do_unicode = not args.nounicode
     pattern = str(args.pattern)
+    width = int(args.width)
     show_total = args.total
     if pattern:
         pattern = "*{0}*".format(args.pattern)
@@ -103,7 +104,7 @@ def main(args):
         tasks = filter(lambda t: fnmatch(t["general"]["dataset"], pattern), tasks)
 
 
-    dswidth = 45
+    dswidth = width if width > 0 else max(len(x["general"]["dataset"]) for x in tasks)
     for d_ds in tasks:
         d_general = d_ds["general"]
         d_bad = d_ds["bad"]
@@ -177,6 +178,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbosity", help="verbosity (default is 1)", default="1")
     parser.add_argument("-n", "--nlines", help="number of logfile lines for verbose mode", default="15")
     parser.add_argument("-p", "--pattern", help="dataset matching pattern, e.g., SingleElectron. Wildcards assumed on both sides.", default="")
+    parser.add_argument("-w", "--width", help="number of characters for dataset name width (45 by default; -1 to fit all dataset names)", default=45, type=int)
     parser.add_argument("-t", "--total", help="show total progress", action="store_true")
 
     args = parser.parse_args()
