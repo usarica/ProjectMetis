@@ -8,3 +8,5 @@ exclude_lines =
     only testable on UAF
     logger.debug
     logger.error
+omit =
+    */python?.?/*
