@@ -32,11 +32,8 @@ class CrabManager(object):
         self.pset_location = kwargs.get("pset_location", None)
         self.job_splitting = kwargs.get("job_splitting", "FileBased")
         self.units_per_job = kwargs.get("units_per_job", 1)
-        hadoop_user = os.getenv("USER")
-        if hadoop_user not in ["namin"]:
-            # foolproof way of finding username, but unnecessary for people
-            # who's hadoop names match their usernames
-            hadoop_user = getUsernameFromSiteDB()
+        hadoop_user = os.environ.get("GRIDUSER",os.environ.get("USER"))  # NOTE, might be different for some weird folks
+        # # foolproof way of finding username, but slow. above is probably equivalent (see setup.sh): getUsernameFromSiteDB()
         self.out_lfn_dir_base = kwargs.get("out_lfn_dir_base", "/store/user/{0}/ProjectMetis/".format(hadoop_user))
         self.output_primary_dataset = kwargs.get("output_primary_dataset", "ProjectMetisTest")
         self.input_DBS_instance = kwargs.get("input_DBS_instance", "global")
