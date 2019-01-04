@@ -252,8 +252,8 @@ chirp ChirpMetisStatus "before_copy"
 
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
 COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
-echo "Running: env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 4200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
-env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 4200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST} 
+echo "Running: env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
+env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST} 
 COPY_STATUS=$?
 if [[ $COPY_STATUS != 0 ]]; then
     echo "Removing output file because gfal-copy crashed with code $COPY_STATUS"
@@ -261,6 +261,7 @@ if [[ $COPY_STATUS != 0 ]]; then
     REMOVE_STATUS=$?
     if [[ $REMOVE_STATUS != 0 ]]; then
         echo "Uhh, gfal-copy crashed and then the gfal-rm also crashed with code $REMOVE_STATUS"
+        echo "You probably have a corrupt file sitting on hadoop now."
         exit 1
     fi
 fi
@@ -268,7 +269,7 @@ fi
 for OTHEROUTPUT in $(echo "$OTHEROUTPUTS" | sed -n 1'p' | tr ',' '\n'); do
     [ -e ${OTHEROUTPUT} ] && {
         NOROOT=$(echo $OTHEROUTPUT | sed 's/\.root//')
-        gfal-copy -p -f -t 4200 --verbose file://`pwd`/${NOROOT}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${NOROOT}_${IFILE}.root --checksum ADLER32
+        gfal-copy -p -f -t 7200 --verbose file://`pwd`/${NOROOT}.root gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${NOROOT}_${IFILE}.root --checksum ADLER32
     }
 done
 
