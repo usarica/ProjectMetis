@@ -53,6 +53,7 @@ def main(args):
 
     web_summary = args.summary
     pattern = "*{0}*".format(args.pattern)
+    tag = args.tag
     do_rm = args.rm
     drop_before_days = int(args.days)
 
@@ -63,6 +64,7 @@ def main(args):
     matching_dsnames = []
     for itask,task in enumerate(data["tasks"]):
         dsname = task["general"]["dataset"]
+        if tag and tag != task["general"]["tag"]: continue
         if not fnmatch(dsname, pattern): continue
         matching_dsnames.append(dsname)
 
@@ -83,6 +85,7 @@ def main(args):
         new_tasks = []
         for itask,task in enumerate(data["tasks"]):
             dsname = task["general"]["dataset"]
+            if tag and tag != task["general"]["tag"]: continue
             if dsname in matching_dsnames:
                 ndropped += 1
                 continue
@@ -119,6 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--summary", help="web summary JSON file", default="web_summary.json")
     parser.add_argument("-r", "--rm", help="do removal", action="store_true")
     parser.add_argument("-d", "--days", help="remove timestamp data before this many days", default=-1)
+    parser.add_argument("-t", "--tag", help="consider pattern for a particular tag", default="", type=str)
     args = parser.parse_args()
     main(args)
 
