@@ -65,7 +65,7 @@ class CMSSWTask(CondorTask):
             self.update_dis(d_metadata)
 
 
-    def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False):
+    def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False, optimizer=None):
         outdir = self.output_dir
         outname_noext = self.output_name.rsplit(".", 1)[0]
         v_inputs_commasep = [",".join(map(lambda x: x.get_name(), ins)) for ins in v_ins]
@@ -97,15 +97,28 @@ class CMSSWTask(CondorTask):
                      index, pset_basename, cmssw_ver, scramarch,
                      nevts, firstevt, expectedevents, other_outputs, pset_args]
                      for (index,inputs_commasep,firstevt,expectedevents) in zip(v_index,v_inputs_commasep,v_firstevt,v_expectedevents)]
-        v_selection_pairs = [
-                [
-                    ["taskname", self.unique_name],
-                    ["jobnum", index],
-                    ["tag", self.tag],
-                    ["metis_retries", len(self.job_submission_history.get(index,[]))],
-                    ] 
-                for index in v_index
-                ]
+        if optimizer:
+            v_sites = optimizer.get_sites(self, v_ins, v_out)
+            v_selection_pairs = [
+                    [
+                        ["taskname", self.unique_name],
+                        ["jobnum", index],
+                        ["tag", self.tag],
+                        ["metis_retries", len(self.job_submission_history.get(index,[]))],
+                        ["DESIRED_Sites", sites],
+                        ] 
+                    for index,sites in zip(v_index,v_sites)
+                    ]
+        else:
+            v_selection_pairs = [
+                    [
+                        ["taskname", self.unique_name],
+                        ["jobnum", index],
+                        ["tag", self.tag],
+                        ["metis_retries", len(self.job_submission_history.get(index,[]))],
+                        ] 
+                    for index in v_index
+                    ]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full, pset_full] if self.tarfile else [pset_full]
@@ -198,7 +211,7 @@ if hasattr(process,"GlobalTag"):
     process.GlobalTag.globaltag = "{gtag}"
 if hasattr(process,"MessageLogger"):
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-    process.add_(cms.Service("CondorStatusService", updateIntervalSeconds=cms.untracked.uint32(900)))
+    process.add_(cms.Service("CondorStatusService", updateIntervalSeconds=cms.untracked.uint32(2700)))
 
 def set_output_name(outputname):
     to_change = []
@@ -248,6 +261,7 @@ def set_output_name(outputname):
             d_metadata["ijob_to_nevents"][out.get_index()] = [nevents, nevents_eff]
             done_nevents += out.get_nevents()
         d_metadata["basedir"] = os.path.abspath(self.get_basedir())
+        d_metadata["taskdir"] = os.path.abspath(self.get_taskdir())
         d_metadata["tag"] = self.tag
         d_metadata["dataset"] = self.get_sample().get_datasetname()
         d_metadata["gtag"] = self.global_tag

@@ -297,7 +297,7 @@ class CondorTask(Task):
                     nfiles_reset += 1
         return nfiles_reset
 
-    def run(self, fake=False):
+    def run(self, fake=False, optimizer=None):
         """
         Main logic for looping through (inputs,output) pairs. In this
         case, this is where we submit, resubmit, etc. to condor
@@ -341,7 +341,7 @@ class CondorTask(Task):
         if to_submit:
             v_ins = [d["ins"] for d in to_submit]
             v_out = [d["out"] for d in to_submit]
-            succeeded, cluster_id = self.submit_multiple_condor_jobs(v_ins, v_out, fake=fake)
+            succeeded, cluster_id = self.submit_multiple_condor_jobs(v_ins, v_out, fake=fake, optimizer=optimizer)
             procids = map(str,range(len(v_out)))
             if succeeded:
                 for out,procid in zip(v_out,procids):
@@ -398,7 +398,7 @@ class CondorTask(Task):
 
         return action_type
 
-    def process(self, fake=False):
+    def process(self, fake=False, optimizer=None):
         """
         Prepare inputs
         Execute main logic
@@ -410,7 +410,7 @@ class CondorTask(Task):
             self.prepare_inputs()
 
 
-        self.run(fake=fake)
+        self.run(fake=fake, optimizer=optimizer)
 
         self.try_to_complete()
         if self.complete():
@@ -437,9 +437,9 @@ class CondorTask(Task):
         within a task has a unique job num corresponding to the
         output file index
         """
-        return Utils.condor_q(selection_pairs=[["taskname", self.unique_name]], extra_columns=["jobnum"]+extra_columns)
+        return Utils.condor_q(selection_pairs=[["taskname", self.unique_name]], extra_columns=["jobnum"]+extra_columns, use_python_bindings=True)
 
-    def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False):
+    def submit_multiple_condor_jobs(self, v_ins, v_out, fake=False, optimizer=None):
 
         outdir = self.output_dir
         outname_noext = self.output_name.rsplit(".", 1)[0]
@@ -451,16 +451,28 @@ class CondorTask(Task):
         v_arguments = [[outdir, outname_noext, inputs_commasep,
                      index, cmssw_ver, scramarch, self.arguments]
                      for (index,inputs_commasep) in zip(v_index,v_inputs_commasep)]
-        v_selection_pairs = [
-                [
-                    ["taskname", self.unique_name],
-                    ["jobnum", index],
-                    ["tag", self.tag],
-                    ["metis_retries", len(self.job_submission_history.get(index,[]))],
-                    ] 
-                for index in v_index
-                ]
-
+        if optimizer:
+            v_sites = optimizer.get_sites(self, v_ins, v_out)
+            v_selection_pairs = [
+                    [
+                        ["taskname", self.unique_name],
+                        ["jobnum", index],
+                        ["tag", self.tag],
+                        ["metis_retries", len(self.job_submission_history.get(index,[]))],
+                        ["DESIRED_Sites", sites],
+                        ] 
+                    for index,sites in zip(v_index,v_sites)
+                    ]
+        else:
+            v_selection_pairs = [
+                    [
+                        ["taskname", self.unique_name],
+                        ["jobnum", index],
+                        ["tag", self.tag],
+                        ["metis_retries", len(self.job_submission_history.get(index,[]))],
+                        ] 
+                    for index in v_index
+                    ]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
         package_full = os.path.abspath(self.package_path)
         input_files = [package_full] if self.tarfile else []
@@ -603,6 +615,7 @@ class CondorTask(Task):
                 "timestamp": Utils.get_timestamp(),
                 "executable": self.input_executable,
                 "task_type": self.get_task_name(),
+                "taskdir": os.path.abspath(self.get_taskdir()),
         }
 
         d_summary = self.supplement_task_summary(d_summary)
