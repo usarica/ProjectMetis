@@ -54,7 +54,7 @@ def try_to_get_history(args):
         jobids = data["job_submission_history"][ef.get_index()]
     logfnames = []
     for jid in jobids:
-        logfnames.append(os.path.abspath(taskdir) + "/logs/std_logs/{}.out".format(jid))
+        logfnames.append(os.path.abspath(taskdir) + "/logs/std_logs/1e.{}.out".format(jid))
     print logfnames
     print "Found {} old logs:\n{}".format(len(logfnames),"\t"+"\n\t".join(logfnames))
     print "Analyzing last one"
