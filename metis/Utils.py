@@ -9,6 +9,12 @@ try:
 except:
     # python3 compatibility
     import subprocess as commands
+try:
+    import htcondor
+    _ = htcondor.Schedd()
+    have_python_htcondor_bindings = True
+except:
+    have_python_htcondor_bindings = False
 import logging
 import datetime
 import shelve
@@ -24,7 +30,7 @@ class cached(object): # pragma: no cover
     def __init__(self, *args, **kwargs):
         self.cached_function_responses = {}
         self.default_max_age = kwargs.get("default_max_age", datetime.timedelta(seconds=0))
-        self.cache_file = "cache.shelf"
+        self.cache_file = kwargs.get("filename", "cache.shelf")
 
     def __call__(self, func):
         def inner(*args, **kwargs):
@@ -178,15 +184,16 @@ def setup_logger(logger_name="logger_metis"): # pragma: no cover
     logger.addHandler(ch)
     return logger_name
 
-def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None,do_long=False):
+def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None,do_long=False,use_python_bindings=False):
     """
     Return list of dicts with items for each of the columns
     - Selection pair is a list of pairs of [variable_name, variable_value]
     to identify certain condor jobs (no selection by default)
     - Empty string for user can be passed to show all jobs
-    - If cluster_id is specified, only that job will be matched
+    - If cluster_id is specified, only that job will be matched (can be multiple if space separated)
     - If schedd specified (e.g., "uaf-4.t2.ucsd.edu", condor_q will query that machine instead of the current one (`hostname`))
     - If `do_long`, basically do condor_q -l (and use -json for slight speedup)
+    - If `use_python_bindings` and htcondor is importable, use those for a speedup. Note the caveats below.
     """
 
     # These are the condor_q -l row names
@@ -198,11 +205,14 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
 
     columns_str = " ".join(columns)
     selection_str = ""
+    selection_strs_cpp = []
     if selection_pairs:
         for sel_pair in selection_pairs:
             if len(sel_pair) != 2:
                 raise RuntimeError("This selection pair is not a 2-tuple: {0}".format(str(sel_pair)))
             selection_str += " -const '{0}==\"{1}\"'".format(*sel_pair)
+            if use_python_bindings:
+                selection_strs_cpp.append('({0}=="{1}")'.format(*sel_pair))
 
     # Constraint ignores removed jobs ("X")
     extra_cli = ""
@@ -211,9 +221,19 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
 
     jobs = []
 
-    if not do_long:
+    if have_python_htcondor_bindings and use_python_bindings:
+        # NOTE doesn't support `user`, `cluster_id`, `schedd`, `do_long` kwargs options
+        constraints = "&&".join(selection_strs_cpp)
+        output = htcondor.Schedd().xquery(constraints,columns)
+        for match in output:
+            tmp = {c:match.get(c,"undefined") for c in columns}
+            tmp["JobStatus"] = status_LUT.get( int(tmp.get("JobStatus",0)),"U" )
+            tmp["ClusterId"] = "{}.{}".format(tmp["ClusterId"],tmp["ProcId"])
+            tmp["ProcId"] = str(tmp["ProcId"])
+            jobs.append(tmp)
+    elif not do_long:
         cmd = "condor_q {0} {1} {2} -constraint 'JobStatus != 3' -autoformat:t {3} {4}".format(user, cluster_id, extra_cli, columns_str,selection_str)
-        output = do_cmd(cmd)
+        output = do_cmd(cmd) #,dryRun=True)
         for line in output.splitlines():
             parts = line.split("\t")
             if len(parts) == len(columns):
