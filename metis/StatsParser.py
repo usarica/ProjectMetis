@@ -51,7 +51,7 @@ class StatsParser(object):
         # 5 minute quantization
         timestamp = int(time.time()/300)*300
         # dsnames = summaries.keys() if not show_progress_bar else tqdm(summaries.keys(), position=0)
-        dsnames = summaries.keys() if not show_progress_bar else tqdm(summaries.keys())
+        dsnames = summaries.keys() if not show_progress_bar else tqdm(summaries.keys(),ncols=75)
         for dsname in dsnames:
 
             tasksummary = summaries[dsname]
@@ -71,7 +71,7 @@ class StatsParser(object):
                 job = sample[iout]
 
                 condor_jobs = job["condor_jobs"]
-                if not len(condor_jobs): continue
+                # if not len(condor_jobs): continue
 
                 is_done  = job["output_exists"] and not job["is_on_condor"]
 
