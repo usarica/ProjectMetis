@@ -94,7 +94,8 @@ class Optimizer(object):
             for cid in cids:
                 logfname = "{0}/1e.{1}.{2}".format(logdir_full, cid, "out")
                 parsed = log_parser(logfname,do_header=True,do_error=False,do_rate=False)
-                site = parsed["site"]
+                site = parsed.get("site","")
+                if not site: continue
                 already_ran.update(site)
                 last_run_site = site[:]
                 if not site in times_run: times_run[site] = 1
