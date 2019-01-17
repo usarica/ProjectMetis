@@ -46,7 +46,7 @@ def print_analysis(args):
 def try_to_get_history(args):
     fname = os.path.normpath(args.logfile)
     if ".root" not in fname: return
-    taskpatt = "*Task_{}".format([x for x in fname.split("/") if ("MINIAOD" in x or "Task" in x)][0])
+    taskpatt = "*Task_{}".format([x for x in fname.split("/") if ("AOD" in x or "Task" in x)][0])
     taskdir = glob.glob("tasks/{}".format(taskpatt))[0]
     ef = EventsFile(fname)
     with open("{}/backup.pkl".format(taskdir),"r") as fh:
