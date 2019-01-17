@@ -325,6 +325,9 @@ class SNTSample(DirectorySample):
         if self.info.get("location", None):
             return self.info["location"]
         self.load_from_dis()
+        # If we get here and there's no location, something went wrong...
+        if not self.info["location"]:
+            raise RuntimeError("Failed to get location for this sample!")
         return self.info["location"]
 
     def get_files(self):
