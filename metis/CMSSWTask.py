@@ -207,8 +207,8 @@ if hasattr(process,"eventMaker"):
     process.eventMaker.CMS3tag = cms.string('{tag}')
     process.eventMaker.datasetName = cms.string('{dsname}')
     process.out.dropMetaData = cms.untracked.string("NONE")
-if hasattr(process,"GlobalTag"):
-    process.GlobalTag.globaltag = "{gtag}"
+    if hasattr(process,"GlobalTag"):
+        process.GlobalTag.globaltag = "{gtag}"
 if hasattr(process,"MessageLogger"):
     process.MessageLogger.cerr.FwkReport.reportEvery = 1000
     process.add_(cms.Service("CondorStatusService", updateIntervalSeconds=cms.untracked.uint32(2700)))
@@ -217,7 +217,7 @@ def set_output_name(outputname):
     to_change = []
     for attr in dir(process):
         if not hasattr(process,attr): continue
-        if type(getattr(process,attr)) != cms.OutputModule: continue
+        if (type(getattr(process,attr)) != cms.OutputModule) and (attr not in ["TFileService"]): continue
         to_change.append([process,attr])
     for i in range(len(to_change)):
         getattr(to_change[i][0],to_change[i][1]).fileName = outputname
