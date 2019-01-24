@@ -160,13 +160,14 @@ chirp ChirpMetisStatus "before_cmsRun"
 edit_pset
 
 cmsRun pset.py ${PSETARGS}
+CMSRUN_STATUS=$?
 
 chirp ChirpMetisStatus "after_cmsRun"
 
 echo "after running: ls -lrth"
 ls -lrth
 
-if [ "$?" != "0" ]; then
+if [[ $CMSRUN_STATUS != 0 ]]; then
     echo "Removing output file because cmsRun crashed with exit code $?"
     rm ${OUTPUTNAME}.root
     exit 1
