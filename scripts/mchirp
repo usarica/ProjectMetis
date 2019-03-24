@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+import os
+import htcondor
+import pandas as pd
+import json
+import datetime
+from StringIO import StringIO
+# htcondor.enable_debug()
+# os.environ["_condor_SCHEDD_DEBUG"] = "D_FULLDEBUG|D_NETWORK"
+# print dir(htcondor)
+# print htcondor.RemoteParam()
+# print htcondor._Param
+
+
+from metis.Utils import do_cmd, metis_base
+# out = do_cmd("condor_q -const 'JobStatus==2' -af:h, ClusterId ProcId taskname tag jobnum metis_retries MATCH_EXP_JOB_Site ChirpMetisStatus ChirpMetisExpectedNevents ChirpCMSSWWriteBytes ChirpCMSSWTotalCPU ChirpCMSSWRuns ChirpCMSSWReadBytes ChirpCMSSWMaxLumis ChirpCMSSWMaxFiles ChirpCMSSWMaxEvents ChirpCMSSWLumis ChirpCMSSWLastUpdate ChirpCMSSWFiles ChirpCMSSWEvents ChirpCMSSWEventRate ChirpCMSSWElapsed ChirpCMSSWDone")
+out = do_cmd("condor_q -const 'JobStatus==2' -json -af:h ClusterId ProcId taskname tag jobnum metis_retries MATCH_EXP_JOB_Site ChirpMetisStatus ChirpMetisExpectedNevents ChirpCMSSWWriteBytes ChirpCMSSWTotalCPU ChirpCMSSWRuns ChirpCMSSWReadBytes ChirpCMSSWMaxLumis ChirpCMSSWMaxFiles ChirpCMSSWMaxEvents ChirpCMSSWLumis ChirpCMSSWLastUpdate ChirpCMSSWFiles ChirpCMSSWEvents ChirpCMSSWEventRate ChirpCMSSWElapsed ChirpCMSSWDone ChirpCMSSWReadTimeMsecs")
+out = json.loads(out)
+# print out
+# print out
+
+
+# df = pd.read_csv(StringIO(out))
+# # print df
+
+# df.columns = df.columns.str.strip()
+
+
+# # print df["ProcId"]
+# # print df["ProcId"]
+
+# df["condorid"] = df["ClusterId"].astype(str).str.cat(df["ProcId"].values.astype(str),sep=".")
+# df["ChirpCMSSWWriteGB"] = pd.to_numeric(df["ChirpCMSSWWriteBytes"],errors="coerce").fillna(0.)/1.0e9
+# df["site"] = df["MATCH_EXP_JOB_Site"]
+# df["jobnum"] = pd.to_numeric(df["jobnum"],errors="coerce").fillna(-1).astype(int)
+# df["metis_retries"] = pd.to_numeric(df["jobnum"],errors="coerce").fillna(-1).astype(int)
+# df["ChirpCMSSWEvents"] = pd.to_numeric(df["jobnum"],errors="coerce").fillna(-1).astype(int)
+# df["ChirpCMSSWEventRate"] = pd.to_numeric(df["jobnum"],errors="coerce").fillna(0.).astype(float)
+
+# # "condorid": "551964.1",
+# # "jobnum": 42,
+# # "tag": "CMS4_V10-02-04",
+# #         "ChirpCMSSWETA": "2019-03-24 16:16:18",
+# # "taskname": "ttWJets_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2_MINIAODSIM",
+# #         "ChirpCMSSWLastUpdate": "2019-01-28 17:52:36",
+# #         "ChirpCMSSWReadGB": 8.1,
+# #         "ChirpCMSSWProgress": 82.2,
+# #         "status": "before_cmsRun",
+# # "metis_retries": 15,
+# # "ChirpCMSSWEvents": 234241,
+# # "site": "T2_US_Purdue",
+# #         "ChirpCMSSWElapsed": "2019-03-24 18:03:34",
+# # "ChirpMetisExpectedNevents": 284874,
+# # "ChirpMetisStatus": "before_cmsRun",
+# # "ChirpCMSSWWriteGB": 2.8,
+# # "ChirpCMSSWEventRate": 30.27,
+# #         "ChirpCMSSWReadMBps": 7.2
+# # print df["condorid"]
+# # df["condorid"] = [".".join([str(x),str(y)]) for x, y in zip(df["ClusterId"], df["ProcId"])]
+# print df.keys()
+# print df.head()
+
+def fix_outputs(ret, minhours=-1):
+    tokeep = set([])
+    for i in range(len(ret)):
+        # try:
+        if "ChirpMetisStatus" not in ret[i]: 
+            continue
+        ret[i]["condorid"] = "{}.{}".format(ret[i]["ClusterId"],ret[i]["ProcId"])
+        ret[i]["taskname"] = ret[i]["taskname"].split("Task_",1)[-1].replace("_"+ret[i]["tag"],"")
+        ret[i]["site"] = ret[i]["MATCH_EXP_JOB_Site"]
+        for k in ret[i].keys():
+            if not("CMSSW" in k or "ExpectedNevents" in k): continue
+            if "Done" in k: continue
+            if any(x in k for x in ["Rate","TotalCPU"]):
+                ret[i][k] = float(ret[i][k])
+            else:
+                ret[i][k] = int(ret[i][k])
+        for k in ["metis_retries","jobnum"]:
+            ret[i][k] = int(ret[i][k])
+        if ret[i].get("ChirpMetisExpectedNevents",-1) > 0.:
+            ret[i]["ChirpCMSSWProgress"] = round(100.*ret[i]["ChirpCMSSWEvents"]/ret[i]["ChirpMetisExpectedNevents"],1)
+            ret[i]["ChirpCMSSWETA"] = (datetime.timedelta(seconds=(ret[i]["ChirpMetisExpectedNevents"]-ret[i]["ChirpCMSSWEvents"])/ret[i]["ChirpCMSSWEventRate"])+datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+        ret[i]["ChirpMetisStatus"] = ret[i]["ChirpMetisStatus"].split("(",1)[1].split(")",1)[0]
+        ret[i]["ChirpCMSSWLastUpdate"] = datetime.datetime.fromtimestamp(ret[i]["ChirpCMSSWLastUpdate"]).strftime("%Y-%m-%d %H:%M:%S")
+        ret[i]["ChirpCMSSWElapsed"] = (datetime.timedelta(seconds=ret[i]["ChirpCMSSWElapsed"])+datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
+        ret[i]["ChirpCMSSWEventRate"] = round(ret[i]["ChirpCMSSWEventRate"],2)
+        if "ChirpCMSSWReadBytes" in ret[i]:
+            ret[i]["ChirpCMSSWReadMBps"] = round((ret[i]["ChirpCMSSWReadBytes"]/1.0e6)/(ret[i]["ChirpCMSSWReadTimeMsecs"]/1000.),1)
+            ret[i]["ChirpCMSSWReadGB"] = round(ret[i]["ChirpCMSSWReadBytes"]/1.0e9,1)
+            ret[i]["ChirpCMSSWReadSeconds"] = round(ret[i]["ChirpCMSSWReadTimeMsecs"]/1000.,0)
+            ret[i]["ChirpCMSSWWriteGB"] = round(ret[i]["ChirpCMSSWWriteBytes"]/1.0e9,1)
+        skeys = [k for k in ret[i].keys() if k.endswith("ReadTimeMS") and ("IOSite" in k)]
+        # key is sitename, val is fraction of total read milliseconds
+        tdict = {k.split("_",1)[-1].rsplit("_",1)[0]:1.0*ret[i][k]/ret[i]["ChirpCMSSWReadTimeMsecs"] for k in skeys}
+        ret[i]["ChirpCMSSWReadTimePctStr"] = ", ".join(map(lambda y: "{} ({:.0f}%)".format(y[0],100.0*y[1]), sorted(tdict.items(),key=lambda x:-x[1])))
+        tokeep.add(i)
+        # except:
+        #     pass
+    if tokeep:
+        newret = []
+        for ir,r in enumerate(ret):
+            if ir in tokeep:
+                newret.append(r)
+    else:
+        newret = ret
+    return newret
+
+with open("chirpdata.js","w") as fh:
+    buff = "var tableData = {}".format(json.dumps(fix_outputs(out)))
+    fh.write(buff)
+
+do_cmd("mkdir -p ~/public_html/dump/", dryRun=False)
+do_cmd("cp -rp {}/dashboard/chirptable.html ~/public_html/dump/".format(metis_base()), dryRun=False)
+do_cmd("cp -rp chirpdata.js ~/public_html/dump/", dryRun=False)
+print "http://uaf-1.t2.ucsd.edu/~{}/dump/chirptable.html".format(os.getenv("USER"))

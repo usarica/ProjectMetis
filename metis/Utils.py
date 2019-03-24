@@ -225,12 +225,18 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
         # NOTE doesn't support `user`, `cluster_id`, `schedd`, `do_long` kwargs options
         constraints = "&&".join(selection_strs_cpp)
         output = htcondor.Schedd().xquery(constraints,columns)
-        for match in output:
-            tmp = {c:match.get(c,"undefined") for c in columns}
-            tmp["JobStatus"] = status_LUT.get( int(tmp.get("JobStatus",0)),"U" )
-            tmp["ClusterId"] = "{}.{}".format(tmp["ClusterId"],tmp["ProcId"])
-            tmp["ProcId"] = str(tmp["ProcId"])
-            jobs.append(tmp)
+        try:
+            for match in output:
+                tmp = {c:match.get(c,"undefined") for c in columns}
+                tmp["JobStatus"] = status_LUT.get( int(tmp.get("JobStatus",0)),"U" )
+                tmp["ClusterId"] = "{}.{}".format(tmp["ClusterId"],tmp["ProcId"])
+                tmp["ProcId"] = str(tmp["ProcId"])
+                jobs.append(tmp)
+        except RuntimeError as e:
+            # Most likely "Timeout when waiting for remote host". Re-raise so we catch later.
+            raise Exception("Condor querying error -- timeout when waiting for remote host.")
+
+
     elif not do_long:
         cmd = "condor_q {0} {1} {2} -constraint 'JobStatus != 3' -autoformat:t {3} {4}".format(user, cluster_id, extra_cli, columns_str,selection_str)
         output = do_cmd(cmd) #,dryRun=True)
@@ -296,19 +302,20 @@ def condor_submit(**kwargs): # pragma: no cover
     # http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
     good_sites = [
 
+            # See metis/Optimizer.py
                 "T2_US_Caltech",
                 "T2_US_UCSD",
-                "T3_US_UCR",
+                # "T3_US_UCR",
                 # "T3_US_OSG",
                 "T2_US_Florida",
                 "T2_US_MIT",
-                "T2_US_Nebraska",
-                "T2_US_Purdue",
+                # "T2_US_Nebraska",
+                # "T2_US_Purdue",
                 "T2_US_Vanderbilt",
-                "T2_US_Wisconsin",
+                # "T2_US_Wisconsin",
                 "T3_US_Baylor",
                 "T3_US_Colorado",
-                "T3_US_NotreDame",
+                # "T3_US_NotreDame",
                 # "UCSB",
 
                 # "UAF", # bad (don't spam uafs!!)
@@ -369,6 +376,7 @@ transfer_input_files={inputfiles}
 transfer_output_files = ""
 +Owner = undefined
 +project_Name = \"cmssurfandturf\"
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest/"
 log={logdir}/{timestamp}.log
 output={logdir}/std_logs/1e.$(Cluster).$(Process).out
 error={logdir}/std_logs/1e.$(Cluster).$(Process).err
