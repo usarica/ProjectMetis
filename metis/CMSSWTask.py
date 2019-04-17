@@ -13,6 +13,7 @@ class CMSSWTask(CondorTask):
         :kwarg is_tree_output: is the output file of the job a tree?
         :kwarg other_outputs: list of other output files to copy back (in addition to output_name)
         :kwarg publish_to_dis: publish the sample information to DIS upon completion
+        :kwarg report_every: MessageLogger reporting every N events
         """
 
         self.pset = kwargs.get("pset", None)
@@ -24,6 +25,7 @@ class CMSSWTask(CondorTask):
         self.output_is_tree = kwargs.get("is_tree_output", True)
         self.dont_check_tree = kwargs.get("dont_check_tree", False)
         self.publish_to_dis = kwargs.get("publish_to_dis", False)
+        self.report_every = kwargs.get("report_every", 1000)
         # Pass all of the kwargs to the parent class
         super(CMSSWTask, self).__init__(**kwargs)
 
@@ -210,8 +212,11 @@ if hasattr(process,"eventMaker"):
     if hasattr(process,"GlobalTag"):
         process.GlobalTag.globaltag = "{gtag}"
 if hasattr(process,"MessageLogger"):
-    process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-    process.add_(cms.Service("CondorStatusService", updateIntervalSeconds=cms.untracked.uint32(2700)))
+    process.MessageLogger.cerr.FwkReport.reportEvery = {reportevery}
+    import os
+    major_ver = int(os.getenv("CMSSW_RELEASE_BASE",os.getenv("CMSSW_BASE","CMSSW_5")).split("CMSSW_",1)[1].split("_",1)[0])
+    if major_ver >= 8:
+        process.add_(cms.Service("CondorStatusService", updateIntervalSeconds=cms.untracked.uint32(2700)))
 
 def set_output_name(outputname):
     to_change = []
@@ -221,7 +226,7 @@ def set_output_name(outputname):
         to_change.append([process,attr])
     for i in range(len(to_change)):
         getattr(to_change[i][0],to_change[i][1]).fileName = outputname
-\n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag)
+\n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag, reportevery=self.report_every)
             )
 
             if self.sparms:
@@ -233,7 +238,10 @@ def set_output_name(outputname):
         # later on we will then tell each job the number of events to process
         # and the first event to start with (firstEvent)
         if self.split_within_files:
-            fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms", "")) for fo in self.get_inputs(flatten=True)]
+            if self.condor_submit_params.get("sites") == "T2_US_UCSD":
+                fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","file:/hadoop/cms")) for fo in self.get_inputs(flatten=True)]
+            else:
+                fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","").replace("/store/","root://cmsxrootd.fnal.gov//store/")) for fo in self.get_inputs(flatten=True)]
             with open(pset_location_out, "a") as fhin:
                 # hard limit at 255 input files since that's the max CMSSW allows in process.source
                 fhin.write("\nif hasattr(process.source,\"fileNames\"): process.source.fileNames = cms.untracked.vstring([\n{0}\n][:255])\n\n".format(",\n".join(fnames)))
