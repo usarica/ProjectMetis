@@ -26,7 +26,7 @@ class CrabManager(object):
         self.input_files = kwargs.get("input_files", [])
         self.auxiliary_files = kwargs.get("auxiliary_files", [])
         self.dataset = kwargs.get("dataset", None)
-        self.work_area = kwargs.get("work_area", "crab/")
+        self.work_area = kwargs.get("work_area", "./")
         self.request_name = kwargs.get("request_name", None)
         self.plugin_name = kwargs.get("plugin_name", "Analysis")
         self.pset_location = kwargs.get("pset_location", None)
@@ -45,7 +45,7 @@ class CrabManager(object):
 
         self.crab_config = None
         self.unique_request_name = None
-        self.task_dir = os.path.join(self.work_area, "crab_{0}".format(self.request_name))
+        self.task_dir = os.path.join(self.work_area, "{0}".format(self.request_name))
         self.status_output = {}
 
         self.logger = logging.getLogger(setup_logger())
