@@ -90,7 +90,7 @@ class CondorTask(Task):
         # Pass all of the kwargs to the parent class
         super(CondorTask, self).__init__(**kwargs)
 
-        self.logger.info("Instantiated task for {0}".format(self.sample.get_datasetname()))
+        self.logger.info("Instantiated task for {0} ({1})".format(self.sample.get_datasetname(),self.tag))
 
         # Can keep calling update_mapping afterwards to re-query input files
         if not self.read_only:
@@ -405,7 +405,7 @@ class CondorTask(Task):
         Execute main logic
         Backup
         """
-        self.logger.info("Began processing {0}".format(self.sample.get_datasetname()))
+        self.logger.info("Began processing {0} ({1})".format(self.sample.get_datasetname(),self.tag))
         # set up condor input if it's the first time submitting
         if (not self.prepared_inputs) or self.recopy_inputs:
             self.prepare_inputs()
@@ -419,7 +419,7 @@ class CondorTask(Task):
 
         self.backup()
 
-        self.logger.info("Ended processing {0}".format(self.sample.get_datasetname()))
+        self.logger.info("Ended processing {0} ({1})".format(self.sample.get_datasetname(),self.tag))
 
     def finalize(self):
         """
