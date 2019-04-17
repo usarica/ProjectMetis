@@ -19,17 +19,20 @@ good_sites = set([
 
         "T2_US_Caltech",
         "T2_US_UCSD",
-        # "T3_US_UCR",
+        "T3_US_UCR", # failing since late 2018
         "T3_US_OSG",
-        "T2_US_Florida",
+        # "T2_US_Florida",
         "T2_US_MIT",
         "T2_US_Nebraska",
         "T2_US_Purdue",
         "T2_US_Vanderbilt",
-        # "T2_US_Wisconsin",
+        # "T2_US_Wisconsin", # haven't been able to get anything to run here for a long time
         "T3_US_Baylor",
         "T3_US_Colorado",
         "T3_US_NotreDame",
+        "T3_US_Rice",
+        "T3_US_UMiss",
+        "T3_US_PuertoRico",
         # "UCSB",
         # "UAF", # bad (don't spam uafs!!)
 
@@ -43,7 +46,7 @@ good_sites = set([
     # path-match="/+store/(mc/RunIIFall17MiniAODv2/[^/]+/MINIAODSIM/.*)"
     # path-match="/+store/(data/Run2017[A-Z]/[^/]+/MINIAOD/31Mar2018-.*)"
 
-@cached(default_max_age = datetime.timedelta(seconds=7*24*3600), filename="site_cache.shelf")
+@cached(default_max_age = datetime.timedelta(seconds=21*24*3600), filename="site_cache.shelf")
 def get_file_replicas(dsname):
     rawresponse = dis.query(dsname, typ="sites", detail=True)
     info = rawresponse["response"]["payload"]["block"]

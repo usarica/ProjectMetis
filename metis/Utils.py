@@ -184,7 +184,7 @@ def setup_logger(logger_name="logger_metis"): # pragma: no cover
     logger.addHandler(ch)
     return logger_name
 
-def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None,do_long=False,use_python_bindings=False):
+def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[], schedd=None,do_long=False,use_python_bindings=False,extra_constraint=""):
     """
     Return list of dicts with items for each of the columns
     - Selection pair is a list of pairs of [variable_name, variable_value]
@@ -213,6 +213,8 @@ def condor_q(selection_pairs=None, user="$USER", cluster_id="", extra_columns=[]
             selection_str += " -const '{0}==\"{1}\"'".format(*sel_pair)
             if use_python_bindings:
                 selection_strs_cpp.append('({0}=="{1}")'.format(*sel_pair))
+    if extra_constraint and use_python_bindings:
+        selection_strs_cpp.append(extra_constraint)
 
     # Constraint ignores removed jobs ("X")
     extra_cli = ""
@@ -303,21 +305,24 @@ def condor_submit(**kwargs): # pragma: no cover
     good_sites = [
 
             # See metis/Optimizer.py
+
                 "T2_US_Caltech",
                 "T2_US_UCSD",
-                # "T3_US_UCR",
-                # "T3_US_OSG",
-                "T2_US_Florida",
+                "T3_US_UCR", # failing since late 2018
+                "T3_US_OSG",
+                # "T2_US_Florida",
                 "T2_US_MIT",
-                # "T2_US_Nebraska",
-                # "T2_US_Purdue",
+                "T2_US_Nebraska",
+                "T2_US_Purdue",
                 "T2_US_Vanderbilt",
-                # "T2_US_Wisconsin",
+                # "T2_US_Wisconsin", # haven't been able to get anything to run here for a long time
                 "T3_US_Baylor",
                 "T3_US_Colorado",
-                # "T3_US_NotreDame",
+                "T3_US_NotreDame",
+                "T3_US_Rice",
+                "T3_US_UMiss",
+                "T3_US_PuertoRico",
                 # "UCSB",
-
                 # "UAF", # bad (don't spam uafs!!)
 
             ]
@@ -367,6 +372,8 @@ def condor_submit(**kwargs): # pragma: no cover
     if kwargs.get("requirements_line","").strip():
         requirements_line = kwargs["requirements_line"]
 
+# NOTE put back in once chirp works at all sites (e.g., Purdue, Vanderbilt, and some others)
+# +SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest/"
     template = """
 universe={universe}
 +DESIRED_Sites="{sites}"
@@ -376,7 +383,6 @@ transfer_input_files={inputfiles}
 transfer_output_files = ""
 +Owner = undefined
 +project_Name = \"cmssurfandturf\"
-+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest/"
 log={logdir}/{timestamp}.log
 output={logdir}/std_logs/1e.$(Cluster).$(Process).out
 error={logdir}/std_logs/1e.$(Cluster).$(Process).err
