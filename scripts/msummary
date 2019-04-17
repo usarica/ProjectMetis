@@ -107,6 +107,7 @@ def main(args):
     dswidth = width if width > 0 else max(len(x["general"]["dataset"]) for x in tasks)
     for d_ds in tasks:
         d_general = d_ds["general"]
+        tag = d_general["tag"]
         d_bad = d_ds["bad"]
         dataset = d_general["dataset"]
 
@@ -123,7 +124,8 @@ def main(args):
         ending = ""
         if done == total:
             ending = " [DONE]"
-        print ("{0:<%is} {1} {2:3.0f}%% [{3:4d}/{4:4d}]{5}" % dswidth).format(dataset_short, progress, 100.0*fraction, done, total, ending)
+        tag_short = "[{}]".format(tag[:15])
+        print ("{:<17s} {:<%is} {} {:3.0f}%% [{:4d}/{:4d}]{}" % dswidth).format(tag_short, dataset_short, progress, 100.0*fraction, done, total, ending)
 
         if verbosity > 0:
             for iout,info in d_bad["jobs_not_done"].items():
