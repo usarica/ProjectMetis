@@ -125,7 +125,7 @@ def main(args):
         if done == total:
             ending = " [DONE]"
         tag_short = "[{}]".format(tag[:15])
-        print ("{:<17s} {:<%is} {} {:3.0f}%% [{:4d}/{:4d}]{}" % dswidth).format(tag_short, dataset_short, progress, 100.0*fraction, done, total, ending)
+        print ("{:<17s} {} {:3.0f}%% [{:4d}/{:4d}] {:<%is}{}" % dswidth).format(tag_short, progress, 100.0*fraction, done, total, dataset_short, ending)
 
         if verbosity > 0:
             for iout,info in d_bad["jobs_not_done"].items():
