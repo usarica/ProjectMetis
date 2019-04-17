@@ -1,4 +1,5 @@
 import json
+import string
 import os
 import sys
 import time
@@ -111,6 +112,8 @@ class StatsParser(object):
                     site = parsed.get("site","")
                     last_sites.append(site if site else "")
                 last_error = parsed.get("inferred_error","")
+                # # probably slow, but guarantees there's no weird \x01 characters in the string
+                # last_error = "".join(filter(lambda char: char in string.printable, last_error))
                 last_log = outlog
                 bad_jobs[iout] = {
                         "retries":retries,
