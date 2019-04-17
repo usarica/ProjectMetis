@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
-import htcondor
-import pandas as pd
+# import htcondor
+# import pandas as pd
 import json
 import datetime
-from StringIO import StringIO
+# from StringIO import StringIO
 # htcondor.enable_debug()
 # os.environ["_condor_SCHEDD_DEBUG"] = "D_FULLDEBUG|D_NETWORK"
 # print dir(htcondor)
@@ -64,8 +64,8 @@ def fix_outputs(ret, minhours=-1):
     tokeep = set([])
     for i in range(len(ret)):
         # try:
-        if "ChirpMetisStatus" not in ret[i]: 
-            continue
+        if "ChirpMetisStatus" not in ret[i]: continue
+        if "ChirpCMSSWEventRate" not in ret[i]: continue
         ret[i]["condorid"] = "{}.{}".format(ret[i]["ClusterId"],ret[i]["ProcId"])
         ret[i]["taskname"] = ret[i]["taskname"].split("Task_",1)[-1].replace("_"+ret[i]["tag"],"")
         ret[i]["site"] = ret[i]["MATCH_EXP_JOB_Site"]
@@ -80,12 +80,14 @@ def fix_outputs(ret, minhours=-1):
             ret[i][k] = int(ret[i][k])
         if ret[i].get("ChirpMetisExpectedNevents",-1) > 0.:
             ret[i]["ChirpCMSSWProgress"] = round(100.*ret[i]["ChirpCMSSWEvents"]/ret[i]["ChirpMetisExpectedNevents"],1)
+            # print ret[i]
+            if ret[i]["ChirpCMSSWEventRate"] == 0.: ret[i]["ChirpCMSSWEventRate"] = -1.
             ret[i]["ChirpCMSSWETA"] = (datetime.timedelta(seconds=(ret[i]["ChirpMetisExpectedNevents"]-ret[i]["ChirpCMSSWEvents"])/ret[i]["ChirpCMSSWEventRate"])+datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
         ret[i]["ChirpMetisStatus"] = ret[i]["ChirpMetisStatus"].split("(",1)[1].split(")",1)[0]
         ret[i]["ChirpCMSSWLastUpdate"] = datetime.datetime.fromtimestamp(ret[i]["ChirpCMSSWLastUpdate"]).strftime("%Y-%m-%d %H:%M:%S")
         ret[i]["ChirpCMSSWElapsed"] = (datetime.timedelta(seconds=ret[i]["ChirpCMSSWElapsed"])+datetime.datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
         ret[i]["ChirpCMSSWEventRate"] = round(ret[i]["ChirpCMSSWEventRate"],2)
-        if "ChirpCMSSWReadBytes" in ret[i]:
+        if "ChirpCMSSWReadBytes" in ret[i] and ret[i]["ChirpCMSSWReadTimeMsecs"]>0.:
             ret[i]["ChirpCMSSWReadMBps"] = round((ret[i]["ChirpCMSSWReadBytes"]/1.0e6)/(ret[i]["ChirpCMSSWReadTimeMsecs"]/1000.),1)
             ret[i]["ChirpCMSSWReadGB"] = round(ret[i]["ChirpCMSSWReadBytes"]/1.0e9,1)
             ret[i]["ChirpCMSSWReadSeconds"] = round(ret[i]["ChirpCMSSWReadTimeMsecs"]/1000.,0)
