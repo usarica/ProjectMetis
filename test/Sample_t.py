@@ -53,20 +53,20 @@ class DBSSampleTest(unittest.TestCase):
     @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
     @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
     def test_queries(self):
-        dsname = "/ZeroBias6/Run2017A-PromptReco-v2/MINIAOD"
+        dsname = "/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD"
         dbssamp = DBSSample(dataset=dsname)
         # make initial queries
-        self.assertEqual(dbssamp.get_nevents(), 2109150)
+        self.assertEqual(dbssamp.get_nevents(), 75499908)
         dbssamp.info["gtag"] = None # reset so we don't pull from cache
-        self.assertEqual(dbssamp.get_globaltag(), "92X_dataRun2_Prompt_v4")
-        self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_9_2_1")
-        self.assertEqual(len(dbssamp.get_files()), 10)
+        self.assertEqual(dbssamp.get_globaltag(), "102X_dataRun2_Sep2018Rereco_v1")
+        self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_10_2_4_patch1")
+        self.assertEqual(len(dbssamp.get_files()), 1260)
 
         # pull from cache
-        self.assertEqual(dbssamp.get_nevents(), 2109150)
-        self.assertEqual(dbssamp.get_globaltag(), "92X_dataRun2_Prompt_v4")
-        self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_9_2_1")
-        self.assertEqual(len(dbssamp.get_files()), 10)
+        self.assertEqual(dbssamp.get_nevents(), 75499908)
+        self.assertEqual(dbssamp.get_globaltag(), "102X_dataRun2_Sep2018Rereco_v1")
+        self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_10_2_4_patch1")
+        self.assertEqual(len(dbssamp.get_files()), 1260)
 
 class DirectorySampleTest(unittest.TestCase):
 
