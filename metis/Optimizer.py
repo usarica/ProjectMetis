@@ -17,12 +17,12 @@ import scripts.dis_client as dis
 # http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
 good_sites = set([
 
-        "T2_US_Caltech",
+        # "T2_US_Caltech", # failing since Apr 23
         "T2_US_UCSD",
         "T3_US_UCR", # failing since late 2018
         "T3_US_OSG",
-        # "T2_US_Florida",
-        "T2_US_MIT",
+        "T2_US_Florida",
+        "T2_US_MIT", # Failed to start singularity as of Apr 18
         "T2_US_Nebraska",
         "T2_US_Purdue",
         "T2_US_Vanderbilt",

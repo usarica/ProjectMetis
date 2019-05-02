@@ -306,12 +306,12 @@ def condor_submit(**kwargs): # pragma: no cover
 
             # See metis/Optimizer.py
 
-                "T2_US_Caltech",
+                # "T2_US_Caltech", # failing since Apr 23
                 "T2_US_UCSD",
-                "T3_US_UCR", # failing since late 2018
+                "T3_US_UCR",
                 "T3_US_OSG",
-                # "T2_US_Florida",
-                "T2_US_MIT",
+                "T2_US_Florida",
+                "T2_US_MIT", # Failed to start singularity as of Apr 18
                 "T2_US_Nebraska",
                 "T2_US_Purdue",
                 "T2_US_Vanderbilt",
