@@ -238,7 +238,7 @@ def set_output_name(outputname):
         # later on we will then tell each job the number of events to process
         # and the first event to start with (firstEvent)
         if self.split_within_files:
-            if self.condor_submit_params.get("sites") == "T2_US_UCSD":
+            if self.kwargs.get("condor_submit_params", {}).get("sites") == "T2_US_UCSD":
                 fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","file:/hadoop/cms")) for fo in self.get_inputs(flatten=True)]
             else:
                 fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","").replace("/store/","root://cmsxrootd.fnal.gov//store/")) for fo in self.get_inputs(flatten=True)]
