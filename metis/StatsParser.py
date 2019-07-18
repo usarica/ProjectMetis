@@ -76,7 +76,7 @@ class StatsParser(object):
 
                 is_done  = job["output_exists"] and not job["is_on_condor"]
 
-                if is_done:
+                if is_done and len(condor_jobs):
                     outnevents += job["output"][1]
                     parsed = {}
                     if custom_event_rate_parser:
@@ -112,8 +112,8 @@ class StatsParser(object):
                     site = parsed.get("site","")
                     last_sites.append(site if site else "")
                 last_error = parsed.get("inferred_error","")
-                # # probably slow, but guarantees there's no weird \x01 characters in the string
-                # last_error = "".join(filter(lambda char: char in string.printable, last_error))
+                # probably slow, but guarantees there's no weird \x01 characters in the string
+                last_error = "".join(filter(lambda char: char in string.printable, last_error))
                 last_log = outlog
                 bad_jobs[iout] = {
                         "retries":retries,
