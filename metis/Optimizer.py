@@ -8,35 +8,11 @@ import datetime
 from metis.Sample import DBSSample
 from metis.CMSSWTask import CMSSWTask
 from metis.StatsParser import StatsParser
-from metis.Utils import send_email, interruptible_sleep, cached, from_timestamp
+from metis.Utils import send_email, interruptible_sleep, cached, from_timestamp, good_sites
 from metis.LogParser import log_parser
 from pprint import pprint
 
 import scripts.dis_client as dis
-
-# http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
-good_sites = set([
-
-        # "T2_US_Caltech", # failing since Apr 23
-        "T2_US_UCSD",
-        "T3_US_UCR", # failing since late 2018
-        "T3_US_OSG",
-        "T2_US_Florida",
-        "T2_US_MIT", # Failed to start singularity as of Apr 18
-        "T2_US_Nebraska",
-        "T2_US_Purdue",
-        "T2_US_Vanderbilt",
-        # "T2_US_Wisconsin", # haven't been able to get anything to run here for a long time
-        "T3_US_Baylor",
-        "T3_US_Colorado",
-        "T3_US_NotreDame",
-        "T3_US_Rice",
-        "T3_US_UMiss",
-        "T3_US_PuertoRico",
-        # "UCSB",
-        # "UAF", # bad (don't spam uafs!!)
-
-        ])
 
 # NOTE xcache patterns are in
 # /cvmfs/cms.cern.ch/SITECONF/T2_US_UCSD/PhEDEx/storage.xml
