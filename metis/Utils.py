@@ -22,6 +22,42 @@ import fcntl
 from collections import Counter
 from contextlib import contextmanager
 
+# http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
+good_sites = set([
+
+            "T2_US_Caltech",
+            "T2_US_UCSD",
+            "T3_US_UCR",
+            "T3_US_OSG",
+            "T2_US_Florida",
+            "T2_US_MIT", # Failed to start singularity as of Apr 18
+            "T2_US_Nebraska",
+            "T2_US_Purdue",
+            "T2_US_Vanderbilt",
+            # "T2_US_Wisconsin", # haven't been able to get anything to run here for a long time
+            "T3_US_Baylor",
+            "T3_US_Colorado",
+            "T3_US_NotreDame",
+            "T3_US_Rice",
+            "T3_US_UMiss",
+            "T3_US_PuertoRico",
+            # "UCSB",
+            # "UAF", # bad (don't spam uafs!!)
+
+            "T3_US_Cornell",
+            "T3_US_FIT",
+            "T3_US_FIU",
+            "T3_US_OSU",
+            "T3_US_Rutgers",
+            "T3_US_TAMU",
+            "T3_US_TTU",
+            "T3_US_UCD",
+            "T3_US_UMD",
+            "T3_US_UMiss",
+
+        ])
+
+
 class cached(object): # pragma: no cover
     """
     decorate with
@@ -301,32 +337,6 @@ def condor_submit(**kwargs): # pragma: no cover
     if "/" not in os.path.normpath(params["executable"]):
         exe_dir = "."
 
-    # http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
-    good_sites = [
-
-            # See metis/Optimizer.py
-
-                # "T2_US_Caltech", # failing since Apr 23
-                "T2_US_UCSD",
-                "T3_US_UCR",
-                "T3_US_OSG",
-                "T2_US_Florida",
-                "T2_US_MIT", # Failed to start singularity as of Apr 18
-                "T2_US_Nebraska",
-                "T2_US_Purdue",
-                "T2_US_Vanderbilt",
-                # "T2_US_Wisconsin", # haven't been able to get anything to run here for a long time
-                "T3_US_Baylor",
-                "T3_US_Colorado",
-                "T3_US_NotreDame",
-                "T3_US_Rice",
-                "T3_US_UMiss",
-                "T3_US_PuertoRico",
-                # "UCSB",
-                # "UAF", # bad (don't spam uafs!!)
-
-            ]
-
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Wisconsin,T2_US_Florida,T2_US_Nebraska,T2_US_Caltech,T2_US_MIT,T2_US_Purdue")
     # if kwargs.get("use_xrootd", False): params["sites"] = kwargs.get("sites","T2_US_UCSD,T2_US_Caltech,T2_US_Wisconsin,T2_US_MIT")
     params["sites"] = kwargs.get("sites",",".join(good_sites))
@@ -377,6 +387,8 @@ def condor_submit(**kwargs): # pragma: no cover
     template = """
 universe={universe}
 +DESIRED_Sites="{sites}"
+RequestMemory = 2048
+RequestCpus = 1
 executable={executable}
 transfer_executable=True
 transfer_input_files={inputfiles}
