@@ -8,12 +8,13 @@ import logging
 from pprint import pprint
 import datetime
 
-import metis.LogParser as LogParser
+from metis.LogParser import log_parser
 import metis.Utils as Utils
+from tqdm import tqdm
 
 class StatsParser(object):
 
-    def __init__(self, data = {}, summary_fname="summary.json"):
+    def __init__(self, data = {}, summary_fname="../summary.json"):
         self.data = data
         self.summary_fname = summary_fname
 
@@ -27,7 +28,7 @@ class StatsParser(object):
 
         arr = []
         now = int(datetime.datetime.now().strftime("%s"))
-        for dsname in summaries.keys():
+        for dsname in tqdm(summaries.keys()):
 
             sample = summaries[dsname]["jobs"]
             task_type = summaries[dsname].get("task_type", "Task")
@@ -47,12 +48,18 @@ class StatsParser(object):
                     if "CMSSW" in task_type:
                         outlog = condor_jobs[i]["logfile_out"]
                         errlog = condor_jobs[i]["logfile_err"]
-                        rate = LogParser.get_event_rate(errlog)
-                        site = LogParser.get_site(outlog)
+                        try:
+                            parsed = log_parser(errlog,do_header=True,do_error=False,do_rate=True)
+                            rate = parsed.get("event_rate",-1)
+                            site = parsed.get("site","")
+                            ts = int(parsed["args"]["time"])
+                        except KeyboardInterrupt:
+                            sys.exit()
+                        except:
+                            continue
                         if not site: 
                             continue
-                        ts = LogParser.get_timestamp(outlog)
-                        if now-ts > 2*3600*24: continue # last 2 days
+                        if now-ts > 7*3600*24: continue # last 7 days
 
                     fail = (i != len(condor_jobs)-1) or (not is_done)
                     # ts = Utils.from_timestamp(ts)
@@ -71,17 +78,18 @@ class StatsParser(object):
                             len(condor_jobs),
                             i,
                             rate,
-                            site.split()[0],
-                            site.split()[1],
+                            site,
                         ])
 
+        print np.array(arr)
         arr = np.rec.fromarrays(np.array(arr).T, 
-                dtype=zip(('ts', 'fail', 'retries', 'retry', 'rate', 'site', 'hostname'), (np.int, np.int, np.int, np.int, np.float, '|S15', '|S35'))
+                dtype=zip(('ts', 'fail', 'retries', 'retry', 'rate', 'site'), (np.int, np.int, np.int, np.int, np.float, '|S15'))
                 )
         return arr
 
 if __name__ == "__main__": 
-    data = StatsParser().get_failure_info(tag="CMS4_V09-04-19")
+    # data = StatsParser().get_failure_info(tag="CMS4_V09-04-18_newdeepflav")
+    data = StatsParser().get_failure_info(tag="CMS4_V10-02-05")
 
     sys.path.insert(0,'/home/users/namin/.local/lib/python2.7/site-packages/')
     import numpy as np
@@ -98,7 +106,7 @@ if __name__ == "__main__":
 
     ts_first = data["ts"].min() - 1
     ts_last = data["ts"].max() + 1
-    nbins = 100
+    nbins = 50
     ts_bins = np.linspace(ts_first,ts_last,nbins)
     bin_idxs = np.digitize(data["ts"], ts_bins)
     for site in ["all"]+list(usites):
