@@ -196,7 +196,7 @@ ls -l
         outname = "gfaltest.root"
         basedir = "/hadoop/cms/store/user/{0}/metis_test".format(os.environ.get("GRIDUSER",os.environ.get("USER")))
         outfile = "{0}/{1}".format(basedir,outname)
-        cmd = """ touch {outname}; rm -f {outfile}; gfal-copy -p -f -t 4200 --verbose file://`pwd`/{outname} gsiftp://gftp.t2.ucsd.edu{outfile} --checksum ADLER32 """.format(outname=outname, outfile=outfile)
+        cmd = """ touch {outname}; rm -f {outfile}; env -i X509_USER_PROXY=/tmp/x509up_u`id -u` gfal-copy -p -f -t 4200 --verbose file://`pwd`/{outname} gsiftp://gftp.t2.ucsd.edu{outfile} --checksum ADLER32 """.format(outname=outname, outfile=outfile)
         stat, out = Utils.do_cmd(cmd, returnStatus=True)
 
 
