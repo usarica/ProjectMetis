@@ -55,9 +55,9 @@ class Sample(object):
         self.logger.debug("Doing DIS query of type {0} for {1}".format(typ, ds))
 
         rawresponse = dis.query(ds, typ=typ, detail=True)
-        response = rawresponse["response"]["payload"]
+        response = rawresponse["payload"]
         if not len(response):
-            self.logger.error("Query failed with response:" + str(rawresponse["response"]))
+            self.logger.error("Query failed with response:" + str(rawresponse))
 
         return response
 
@@ -77,7 +77,7 @@ class Sample(object):
         response = {}
         try:
             response = dis.query(query_str, typ='snt', detail=True)
-            response = response["response"]["payload"]
+            response = response["payload"]
             if len(response) == 0:
                 self.logger.error(" Query found no matching samples for: status = %s, dataset = %s, type = %s analysis = %s" % (self.info["status"], self.info["dataset"], self.info["type"], self.info["analysis"]))
                 return False
@@ -130,7 +130,7 @@ class Sample(object):
         try:
             succeeded = False
             response = dis.query(query_str, typ='update_snt')
-            response = response["response"]["payload"]
+            response = response["payload"]
             if "updated" in response and str(response["updated"]).lower() == "true":
                 succeeded = True
             self.logger.debug("Updated DIS")

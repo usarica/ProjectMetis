@@ -25,7 +25,7 @@ import scripts.dis_client as dis
 @cached(default_max_age = datetime.timedelta(seconds=21*24*3600), filename="site_cache.shelf")
 def get_file_replicas(dsname):
     rawresponse = dis.query(dsname, typ="sites", detail=True)
-    info = rawresponse["response"]["payload"]["block"]
+    info = rawresponse["payload"]["block"]
     file_replicas = {}
     for block in info:
         for fd in block["file"]:
