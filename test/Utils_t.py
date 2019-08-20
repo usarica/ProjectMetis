@@ -57,6 +57,25 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual("x509userproxy={0}".format(Utils.get_proxy_file()) in template, True)
 
 
+    def test_singularity_container_switches(self):
+        template = Utils.condor_submit(
+                executable="blah.sh",arguments=[],inputfiles=[],
+                logdir="./",return_template=True,
+                sites = "UAF,T2_US_UCSD",
+                container=None,
+            )
+        self.assertEqual("+SingularityContainer" in template, False)
+        container = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"
+        template = Utils.condor_submit(
+                executable="blah.sh",arguments=[],inputfiles=[],
+                logdir="./",return_template=True,
+                sites = "UAF,T2_US_UCSD",
+                container=container,
+            )
+        self.assertEqual("+SingularityImage" in template, True)
+        self.assertEqual(container in template, True)
+
+
     def test_condor_submit_template_uaf(self):
         template = Utils.condor_submit(
                 executable="blah.sh",arguments=[],inputfiles=[],

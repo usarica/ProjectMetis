@@ -382,8 +382,6 @@ def condor_submit(**kwargs): # pragma: no cover
     if kwargs.get("requirements_line","").strip():
         requirements_line = kwargs["requirements_line"]
 
-# NOTE put back in once chirp works at all sites (e.g., Purdue, Vanderbilt, and some others)
-# +SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest/"
     template = """
 universe={universe}
 +DESIRED_Sites="{sites}"
@@ -404,6 +402,8 @@ when_to_transfer_output = ON_EXIT
 """
     template += "{0}\n".format(params["proxyline"])
     template += "{0}\n".format(requirements_line)
+    if kwargs.get("container",None):
+        template += '+SingularityImage="{0}"\n'.format(kwargs.get("container",None))
     if kwargs.get("stream_logs",False):
         template += "StreamOut=True\nstream_error=True\nTransferOut=True\nTransferErr=True\n"
     for ad in kwargs.get("classads",[]):
