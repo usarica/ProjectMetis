@@ -24,6 +24,7 @@ class CMSSWTask(CondorTask):
         self.other_outputs = kwargs.get("other_outputs", [])
         self.output_is_tree = kwargs.get("is_tree_output", True)
         self.dont_check_tree = kwargs.get("dont_check_tree", False)
+        self.dont_edit_pset = kwargs.get("dont_edit_pset", False)
         self.publish_to_dis = kwargs.get("publish_to_dis", False)
         self.report_every = kwargs.get("report_every", 1000)
         # Pass all of the kwargs to the parent class
@@ -204,7 +205,8 @@ class CMSSWTask(CondorTask):
             data_in = fhin.read()
         with open(pset_location_out, "w") as fhin:
             fhin.write(data_in)
-            fhin.write("""
+            if not self.dont_edit_pset:
+                fhin.write("""
 if hasattr(process,"eventMaker"):
     process.eventMaker.CMS3tag = cms.string('{tag}')
     process.eventMaker.datasetName = cms.string('{dsname}')
@@ -227,7 +229,7 @@ def set_output_name(outputname):
     for i in range(len(to_change)):
         getattr(to_change[i][0],to_change[i][1]).fileName = outputname
 \n\n""".format(tag=self.tag, dsname=self.get_sample().get_datasetname(), gtag=self.global_tag, reportevery=self.report_every)
-            )
+                )
 
             if self.sparms:
                 sparms = ['"{0}"'.format(sparm) for sparm in self.sparms]
