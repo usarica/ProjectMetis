@@ -250,6 +250,7 @@ def set_output_name(outputname):
                 fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","file:/hadoop/cms")) for fo in self.get_inputs(flatten=True)]
             else:
                 fnames = ['"{0}"'.format(fo.get_name().replace("/hadoop/cms","").replace("/store/","root://cmsxrootd.fnal.gov//store/")) for fo in self.get_inputs(flatten=True)]
+            fnames = sorted(list(set(fnames)))
             with open(pset_location_out, "a") as fhin:
                 # hard limit at 255 input files since that's the max CMSSW allows in process.source
                 fhin.write("\nif hasattr(process.source,\"fileNames\"): process.source.fileNames = cms.untracked.vstring([\n{0}\n][:255])\n\n".format(",\n".join(fnames)))
