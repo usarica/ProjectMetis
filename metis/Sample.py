@@ -11,7 +11,7 @@ import json
 import scripts.dis_client as dis
 
 from metis.Constants import Constants
-from metis.Utils import setup_logger, cached
+from metis.Utils import setup_logger, cached, do_cmd
 from metis.File import FileDBS, EventsFile, ImmutableFile, MutableFile
 
 DIS_CACHE_SECONDS = 5*60
@@ -191,6 +191,7 @@ class DBSSample(Sample):
     def __init__(self, **kwargs):
 
         self.allow_invalid_files = kwargs.get("allow_invalid_files", False)
+        self.dasgoclient = kwargs.get("dasgoclient", False) # use dasgoclient instead of DIS
 
         super(DBSSample, self).__init__(**kwargs)
 
@@ -216,27 +217,50 @@ class DBSSample(Sample):
 
         self.info["files"] = fileobjs
         self.info["nevts"] = sum(fo.get_nevents() for fo in fileobjs)
-        # self.info["tier"] = self.info["dataset"].rsplit("/",1)[-1]
 
+    def load_from_dasgoclient(self):
+
+        cmd = "dasgoclient -query 'file dataset={}' -json".format(self.info["dataset"])
+        js = json.loads(do_cmd(cmd))
+        fileobjs = []
+        for j in js:
+            f = j["file"][0]
+            if (not hasattr(self,"selection") or self.selection(fdict["name"])):
+                fileobjs.append(FileDBS(name=f["name"], nevents=f["nevents"], filesizeGB=round(f["size"]*1e-9,2)))
+        fileobjs = sorted(fileobjs, key=lambda x: x.get_name())
+
+        self.info["files"] = fileobjs
+        self.info["nevts"] = sum(fo.get_nevents() for fo in fileobjs)
 
     def get_nevents(self):
         if self.info.get("nevts", None):
             return self.info["nevts"]
-        self.load_from_dis()
+        if self.dasgoclient:
+            self.load_from_dasgoclient()
+        else:
+            self.load_from_dis()
         return self.info["nevts"]
 
     def get_files(self):
         if self.info.get("files", None):
             return self.info["files"]
-        self.load_from_dis()
+        if self.dasgoclient:
+            self.load_from_dasgoclient()
+        else:
+            self.load_from_dis()
         return self.info["files"]
 
     def get_globaltag(self):
         if self.info.get("gtag", None):
             return self.info["gtag"]
-        response = self.do_dis_query(self.info["dataset"], typ="config")
-        self.info["gtag"] = response["global_tag"]
-        self.info["native_cmssw"] = response["release_version"]
+        if self.dasgoclient:
+            cmd = "dasgoclient -query 'config dataset={} system=dbs3' -json".format(self.info["dataset"])
+            js = json.loads(do_cmd(cmd))
+            response = js[0]["config"][0]
+        else:
+            response = self.do_dis_query(self.info["dataset"], typ="config")
+        self.info["gtag"] = str(response["global_tag"])
+        self.info["native_cmssw"] = str(response["release_version"])
         return self.info["gtag"]
 
     def get_native_cmssw(self):

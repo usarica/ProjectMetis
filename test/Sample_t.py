@@ -68,6 +68,16 @@ class DBSSampleTest(unittest.TestCase):
         self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_10_2_4_patch1")
         self.assertEqual(len(dbssamp.get_files()), 1260)
 
+    @unittest.skipIf(os.getenv("FAST"), "Skipped due to impatience")
+    @unittest.skipIf(os.getenv("NOINTERNET"), "Need internet access")
+    def test_dasgoclient(self):
+        dsname = "/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD"
+        dbssamp = DBSSample(dataset=dsname, dasgoclient=True)
+        self.assertEqual(dbssamp.get_nevents(), 75499908)
+        self.assertEqual(dbssamp.get_globaltag(), "102X_dataRun2_Sep2018Rereco_v1")
+        self.assertEqual(dbssamp.get_native_cmssw(), "CMSSW_10_2_4_patch1")
+        self.assertEqual(len(dbssamp.get_files()), 1260)
+
 class DirectorySampleTest(unittest.TestCase):
 
     def test_instantiation(self):
