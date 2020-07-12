@@ -7,17 +7,17 @@ import logging
 import httplib
 import datetime
 
-from metis.Utils import do_cmd, get_proxy_file, setup_logger
+from metis.Utils import do_cmd, get_proxy_file, setup_logger, cached
 
 try:
     pass
-    from WMCore.Configuration import Configuration
     from CRABAPI.RawCommand import crabCommand
-    from CRABClient.UserUtilities import setConsoleLogLevel, getUsernameFromSiteDB
+    from CRABClient.UserUtilities import setConsoleLogLevel
     from CRABClient.ClientUtilities import LOGLEVEL_MUTE
 except ImportError:
     print(">>> You need to do cmsenv and crabenv")
     sys.exit()
+
 
 class CrabManager(object):
 
@@ -167,20 +167,24 @@ class CrabManager(object):
 
         return False
 
-    def crab_status(self):
+    def crab_status(self, cacheseconds=15*3600):
 
-        out = {}
-        try:
-            out = crabCommand('status', dir=self.task_dir, long=False, proxy=get_proxy_file())
-        except httplib.HTTPException as e:
-            self.logger.warning("got an http exception from crab status, will use cached status_output")
-            self.logger.warning(str(e))
-            out = self.status_output.copy()
+        @cached(default_max_age = datetime.timedelta(seconds=cacheseconds), filename="crabstatuscache.shelf")
+        def get(thedir):
+            out = {}
+            try:
+                out = crabCommand('status', dir=thedir, long=False, proxy=get_proxy_file())
+            except httplib.HTTPException as e:
+                self.logger.warning("got an http exception from crab status, will use cached status_output")
+                self.logger.warning(str(e))
+                out = self.status_output.copy()
 
-        # Cache the crab status output
-        if out:
-            self.status_output = out.copy()
+            # Cache the crab status output
+            if out:
+                self.status_output = out.copy()
+            return out
 
+        out = get(self.task_dir)
         return self.parse_status(out)
 
     def crab_resubmit(self, more_ram=False):
@@ -216,6 +220,7 @@ class CrabManager(object):
         breakdown = {
             "unsubmitted": 0, "idle": 0, "running": 0, "failed": 0,
             "transferring": 0, "transferred": 0, "cooloff": 0, "finished": 0,
+            "held": 0,
         }
         job_info = {}
         for st, jobid in stat.get("jobList", []):
