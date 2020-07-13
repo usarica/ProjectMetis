@@ -4,6 +4,8 @@ import sys
 import itertools
 import traceback
 import datetime
+import urllib
+import json
 
 from metis.Sample import DBSSample
 from metis.CMSSWTask import CMSSWTask
@@ -13,6 +15,7 @@ from metis.LogParser import log_parser
 from pprint import pprint
 
 import scripts.dis_client as dis
+import urllib
 
 # NOTE xcache patterns are in
 # /cvmfs/cms.cern.ch/SITECONF/T2_US_UCSD/PhEDEx/storage.xml
@@ -22,10 +25,14 @@ import scripts.dis_client as dis
     # path-match="/+store/(mc/RunIIFall17MiniAODv2/[^/]+/MINIAODSIM/.*)"
     # path-match="/+store/(data/Run2017[A-Z]/[^/]+/MINIAOD/31Mar2018-.*)"
 
-@cached(default_max_age = datetime.timedelta(seconds=21*24*3600), filename="site_cache.shelf")
-def get_file_replicas(dsname):
-    rawresponse = dis.query(dsname, typ="sites", detail=True)
-    info = rawresponse["payload"]["block"]
+def get_file_replicas_uncached(dsname, use_dis=False):
+    if use_dis:
+        rawresponse = dis.query(dsname, typ="sites", detail=True)
+        info = rawresponse["payload"]["block"]
+    else:
+        url = "https://cmsweb.cern.ch/phedex/datasvc/json/prod/fileReplicas?dataset={}".format(dsname)
+        response = urllib.urlopen(url).read()
+        info = json.loads(response)["phedex"]["block"]
     file_replicas = {}
     for block in info:
         for fd in block["file"]:
@@ -47,6 +54,7 @@ def get_file_replicas(dsname):
                     "filesizeGB": filesizeGB
                     }
     return file_replicas
+get_file_replicas = cached(default_max_age = datetime.timedelta(seconds=21*24*3600), filename="site_cache.shelf")(get_file_replicas_uncached)
     
 class Optimizer(object):
     def __init__(self):
