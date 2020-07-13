@@ -70,7 +70,9 @@ class cached(object): # pragma: no cover
 
     def __call__(self, func):
         def inner(*args, **kwargs):
+            lockfd = open(self.cache_file + ".lock", "a")
             self.cached_function_responses = shelve.open(self.cache_file)
+            fcntl.flock(lockfd, fcntl.LOCK_EX)
             max_age = kwargs.get('max_age', self.default_max_age)
             funcname = func.__name__
             key = "|".join([str(funcname), str(args), str(kwargs)])
@@ -80,6 +82,7 @@ class cached(object): # pragma: no cover
                 self.cached_function_responses[key] = {'data': res, 'fetch_time': datetime.datetime.now()}
             to_ret = self.cached_function_responses[key]['data']
             self.cached_function_responses.close()
+            fcntl.flock(lockfd, fcntl.LOCK_UN)
             return to_ret
         return inner
 
