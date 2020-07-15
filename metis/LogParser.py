@@ -37,7 +37,10 @@ def log_parser(fname, do_rate=True, do_error=True, do_header=True):
                 if do_rate:
 
                     if line.startswith(" Event Throughput: "):
-                        avg_rate = float(line.split()[-2])
+                        try:
+                            avg_rate = float(line.split()[-2])
+                        except:
+                            pass
                         break # rate is the last thing, so break
 
                 if do_error:
