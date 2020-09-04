@@ -166,12 +166,12 @@ else
     fi
     scram b
     [ -e package.tar.gz ] && tar xf package.tar.gz
-    # Needed or else cmssw can't find libmcfm_705.so
-    # export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}
+    # Needed or else cmssw can't find libmcfm_[xyz].so
+    # export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}
     # This is nicer than above. both work, and both have scary but benign warnings/printouts
-    cp ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
+    cp ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
     # "Needed" to get rid of benign warnings/printouts
-    export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/interface
+    export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/interface
 fi
 
 # # logging every 45 seconds gives ~100kb log file/3 hours
