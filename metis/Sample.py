@@ -193,6 +193,9 @@ class DBSSample(Sample):
         self.allow_invalid_files = kwargs.get("allow_invalid_files", False)
         self.dasgoclient = kwargs.get("dasgoclient", False) # use dasgoclient instead of DIS
 
+        if os.getenv("USEDASGOCLIENT", False):
+            self.dasgoclient = True
+
         super(DBSSample, self).__init__(**kwargs)
 
     def set_selection_function(self, selection):

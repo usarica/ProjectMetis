@@ -25,14 +25,16 @@ import urllib
     # path-match="/+store/(mc/RunIIFall17MiniAODv2/[^/]+/MINIAODSIM/.*)"
     # path-match="/+store/(data/Run2017[A-Z]/[^/]+/MINIAOD/31Mar2018-.*)"
 
-def get_file_replicas_uncached(dsname, use_dis=False):
-    if use_dis:
-        rawresponse = dis.query(dsname, typ="sites", detail=True)
-        info = rawresponse["payload"]["block"]
-    else:
+def get_file_replicas_uncached(dsname, dasgoclient=False):
+    if os.getenv("USEDASGOCLIENT", False):
+        dasgoclient = True
+    if dasgoclient:
         url = "https://cmsweb.cern.ch/phedex/datasvc/json/prod/fileReplicas?dataset={}".format(dsname)
         response = urllib.urlopen(url).read()
         info = json.loads(response)["phedex"]["block"]
+    else:
+        rawresponse = dis.query(dsname, typ="sites", detail=True)
+        info = rawresponse["payload"]["block"]
     file_replicas = {}
     for block in info:
         for fd in block["file"]:
