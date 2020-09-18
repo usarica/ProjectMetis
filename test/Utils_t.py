@@ -81,8 +81,10 @@ class UtilsTest(unittest.TestCase):
                 executable="blah.sh",arguments=[],inputfiles=[],
                 logdir="./",return_template=True,
                 sites = "UAF",
+                memory=4096,
             )
         self.assertEqual("executable=blah.sh" in template, True)
+        self.assertEqual("RequestMemory = 4096" in template, True)
         self.assertEqual("UAF" in template, True)
 
     def test_condor_submit_template_multiple(self):

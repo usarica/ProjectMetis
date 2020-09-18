@@ -334,6 +334,7 @@ def condor_submit(**kwargs): # pragma: no cover
     params["logdir"] = kwargs["logdir"]
     params["proxy"] = get_proxy_file()
     params["timestamp"] = get_timestamp()
+    params["memory"] = kwargs.get("memory",2048)
 
 
     exe_dir = params["executable"].rsplit("/",1)[0]
@@ -388,7 +389,7 @@ def condor_submit(**kwargs): # pragma: no cover
     template = """
 universe={universe}
 +DESIRED_Sites="{sites}"
-RequestMemory = 2048
+RequestMemory = {memory}
 RequestCpus = 1
 executable={executable}
 transfer_executable=True
