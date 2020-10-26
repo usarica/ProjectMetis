@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import math
-import time                                                
+import time
 import os
 import json
 try:
@@ -25,35 +25,35 @@ from contextlib import contextmanager
 # http://uaf-10.t2.ucsd.edu/~namin/dump/badsites.html
 good_sites = set([
 
-            "T2_US_Caltech",
             "T2_US_UCSD",
-            "T3_US_UCR",
+            "T2_US_Caltech",
+            #"T3_US_UCR",
             "T3_US_OSG",
-            # "T2_US_Florida",
+            #"T2_US_Florida",
             "T2_US_MIT",
             "T2_US_Nebraska",
             "T2_US_Purdue",
             "T2_US_Vanderbilt",
-            # "T2_US_Wisconsin",
+            #"T2_US_Wisconsin",
             "T3_US_Baylor",
             "T3_US_Colorado",
-            "T3_US_NotreDame",
-            "T3_US_Rice",
-            "T3_US_UMiss",
-            "T3_US_PuertoRico",
+            #"T3_US_NotreDame",
+            #"T3_US_Rice",
+            #"T3_US_UMiss",
+            #"T3_US_PuertoRico",
             # "UCSB",
             # "UAF", # bad (don't spam uafs!!)
 
-            "T3_US_Cornell",
-            "T3_US_FIT",
-            "T3_US_FIU",
-            "T3_US_OSU",
-            "T3_US_Rutgers",
-            "T3_US_TAMU",
-            "T3_US_TTU",
-            "T3_US_UCD",
-            "T3_US_UMD",
-            "T3_US_UMiss",
+            #"T3_US_Cornell",
+            #"T3_US_FIT",
+            #"T3_US_FIU",
+            #"T3_US_OSU",
+            #"T3_US_Rutgers",
+            #"T3_US_TAMU",
+            #"T3_US_TTU",
+            #"T3_US_UCD",
+            #"T3_US_UMD",
+            #"T3_US_UMiss",
 
         ])
 
@@ -155,7 +155,7 @@ def metis_base():
 
 def interruptible_sleep(n,reload_modules=[]):
     """
-    Sleep for n seconds allowing a <C-c> to interrupt (then user 
+    Sleep for n seconds allowing a <C-c> to interrupt (then user
     can hit enter to end the sleep without an exception, or <C-c> again
     to throw an exception as usual
     If `reload_modules` is not empty, reload all modules in the list.
@@ -458,13 +458,13 @@ def file_chunker(files, files_per_output=-1, events_per_output=-1, MB_per_output
     Chunking happens in order while traversing the list, so
     any leftover can be pushed into a final chunk with flush=True
     """
-   
+
     num = 0
     chunk, chunks = [], []
     for f in files:
         # if the current file's nevents would push the chunk
         # over the limit, then start a new chunk
-        if ((0 < files_per_output <= num) or 
+        if ((0 < files_per_output <= num) or
                 (0 < events_per_output < num+f.get_nevents()) or
                 (0 < MB_per_output < num+f.get_filesizeMB())
                 ):
