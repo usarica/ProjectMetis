@@ -121,12 +121,15 @@ chirp ChirpMetisStatus "finishedrunning"
 echo "after running: ls -lrth"
 ls -lrth
 
+echo -e "\n--- begin xrootd log ---\n"
+cat "$XRD_LOGFILE"
+echo -e "\n--- end xrootd log ---\n"
+
 if [[ $RET != 0 ]]; then
     echo "Removing output file because looper crashed with exit code $RET"
     rm ${OUTPUTNAME}.root
     exit 1
 fi
-
 
 echo "time before copy: $(date +%s)"
 chirp ChirpMetisStatus "startedcopy"
@@ -137,8 +140,5 @@ stageout $COPY_SRC $COPY_DEST
 
 echo "time at end: $(date +%s)"
 
-echo -e "\n--- begin xrootd log ---\n"
-cat "$XRD_LOGFILE"
-echo -e "\n--- end xrootd log ---\n"
 
 chirp ChirpMetisStatus "done"
