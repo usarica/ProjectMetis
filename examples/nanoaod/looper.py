@@ -11,7 +11,7 @@ ch = r.TChain("Events")
 for fname in args.inputs.split(","):
     fname = fname.strip()
     if fname.startswith("/store/"):
-        fname = "root://xrootd.t2.ucsd.edu:2040/" + fname
+        fname = "root:///xcache-redirector.t2.ucsd.edu:2040/" + fname
     ch.Add(fname)
 
 ch.SetBranchStatus("*", 0)
