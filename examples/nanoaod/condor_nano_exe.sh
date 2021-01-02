@@ -134,8 +134,15 @@ fi
 echo "time before copy: $(date +%s)"
 chirp ChirpMetisStatus "startedcopy"
 
+# # Old
+# COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
+# COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+# stageout $COPY_SRC $COPY_DEST
+
+# New
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+OUTPUTDIRSTORE=$(echo $OUTPUTDIR | sed "s#^/hadoop/cms/store#/store#")
+COPY_DEST="davs://redirector.t2.ucsd.edu:1094${OUTPUTDIRSTORE}/${OUTPUTNAME}_${IFILE}.root"
 stageout $COPY_SRC $COPY_DEST
 
 echo "time at end: $(date +%s)"
