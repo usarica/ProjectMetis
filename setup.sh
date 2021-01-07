@@ -16,4 +16,6 @@ export PYTHONPATH=${METIS_BASE}:$PYTHONPATH
 # Add some scripts to the path
 export PATH=${METIS_BASE}/scripts:$PATH
 
+export USEDASGOCLIENT=true
+
 export GRIDUSER=$(voms-proxy-info -identity -dont-verify-ac | cut -d '/' -f6 | cut -d '=' -f2)
