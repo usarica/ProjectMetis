@@ -18,4 +18,5 @@ export PATH=${METIS_BASE}/scripts:$PATH
 
 export USEDASGOCLIENT=true
 
-export GRIDUSER=$(voms-proxy-info -identity -dont-verify-ac | cut -d '/' -f6 | cut -d '=' -f2)
+# export GRIDUSER=$(voms-proxy-info -identity -dont-verify-ac | cut -d '/' -f6 | cut -d '=' -f2)
+export GRIDUSER=$(voms-proxy-info -identity | cut -d '/' -f6 | cut -d '=' -f2)
