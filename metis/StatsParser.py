@@ -76,20 +76,21 @@ class StatsParser(object):
 
                 is_done  = job["output_exists"] and not job["is_on_condor"]
 
-                if is_done and len(condor_jobs):
+                if is_done:
                     outnevents += job["output"][1]
                     parsed = {}
-                    if custom_event_rate_parser:
-                        errlog = condor_jobs[-1]["logfile_err"]
-                        rate = custom_event_rate_parser(errlog)
-                        if rate > 0.:
-                            event_rates.append(rate)
-                    elif is_cmssw and len(condor_jobs) > 0:
-                        errlog = condor_jobs[-1]["logfile_err"]
-                        parsed = LogParser.log_parser(errlog,do_header=False,do_error=False,do_rate=True)
-                        rate = parsed.get("event_rate",-1)
-                        if rate > 0.:
-                            event_rates.append(rate)
+                    if len(condor_jobs):
+                        if custom_event_rate_parser:
+                            errlog = condor_jobs[-1]["logfile_err"]
+                            rate = custom_event_rate_parser(errlog)
+                            if rate > 0.:
+                                event_rates.append(rate)
+                        elif is_cmssw and len(condor_jobs) > 0:
+                            errlog = condor_jobs[-1]["logfile_err"]
+                            parsed = LogParser.log_parser(errlog,do_header=False,do_error=False,do_rate=True)
+                            rate = parsed.get("event_rate",-1)
+                            if rate > 0.:
+                                event_rates.append(rate)
                     njobsdone += 1
                     continue
 
