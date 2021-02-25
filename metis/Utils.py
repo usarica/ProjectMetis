@@ -379,7 +379,8 @@ def condor_submit(**kwargs): # pragma: no cover
     # NOTE, double {{ and }} because this gets str.format'ted later on
     # Must have singularity&cvmfs. Or, (it must be uaf or uafino computer AND if a uaf computer must not have too high of slotID number
     # so that we don't take all the cores of a uaf
-    requirements_line = 'Requirements = ((HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)) || (regexp("(uaf-[0-9]{{1,2}}|uafino)\.", TARGET.Machine) && !(TARGET.SlotID>(TotalSlots<14 ? 3:7) && regexp("uaf-[0-9]", TARGET.machine)))'
+    # requirements_line = 'Requirements = ((HAS_SINGULARITY=?=True)) || (regexp("(uaf-[0-9]{{1,2}}|uafino)\.", TARGET.Machine) && !(TARGET.SlotID>(TotalSlots<14 ? 3:7) && regexp("uaf-[0-9]", TARGET.machine)))'
+    requirements_line = 'Requirements = (HAS_SINGULARITY=?=True)'
     if kwargs.get("universe","").strip().lower() in ["local"]:
         kwargs["requirements_line"] = "Requirements = "
     if kwargs.get("requirements_line","").strip():
