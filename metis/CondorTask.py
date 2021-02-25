@@ -462,7 +462,7 @@ class CondorTask(Task):
                         ["tag", self.tag],
                         ["metis_retries", len(self.job_submission_history.get(index,[]))],
                         ["DESIRED_Sites", sites],
-                        ] 
+                        ]
                     for index,sites in zip(v_index,v_sites)
                     ]
         else:
@@ -472,7 +472,7 @@ class CondorTask(Task):
                         ["jobnum", index],
                         ["tag", self.tag],
                         ["metis_retries", len(self.job_submission_history.get(index,[]))],
-                        ] 
+                        ]
                     for index in v_index
                     ]
         logdir_full = os.path.abspath("{0}/logs/".format(self.get_taskdir()))
@@ -524,7 +524,7 @@ class CondorTask(Task):
 
         # take care of package tar file if we were told to. easy.
         if self.tarfile:
-            Utils.do_cmd("cp {0} {1}".format(self.tarfile, self.package_path))
+            Utils.do_cmd("ln -sf {0} {1}".format(os.path.abspath(os.path.expanduser(os.path.expandvars(self.tarfile))), self.package_path))
 
         self.prepared_inputs = True
 

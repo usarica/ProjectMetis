@@ -53,7 +53,6 @@ good_sites = set([
             #"T3_US_TTU",
             #"T3_US_UCD",
             #"T3_US_UMD",
-            #"T3_US_UMiss",
 
         ])
 
